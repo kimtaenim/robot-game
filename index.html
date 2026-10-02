@@ -19,6 +19,8 @@
   --steel: #1C5A86;
   --steel-soft: #DCE8F1;
   --good: #24804D;
+  --warn: #C77F00;
+  --bad: #C03A2A;
   --scrim: rgba(12, 20, 27, 0.55);
   --font-display: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
@@ -28,13 +30,13 @@
   :root:not([data-theme="light"]) {
     --bg: #0F151A; --table: #1A242C; --card: #252F38; --card-head: #33404B; --surface: #18212A; --surface-2: #202B35;
     --ink: #E4EBF0; --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115;
-    --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
+    --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F151A; --table: #1A242C; --card: #252F38; --card-head: #33404B; --surface: #18212A; --surface-2: #202B35;
   --ink: #E4EBF0; --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115;
-  --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
+  --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
@@ -74,7 +76,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ticket .ask .icons { display: flex; gap: 1px; }
 .ticket .ask .icons span { font-size: 46px; line-height: 1.05; position: relative; }
 .ticket .ask .icons span.done { opacity: .28; }
-.ticket .ask .icons.two span { font-size: 32px; }
+.ticket .ask .icons.two span { font-size: 26px; }
 .ticket .ask .rc { font-size: 15px; margin-top: 3px; text-align: center; line-height: 1.25; padding-inline: 2px; }
 .ticket.bulk { grid-column: 1 / -1; background: var(--gold-soft); border: 2px solid var(--accent); flex-direction: row; justify-content: space-around; align-items: center; gap: 10px; padding: 10px 12px; }
 .ticket.bulk::before { background: var(--accent); }
@@ -90,7 +92,12 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ticket .ask .t { font-size: 12px; font-weight: 700; color: var(--steel); text-align: center; line-height: 1.2; padding-inline: 2px; }
 .ticket .ask .q { font-family: var(--font-display); font-size: 26px; color: var(--steel); line-height: 1; }
 .ticket .qty { position: absolute; top: -7px; right: -5px; background: var(--ink); color: var(--bg); border-radius: 9px; font-size: 11px; font-weight: 700; padding: 1px 6px; }
-.ticket .fast { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 3px; border-radius: 2px; background: var(--accent); transform-origin: left; }
+.ticket .mood { position: absolute; top: 4px; left: 5px; font-size: 18px; line-height: 1; }
+.ticket .task { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; line-height: 1.2; word-break: keep-all; }
+.ticket .pat { width: 100%; height: 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; flex: none; }
+.ticket .pat i { display: block; height: 100%; background: var(--good); transform-origin: left; }
+.ticket .pat i.warn { background: var(--warn); }
+.ticket .pat i.crit { background: var(--bad); }
 .ticket.target { box-shadow: 0 0 0 2px var(--steel); }
 .ticket.over { box-shadow: 0 0 0 3px var(--accent); }
 .ticket.enter { animation: drop .3s ease-out; }
@@ -257,6 +264,18 @@ const ORDERS = [
   { id: 'tro',      wants: ['humw'],         icon: '🛠️', who: 'TR-Works',    sec: '② AMR',         fact: '티로보틱스가 AMR을 하체로 쓴 산업용 휴머노이드 TR-Works를 공개해 제조라인 투입을 겨냥해요.' },
   { id: 'samsung',  wants: ['amr', 'hum'],   icon: '💾', who: '삼성전자',    sec: '⑥ 반도체 공장', fact: '디지털 트윈 시나리오에서 AMR이 공구를 나르고 휴머노이드가 설비를 점검해요.' },
 ];
+// 손님 성격(게임용 설정): hot 급함 / mid 보통 / calm 느긋. task = 자료에 나온 쓰임새
+const CLIENT = {
+  port: ['calm', '컨테이너 이송'], kai: ['calm', '공정 사이 자재 이송'], stl: ['mid', '오더피킹'],
+  transys: ['mid', '부품 운반'], ford: ['hot', '공장 자재 운반'], ecopro: ['mid', '설비 순찰 점검'],
+  mipo: ['mid', '선체 용접'], busanEdu: ['calm', '급식 조리'], gwangjin: ['hot', '양산 라인 부품 집기'],
+  polytech: ['calm', '학생 실습'], lg: ['mid', '불량 셀 빼내기'], posco: ['mid', '고로 가스 누설 점검'],
+  police: ['hot', '폭발물 현장 정찰'], army: ['calm', '산악 정찰'], fire: ['hot', '화재 현장 탐색'],
+  hyundai: ['hot', '조립 라인 투입'], bmw: ['hot', '차체 라인 교대 근무'], cj: ['mid', '완충재 포장'],
+  catl: ['hot', '생산 라인 투입'], tro: ['mid', '제조 라인 투입'], samsung: ['mid', '공구 운반 + 설비 점검'],
+};
+ORDERS.forEach(o => { [o.mood, o.task] = CLIENT[o.id]; });
+const MOODS = { hot: { face: '😤', label: '급함', sec: 13 }, mid: { face: '🙂', label: '보통', sec: 19 }, calm: { face: '😌', label: '느긋', sec: 27 } };
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
 // 대량 수주: 자료 속 실제 대수
 const BULKS = [
@@ -271,15 +290,14 @@ ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push(
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
 // ───────── 템포 ─────────
-const COMBO_SEC = 5, SPOTS = 4, RAIL = 4, FAST_SEC = 8, FEVER_AT = 5, FEVER_SEC = 8;
+const COMBO_SEC = 5, SPOTS = 4, RAIL = 4, FEVER_AT = 5, FEVER_SEC = 8;
 const levelTarget = lv => Math.min(16, 6 + lv);
 const levelGap = lv => Math.max(1.6, 3.4 - (lv - 1) * 0.22);
-const levelPar = lv => { const n = levelTarget(lv); return [n * 5, n * 7.5]; };
 
 // ───────── 상태 ─────────
 const S = {
   lv: 1, running: false, paused: false, score: 0, combo: 0, comboT: 0, best: 0, bestScore: 0,
-  table: Array.from({ length: SPOTS }, () => []), tickets: [], spawned: 0, done: 0, spawnT: 0,
+  table: Array.from({ length: SPOTS }, () => []), tickets: [], spawned: 0, done: 0, missed: 0, spawnT: 0,
   elapsed: 0, clock: 0, runServed: [], dex: new Set(), last: 0, sound: true, intro: [],
   fever: 0, bulk: null, bulkCD: 25,
 };
@@ -336,7 +354,10 @@ function pickOrder() {
 }
 function addTicket() {
   const order = O[pickOrder()];
-  S.tickets.push({ order, left: order.wants.slice(), born: S.clock, fresh: true });
+  // 인내심: 성격 기본값 + 큰 로봇일수록 조금 더, 단계가 오를수록 조금씩 짧게
+  const size = order.wants.reduce((s, w) => s + ROBOTS[w].parts.length, 0);
+  const max = (MOODS[order.mood].sec + Math.max(0, size - 2) * 1.5) * Math.max(0.6, 1 - (S.lv - 1) * 0.05);
+  S.tickets.push({ order, left: order.wants.slice(), max, t: max, fresh: true });
   S.spawned++;
   SFX.ticket();
 }
@@ -388,12 +409,14 @@ function ticketHtml(t, i) {
   const left = t.left.slice();
   const icons = o.wants.map(w => { const k = left.indexOf(w); if (k >= 0) { left.splice(k, 1); return `<span>${ROBOTS[w].icon}</span>`; } return `<span class="done">${ROBOTS[w].icon}</span>`; }).join('');
   const qty = o.wants.length > 1 ? `<span class="qty">${o.wants.length - t.left.length}/${o.wants.length}</span>` : '';
-  return `<button class="ticket${t.fresh ? ' enter' : ''}" type="button" data-ticket="${i}" aria-label="${o.who} 주문">
-    ${qty}<span class="site">${o.icon}</span><span class="who">${o.who}</span>
+  const m = MOODS[o.mood];
+  return `<button class="ticket${t.fresh ? ' enter' : ''}" type="button" data-ticket="${i}" aria-label="${o.who} 주문, ${m.label}">
+    ${qty}<span class="mood" data-mood="${i}">${m.face}</span><span class="site">${o.icon}</span><span class="who">${o.who}</span>
+    <span class="task">${o.task}</span>
     <span class="ask"><span class="icons${o.wants.length > 1 ? ' two' : ''}">${icons}</span>
       <span class="t">${kinds.map(w => ROBOTS[w].name).join(' + ')}</span>
       <span class="rc">${kinds.map(partsIcons).join(' ')}</span></span>
-    <span class="fast" data-fast="${i}"></span>`;
+    <span class="pat" data-pat="${i}"><i></i></span>`;
 }
 function renderRail() {
   if (S.bulk) {
@@ -430,12 +453,11 @@ function renderDeck() {
       <span class="ic">${PARTS[id].icon}</span><span class="nm">${PARTS[id].name}</span></button>`).join('');
 }
 function renderHud() {
-  const n = levelTarget(S.lv), [p3, p2] = levelPar(S.lv);
+  const n = levelTarget(S.lv);
   $('clock').textContent = fmt(S.elapsed);
-  $('clock').style.color = S.elapsed <= p3 ? 'var(--good)' : S.elapsed <= p2 ? 'var(--ink)' : 'var(--muted)';
   $('prog').textContent = `${S.done}/${n}`;
   $('goalBar').style.width = (S.done / n * 100).toFixed(1) + '%';
-  $('par').textContent = S.elapsed <= p3 ? `⭐⭐⭐ ${fmt(p3)}까지` : S.elapsed <= p2 ? `⭐⭐ ${fmt(p2)}까지` : '⭐';
+  $('par').textContent = S.missed ? `💢 떠난 손님 ${S.missed}` : '';
   $('score').textContent = S.score;
   $('lv').textContent = `${S.lv}단계`;
   $('combo').textContent = `🔥${S.combo}`;
@@ -444,8 +466,11 @@ function renderHud() {
   $('app').classList.toggle('fever', S.fever > 0);
   if (S.bulk) { const el = $('bulkLeft'); if (el) el.textContent = `${Math.ceil(S.bulk.t)}초`; }
   S.tickets.forEach((tk, i) => {
-    const el = document.querySelector(`[data-fast="${i}"]`);
-    if (el) el.style.transform = `scaleX(${Math.max(0, 1 - (S.clock - tk.born) / FAST_SEC)})`;
+    const f = Math.max(0, tk.t / tk.max);
+    const el = document.querySelector(`[data-pat="${i}"] i`);
+    if (el) { el.style.transform = `scaleX(${f})`; el.className = f < 0.25 ? 'crit' : f < 0.5 ? 'warn' : ''; }
+    const face = document.querySelector(`[data-mood="${i}"]`);
+    if (face) face.textContent = f < 0.25 ? '😡' : f < 0.5 ? '😠' : MOODS[tk.order.mood].face;
   });
 }
 function centerOf(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
@@ -542,9 +567,9 @@ function deliver(spot, ti) {
   S.comboT = COMBO_SEC;
   S.best = Math.max(S.best, S.combo);
   if (S.combo === FEVER_AT && S.fever <= 0) { S.fever = FEVER_SEC; banner('🔥 FEVER ×2'); }
-  const fast = S.clock - t.born < FAST_SEC;
+  const tip = Math.round(80 * t.t / t.max);
   const size = t.order.wants.reduce((s, w) => s + ROBOTS[w].parts.length, 0);
-  const gain = Math.round((50 * size * Math.min(3, 1 + 0.2 * (S.combo - 1)) + (fast ? 50 : 0)) * (S.fever > 0 ? 2 : 1));
+  const gain = Math.round((50 * size * Math.min(3, 1 + 0.2 * (S.combo - 1)) + tip) * (S.fever > 0 ? 2 : 1));
   S.score += gain;
   floatText(el, `+${gain}`, S.combo >= 3);
   SFX.done(S.combo);
@@ -610,22 +635,37 @@ document.addEventListener('pointerup', e => {
 document.addEventListener('pointercancel', () => { if (!drag) return; drag.ghost?.remove(); drag = null; });
 
 // ───────── 진행: 단계를 깨면 멈추지 않고 바로 다음 단계 ─────────
+function patienceTick(dt) {
+  if (S.bulk) return;
+  for (let i = S.tickets.length - 1; i >= 0; i--) {
+    const tk = S.tickets[i];
+    if ((tk.t -= dt) > 0) continue;
+    floatText(document.querySelector(`[data-ticket="${i}"]`), '💢 떠남');
+    SFX.nope();
+    S.tickets.splice(i, 1);
+    S.missed++; S.done++;
+    S.combo = 0; S.comboT = 0;
+    if (!S.tickets.length) S.spawnT = 0;
+    renderRail();
+    if (S.done >= levelTarget(S.lv)) { levelClear(); return; }
+  }
+}
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
   if (S.running && !S.paused) {
     S.elapsed += dt;
-    if (!S.bulk) S.clock += dt;
     if (S.comboT > 0 && !S.bulk && (S.comboT -= dt) <= 0) { S.comboT = 0; S.combo = 0; }
     if (S.fever > 0) S.fever -= dt;
     bulkTick(dt);
-    spawnTick(dt);
+    if (S.running) patienceTick(dt);
+    if (S.running) spawnTick(dt);
     renderHud();
   }
   requestAnimationFrame(loop);
 }
 function startLevel() {
-  Object.assign(S, { running: true, paused: false, elapsed: 0, spawned: 0, done: 0, tickets: [], spawnT: 0,
+  Object.assign(S, { running: true, paused: false, elapsed: 0, spawned: 0, done: 0, tickets: [], missed: 0, spawnT: 0,
     bulk: null, bulkCD: 12 + Math.random() * 10, intro: S.lv === 1 ? ['transys', 'kai', 'stl'] : [] });
   $('overlay').hidden = true;
   renderRail(); renderTable(); renderDeck(); renderHud();
@@ -633,8 +673,8 @@ function startLevel() {
 }
 function levelClear() {
   S.running = false;
-  const [p3, p2] = levelPar(S.lv);
-  const stars = S.elapsed <= p3 ? 3 : S.elapsed <= p2 ? 2 : 1;
+  const n = levelTarget(S.lv), served = n - S.missed;
+  const stars = S.missed === 0 ? 3 : served >= n * 0.7 ? 2 : 1;
   const bonus = stars * 200;
   S.score += bonus; S.bestScore = Math.max(S.bestScore, S.score); save();
   SFX.clear();
@@ -671,7 +711,7 @@ const HELP = `
     <div class="step">🛞🧭🦾🤏 = 🚜 <span>조립대 위에 차곡차곡 쌓이고</span></div>
     <div class="step">🚜 ➜ 🧾 <span>완성되면 주문표로 날아가요</span></div>
   </div>
-  <p>주문을 다 쳐내면 바로 다음 단계! 연달아 쳐내면 🔥, 5콤보면 FEVER ×2. 가끔 🚨 대량 수주가 터지면 미친 듯이 눌러요. 조립대를 누르면 부품이 덱으로 돌아가요.</p>
+  <p>손님마다 성격이 달라요. 😤 급한 손님은 금방 떠나고 😌 느긋한 손님은 기다려줘요. 타임 바가 다 떨어지면 💢 돈을 못 받아요. 다 쳐내면 바로 다음 단계! 연달아 쳐내면 🔥, 5콤보면 FEVER ×2. 가끔 🚨 대량 수주가 터지면 미친 듯이 눌러요. 조립대를 누르면 부품이 덱으로 돌아가요.</p>
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
   const seen = [...new Set(S.runServed)].map(id => logItem(O[id])).join('');
