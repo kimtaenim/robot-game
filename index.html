@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 위 클라이언트 3명(말풍선 주문) → 아래 5×6 매치3 보드. 공장 작업장 톤 */
+/* 레이아웃: 위 클라이언트 3명(말풍선 주문) → 아래 5×5 매치3 보드. 공장 작업장 톤 */
 :root {
   --bg: #DDE4E8;
   --board: #C3CED5;
@@ -114,7 +114,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* 매치3 보드 */
 .boardwrap { flex: none; display: flex; justify-content: center; }
-.board { position: relative; width: min(100%, 380px); aspect-ratio: 5 / 6; background: var(--board); border-radius: 14px; touch-action: none; overflow: visible; }
+.board { position: relative; width: min(100%, 380px); aspect-ratio: 1; background: var(--board); border-radius: 14px; touch-action: none; overflow: visible; }
 .clip { position: absolute; inset: 0; overflow: hidden; border-radius: 14px; }
 .fxc { position: absolute; left: -40px; top: -40px; pointer-events: none; z-index: 5; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
@@ -467,7 +467,8 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
 // ───────── 단계: 한 판에 로봇 여러 종 + 손님 많이 ─────────
 // 일반 타일 수: 1~4단계 4종, 5~9단계 5종, 10단계부터 6종 (휴머노이드는 특수 타일이라 세지 않음)
-// 5×6 보드 시뮬레이션: 4종 막힘 0%, 5종 0.6%, 6종 3.4% (막히면 섞음)
+// 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.7%, 6종 6.3% (막히면 섞음)
+// 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
 // 로봇은 단계마다 갈아치우지 않고, 쌓아 가며 천천히 늘림
 //   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (🛞🧭🦾🔧)
 //   5~9단계: + AGV (🚧 바닥 공사 추가)
@@ -480,7 +481,7 @@ const STAGES = [
 const levelDef = lv => STAGES.filter(s => lv >= s.from).pop();
 const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 5: ['agv'], 10: ['quad'] };
 const levelTarget = lv => Math.min(60, 30 + (lv - 1) * 4);
-const SLOTS = 3, COLS = 5, ROWS = 6, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
+const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
 // 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
 const JUICE = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2.0;
 const FALL_GRAVITY = 140; // 칸/초²
