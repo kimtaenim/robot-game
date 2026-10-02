@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 주문 카드(그림) → 작업대(머지 보드, 안전 줄무늬) → 스토리지 선반. 글자 대신 그림으로 읽는 작업장 */
+/* 레이아웃: 주문 카드(그림) → 작업대(머지 보드, 안전 줄무늬) → 컨베이어 벨트. 글자 대신 그림으로 읽는 작업장 */
 :root {
   --bg: #E7ECEF;
   --surface: #FFFFFF;
@@ -12,10 +12,12 @@
   --muted: #586977;
   --line: #CBD5DC;
   --accent: #F0B400;
+  --gold-soft: #FFF3C9;
   --steel: #1C5A86;
   --steel-soft: #DCE8F1;
+  --belt: #3A4650;
+  --belt-2: #2E3841;
   --good: #24804D;
-  --bad: #C03A2A;
   --scrim: rgba(12, 20, 27, 0.55);
   --font-display: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
@@ -24,24 +26,24 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0F151A; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0; --muted: #91A2AF;
-    --line: #2E3B47; --accent: #F5C12B; --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C;
-    --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
+    --line: #2E3B47; --accent: #F5C12B; --gold-soft: #3A3115; --steel: #72AEDC; --steel-soft: #1D3346;
+    --belt: #2A333B; --belt-2: #20282F; --good: #3FA86C; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F151A; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0; --muted: #91A2AF;
-  --line: #2E3B47; --accent: #F5C12B; --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C;
-  --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
+  --line: #2E3B47; --accent: #F5C12B; --gold-soft: #3A3115; --steel: #72AEDC; --steel-soft: #1D3346;
+  --belt: #2A333B; --belt-2: #20282F; --good: #3FA86C; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
 }
 html, body { height: 100%; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; overflow: hidden; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
 .app { box-sizing: border-box; height: 100%; max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 10px 14px; display: flex; flex-direction: column; gap: 12px; }
 
-/* 상단 바: 숫자만 */
+/* 상단 바 */
 .top { display: flex; align-items: center; gap: 14px; font-size: 16px; }
 .top .stat { display: flex; align-items: center; gap: 4px; }
 .top .stat b { font-size: 17px; }
@@ -49,32 +51,41 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .combo b { font-size: 17px; min-width: 1.5em; }
 .combo .meter { flex: 1; height: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 .combo .meter i { display: block; height: 100%; width: 0; background: var(--accent); }
+.combo.hot b { color: var(--accent); }
 .tools { display: flex; gap: 6px; }
 .tool { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; width: 34px; height: 34px; font-size: 16px; padding: 0; }
 
 /* 주문 카드 */
 .clients { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 6px 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; min-height: 150px; box-sizing: border-box; }
+.card { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 6px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; min-height: 150px; box-sizing: border-box; }
 .card.empty { border-style: dashed; background: transparent; cursor: default; }
+.card.gold { border: 2px solid var(--accent); background: var(--gold-soft); }
+.card .badge { position: absolute; top: -9px; left: -6px; background: var(--accent); color: #1A1400; border-radius: 10px; font-size: 11px; font-weight: 700; padding: 2px 7px; }
 .card .who { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; max-width: 100%; }
 .card .who span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card .want { margin-top: 2px; width: 100%; background: var(--steel-soft); border-radius: 10px; padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.card .want .big { font-size: 40px; line-height: 1.05; }
-.card .want .nm { font-family: var(--font-display); font-size: 14px; color: var(--steel); text-align: center; line-height: 1.15; padding-inline: 4px; }
-.card .recipe { font-size: 17px; letter-spacing: 1px; min-height: 22px; color: var(--muted); }
+.card .want { width: 100%; background: var(--steel-soft); border-radius: 10px; padding: 6px 2px 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; box-sizing: border-box; }
+.card .icons { display: flex; gap: 2px; justify-content: center; }
+.card .icons span { font-size: 40px; line-height: 1.05; position: relative; }
+.card .icons.two span { font-size: 30px; }
+.card .icons span.done { opacity: .3; }
+.card .icons span.done::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--good); opacity: 1; font-weight: 700; }
+.card .want .nm { font-family: var(--font-display); font-size: 13.5px; color: var(--steel); text-align: center; line-height: 1.15; }
+.card .recipe { font-size: 16px; letter-spacing: 1px; min-height: 20px; color: var(--muted); white-space: nowrap; }
 .card.target { border-color: var(--steel); box-shadow: 0 0 0 2px var(--steel); }
 .card.over { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); }
 .card.enter { animation: enter .35s ease-out; }
 .card.shake { animation: shake .4s; }
+.card.bump { animation: bump .3s; }
 .backlog { position: absolute; top: -8px; right: -6px; background: var(--ink); color: var(--bg); border-radius: 10px; font-size: 11px; font-weight: 700; padding: 2px 7px; }
 @keyframes enter { from { transform: translateY(-14px) scale(.95); opacity: .2; } to { transform: none; opacity: 1; } }
 @keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+@keyframes bump { 50% { transform: scale(1.05); } }
 
 /* 작업대 */
 .bench { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
 .stripe { height: 8px; background: repeating-linear-gradient(-45deg, var(--accent) 0 10px, var(--ink) 10px 20px); }
 .bench-in { padding: 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.cell { height: 76px; border: 2px dashed var(--line); border-radius: 12px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 10.5px; font-weight: 700; touch-action: none; padding: 0 2px; line-height: 1.15; text-align: center; }
+.cell { height: 72px; border: 2px dashed var(--line); border-radius: 12px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 10.5px; font-weight: 700; touch-action: none; padding: 0 2px; line-height: 1.15; text-align: center; }
 .cell.part { border-style: solid; background: var(--surface-2); }
 .cell.robot { border-style: solid; border-color: var(--steel); background: var(--steel-soft); }
 .cell .ic { font-size: 32px; line-height: 1; }
@@ -85,26 +96,27 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .cell.nope { animation: shake .35s; }
 @keyframes pop { 0% { transform: scale(.5); } 60% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
-/* 스토리지 */
-.storage { margin-top: auto; display: flex; gap: 8px; align-items: stretch; }
-.shelf { flex: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
-.stock { background: var(--surface); border: 1px solid var(--line); border-bottom-width: 4px; border-radius: 12px; padding: 7px 1px 5px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; touch-action: none; }
-.stock .ic { font-size: 28px; line-height: 1.1; }
-.stock .nm { font-size: 10.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.stock.robot { border-color: var(--steel); }
-.stock.glow { box-shadow: 0 0 0 3px var(--accent); animation: glow 1.2s ease-in-out infinite; }
-.stock.nope { animation: shake .35s; }
-@keyframes glow { 50% { box-shadow: 0 0 0 1px var(--accent); } }
-.trash { width: 52px; background: var(--surface-2); border: 2px dashed var(--line); border-radius: 12px; font-size: 24px; padding: 0; touch-action: none; }
-.trash.drop { border-color: var(--bad); }
+/* 컨베이어 */
+.line { margin-top: auto; display: flex; gap: 8px; align-items: stretch; }
+.belt { position: relative; flex: 1; height: 74px; border-radius: 12px; overflow: hidden; background: var(--belt); touch-action: none; }
+.belt::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, var(--belt-2) 0 3px, transparent 3px 26px); background-size: 26px 100%; animation: roll 0.47s linear infinite; }
+.belt.stop::before { animation-play-state: paused; }
+@keyframes roll { to { background-position: -26px 0; } }
+.bitem { position: absolute; top: 9px; left: 0; width: 56px; height: 56px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 30px; padding: 0; touch-action: none; will-change: transform; }
+.bitem.robot { border: 2px solid var(--steel); background: var(--steel-soft); }
+.bitem.glow { box-shadow: 0 0 0 3px var(--accent); }
+.bitem.taken { opacity: .25; }
+.trash { width: 54px; background: var(--surface-2); border: 2px dashed var(--line); border-radius: 12px; font-size: 24px; padding: 0; touch-action: none; }
+.trash.drop { border-color: var(--accent); }
+.trash.nope { animation: shake .35s; }
 
 .ghost { position: fixed; z-index: 40; pointer-events: none; font-size: 40px; transform: translate(-50%, -65%); filter: drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
-.float { position: fixed; z-index: 35; pointer-events: none; font-family: var(--font-display); font-size: 24px; color: var(--good); transform: translate(-50%, 0); animation: floatUp .9s ease-out forwards; }
+.float { position: fixed; z-index: 35; pointer-events: none; font-family: var(--font-display); font-size: 24px; color: var(--good); transform: translate(-50%, 0); animation: floatUp .9s ease-out forwards; text-shadow: 0 1px 0 var(--surface); }
 @keyframes floatUp { to { transform: translate(-50%, -50px); opacity: 0; } }
 
 /* 오버레이 */
 .overlay { position: fixed; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 30; }
-.sheet { background: var(--surface); color: var(--ink); border-radius: 16px; width: 100%; max-width: 520px; max-height: 86%; overflow: auto; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; user-select: text; -webkit-user-select: text; }
+.sheet { background: var(--surface); color: var(--ink); border-radius: 16px; width: 100%; max-width: 520px; max-height: 88%; overflow: auto; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; user-select: text; -webkit-user-select: text; }
 .sheet h2 { font-family: var(--font-display); font-weight: 400; font-size: 28px; margin: 0; text-wrap: balance; }
 .sheet p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
 .steps { display: grid; gap: 10px; }
@@ -112,6 +124,15 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .step span { font-size: 14px; color: var(--muted); }
 .big-stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; }
 .big-stats b { font-size: 24px; margin-left: 4px; }
+.map { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.sector { aspect-ratio: 1; max-width: 100%; border-radius: 10px; border: 1px dashed var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; position: relative; filter: grayscale(1); opacity: .35; }
+.sector small { position: absolute; top: 2px; left: 4px; font-size: 10px; color: var(--muted); font-weight: 700; }
+.sector.lit { filter: none; opacity: 1; border: 1px solid var(--steel); background: var(--steel-soft); }
+.sector.new { animation: pop .6s ease-out .2s both; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.unlock { display: flex; align-items: center; gap: 14px; background: var(--gold-soft); border: 2px solid var(--accent); border-radius: 14px; padding: 12px 14px; }
+.unlock .ic { font-size: 44px; animation: pop .6s ease-out; }
+.unlock b { font-family: var(--font-display); font-weight: 400; font-size: 20px; display: block; }
+.unlock span { font-size: 18px; color: var(--muted); }
 .log { display: grid; gap: 6px; }
 .log-item { display: grid; grid-template-columns: 34px 1fr; gap: 2px 8px; align-items: start; border-bottom: 1px solid var(--line); padding: 7px 0; font-size: 13px; line-height: 1.5; }
 .log-item .i { font-size: 24px; grid-row: span 2; }
@@ -119,9 +140,11 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .log-item .h small { color: var(--steel); font-size: 11px; }
 .log-item.locked { color: var(--muted); }
 .primary { align-self: flex-start; background: var(--accent); color: #1A1400; border: 0; border-radius: 12px; padding: 12px 22px; font-weight: 700; font-size: 16px; }
+.lbl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .card.enter, .card.shake, .cell.pop, .cell.nope, .stock.nope, .stock.glow, .float { animation: none; }
+  .card.enter, .card.shake, .card.bump, .cell.pop, .cell.nope, .trash.nope, .float, .sector.new, .unlock .ic { animation: none; }
+  .belt::before { animation: none; }
 }
 </style>
 
@@ -129,8 +152,9 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   <header class="top">
     <span class="stat" aria-label="남은 시간">⏱<b class="num" id="clock">3:00</b></span>
     <span class="stat" aria-label="점수">⭐<b class="num" id="score">0</b></span>
-    <span class="combo" aria-label="콤보">🔥<b class="num" id="combo">0</b><span class="meter"><i id="flowBar"></i></span></span>
+    <span class="combo" id="comboBox" aria-label="콤보">🔥<b class="num" id="combo">0</b><span class="meter"><i id="flowBar"></i></span></span>
     <span class="tools">
+      <button class="tool" id="btnSound" type="button" aria-label="소리 켜고 끄기">🔊</button>
       <button class="tool" id="btnDex" type="button" aria-label="현장 도감">📖</button>
       <button class="tool" id="btnPause" type="button" aria-label="일시정지">⏸</button>
     </span>
@@ -143,8 +167,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     <div class="bench-in" id="board"></div>
   </section>
 
-  <section class="storage" aria-label="스토리지">
-    <div class="shelf" id="shelf"></div>
+  <section class="line" aria-label="컨베이어">
+    <div class="belt stop" id="belt"></div>
     <button class="trash" id="btnTrash" type="button" data-trash="1" aria-label="버리기">🗑</button>
   </section>
 </div>
@@ -164,41 +188,46 @@ const ITEMS = {
   agv:   { kind: 'robot', icon: '🛤️', name: 'AGV' },
   mm:    { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
 };
-const SHELF = ['wheel', 'lidar', 'tape', 'cobot', 'quad', 'hum'];
 // 자료에 나온 조합만: AMR(스스로 길 찾기) / AGV(바닥 경로) / AMR 위에 협동로봇 팔(⑧ LG엔솔)
 const RECIPES = [['wheel', 'lidar', 'amr'], ['wheel', 'tape', 'agv'], ['amr', 'cobot', 'mm']];
 const recipe = (a, b) => (RECIPES.find(([x, y]) => (x === a && y === b) || (x === b && y === a)) || [])[2] || null;
 const recipeOf = r => RECIPES.find(x => x[2] === r);
 const baseParts = r => { const x = recipeOf(r); return x ? [...baseParts(x[0]), ...baseParts(x[1])] : [r]; };
 
+// 근무마다 새 로봇이 열림
+const UNLOCKS = [['amr', 'agv'], ['cobot', 'mm'], ['quad'], ['hum']];
+const unlockedAt = n => UNLOCKS.slice(0, n).flat();
+
 // ───────── 손님: 자료가 로봇 종류를 직접 밝힌 곳만 (로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
 const ORDERS = [
-  { id: 'port',     want: 'agv',   icon: '⚓', who: '부산항',      sec: '⑮ 항만',        fact: '국내 첫 완전 자동화 부두에서 AGV가 시스템 지시대로 컨테이너를 옮겨요. 2018년 노조 반발 뒤 노사정 협의체를 거쳤어요.' },
-  { id: 'kai',      want: 'agv',   icon: '🛩️', who: 'KAI',         sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
-  { id: 'stl',      want: 'amr',   icon: '📦', who: '에스티엘',    sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
-  { id: 'transys',  want: 'amr',   icon: '🏭', who: '현대트랜시스', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요. AGV는 바닥 경로가 필요해요.' },
-  { id: 'ford',     want: 'amr',   icon: '🔌', who: '포드',        sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요. 미 FCC는 중국산 센서 장비를 막고 있어요.' },
-  { id: 'ecopro',   want: 'amr',   icon: '🧪', who: '에코프로',    sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
-  { id: 'samsung',  want: 'amr',   icon: '💾', who: '삼성전자',    sec: '⑥ 반도체 공장', fact: '디지털 트윈 시나리오에서 AMR이 공구를 나르고 휴머노이드가 설비를 점검해요.' },
-  { id: 'lg',       want: 'mm',    icon: '🔋', who: 'LG엔솔',      sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
-  { id: 'mipo',     want: 'cobot', icon: '🚢', who: 'HD현대미포',  sec: '④ 조선',        fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
-  { id: 'gwangjin', want: 'cobot', icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 협동로봇을 넣으며, 값보다 A/S를 보고 국산을 골랐어요.' },
-  { id: 'polytech', want: 'cobot', icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
-  { id: 'busanEdu', want: 'cobot', icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%, 고위험 작업시간 69%가 줄었어요.' },
-  { id: 'posco',    want: 'quad',  icon: '🔥', who: '포스코',      sec: '⑦ 철강',        fact: '계단·배관이 많은 고로에서 스팟이 하루 12번 가스 누설을 점검해요.' },
-  { id: 'police',   want: 'quad',  icon: '🚓', who: '경찰청',      sec: '㉖ 경찰',        fact: '사족보행 로봇 6대가 폭발물 현장에 먼저 들어가 영상을 보내요.' },
-  { id: 'army',     want: 'quad',  icon: '🎖️', who: '방사청',      sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
-  { id: 'fire',     want: 'quad',  icon: '🚒', who: '소방청',      sec: '㉖ 소방',        fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
-  { id: 'hyundai',  want: 'hum',   icon: '🚙', who: '현대차',      sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 투입 계획이에요. 노조는 "합의 없이 1대도 안 된다"고 해요.' },
-  { id: 'bmw',      want: 'hum',   icon: '🇺🇸', who: 'BMW',        sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
-  { id: 'cj',       want: 'hum',   icon: '🧴', who: 'CJ대한통운',  sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
-  { id: 'catl',     want: 'hum',   icon: '⚡', who: 'CATL',        sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
+  { id: 'port',     wants: ['agv', 'agv'], icon: '⚓', who: '부산항',      sec: '⑮ 항만',        fact: '국내 첫 완전 자동화 부두에서 AGV가 시스템 지시대로 컨테이너를 옮겨요. 2018년 노조 반발 뒤 노사정 협의체를 거쳤어요.' },
+  { id: 'kai',      wants: ['agv'],        icon: '🛩️', who: 'KAI',         sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
+  { id: 'stl',      wants: ['amr', 'amr'], icon: '📦', who: '에스티엘',    sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
+  { id: 'transys',  wants: ['amr'],        icon: '🏭', who: '현대트랜시스', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요. AGV는 바닥 경로가 필요해요.' },
+  { id: 'ford',     wants: ['amr'],        icon: '🔌', who: '포드',        sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요. 미 FCC는 중국산 센서 장비를 막고 있어요.' },
+  { id: 'ecopro',   wants: ['amr'],        icon: '🧪', who: '에코프로',    sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
+  { id: 'lg',       wants: ['mm'],         icon: '🔋', who: 'LG엔솔',      sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
+  { id: 'mipo',     wants: ['cobot', 'cobot'], icon: '🚢', who: 'HD현대미포', sec: '④ 조선',     fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
+  { id: 'gwangjin', wants: ['cobot'],      icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 협동로봇을 넣으며, 값보다 A/S를 보고 국산을 골랐어요.' },
+  { id: 'polytech', wants: ['cobot'],      icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
+  { id: 'busanEdu', wants: ['cobot'],      icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%, 고위험 작업시간 69%가 줄었어요.' },
+  { id: 'posco',    wants: ['quad'],       icon: '🔥', who: '포스코',      sec: '⑦ 철강',        fact: '계단·배관이 많은 고로에서 스팟이 하루 12번 가스 누설을 점검해요.' },
+  { id: 'police',   wants: ['quad', 'quad'], icon: '🚓', who: '경찰청',    sec: '㉖ 소방·경찰',   fact: '사족보행 로봇 6대가 폭발물 현장에 먼저 들어가 영상을 보내요.' },
+  { id: 'army',     wants: ['quad'],       icon: '🎖️', who: '방사청',      sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
+  { id: 'fire',     wants: ['quad'],       icon: '🚒', who: '소방청',      sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
+  { id: 'hyundai',  wants: ['hum'],        icon: '🚙', who: '현대차',      sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 투입 계획이에요. 노조는 "합의 없이 1대도 안 된다"고 해요.' },
+  { id: 'bmw',      wants: ['hum', 'hum'], icon: '🇺🇸', who: 'BMW',        sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
+  { id: 'cj',       wants: ['hum', 'hum'], icon: '🧴', who: 'CJ대한통운',  sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
+  { id: 'catl',     wants: ['hum'],        icon: '⚡', who: 'CATL',        sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
+  { id: 'samsung',  wants: ['amr', 'hum'], icon: '💾', who: '삼성전자',    sec: '⑥ 반도체 공장', fact: '디지털 트윈 시나리오에서 AMR이 공구를 나르고 휴머노이드가 설비를 점검해요.' },
+  { id: 'lotte',    wants: ['amr', 'hum'], icon: '🚛', who: '롯데글로벌로지스', sec: '⑫ 물류센터', fact: '2022년 AMR에서 시작해 2026년 휴머노이드·웨어러블까지 자동화를 넓혔어요.' },
 ];
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
-const BY_ROBOT = {};
-ORDERS.forEach(o => (BY_ROBOT[o.want] = BY_ROBOT[o.want] || []).push(o.id));
-const ROBOT_WEIGHT = { amr: 1.5, agv: 1, mm: 1, cobot: 1, quad: 1, hum: 1 };
-const TUTORIAL = ['mipo', 'posco', 'stl', 'port', 'lg', 'hyundai'];
+const secKey = o => o.sec.split(' ')[0];
+const SECTORS = [];
+ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
+SECTORS.sort((a, b) => a.key.localeCompare(b.key));
+const TUTORIAL = ['transys', 'port', 'kai'];
 const SHIFT_SEC = 180, COMBO_SEC = 12, CELLS = 8, MAX_WAIT = 5;
 
 // ───────── 상태 ─────────
@@ -206,40 +235,98 @@ const S = {
   shift: 1, running: false, paused: false, time: SHIFT_SEC, score: 0,
   combo: 0, comboT: 0, best: 0, board: Array(CELLS).fill(null), sel: null,
   clients: [], backlog: [], spawnT: 0, intro: [], served: [], dex: new Set(), last: 0,
+  belt: [], beltT: 0, uid: 0, sound: true,
 };
-try { JSON.parse(localStorage.getItem('robotsi.dex3') || '[]').forEach(id => O[id] && S.dex.add(id)); } catch (e) {}
-const saveDex = () => { try { localStorage.setItem('robotsi.dex3', JSON.stringify([...S.dex])); } catch (e) {} };
+try {
+  JSON.parse(localStorage.getItem('robotsi.dex4') || '[]').forEach(id => O[id] && S.dex.add(id));
+  S.sound = localStorage.getItem('robotsi.sound') !== '0';
+} catch (e) {}
+const saveDex = () => { try { localStorage.setItem('robotsi.dex4', JSON.stringify([...S.dex])); } catch (e) {} };
 const $ = id => document.getElementById(id);
 const nudge = el => { if (!el) return; el.classList.remove('nope', 'shake'); void el.offsetWidth; el.classList.add(el.classList.contains('card') ? 'shake' : 'nope'); };
 
+// ───────── 효과음 (작은 신시사이저) ─────────
+let ac = null;
+function tone(freq, dur, type, delay, vol) {
+  if (!S.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = ac.currentTime + (delay || 0);
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || 'sine'; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(vol || 0.12, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0 + dur);
+  } catch (e) {}
+}
+const SFX = {
+  pick:  () => tone(520, 0.06, 'triangle', 0, 0.08),
+  merge: () => { tone(523, 0.08, 'square', 0, 0.06); tone(784, 0.14, 'square', 0.07, 0.06); },
+  part:  () => tone(660, 0.1, 'triangle', 0, 0.1),
+  done:  n => [523, 659, 784, 1047].slice(0, 2 + Math.min(2, n)).forEach((f, i) => tone(f, 0.16, 'triangle', i * 0.07, 0.12)),
+  nope:  () => tone(150, 0.14, 'sawtooth', 0, 0.06),
+  arrive: () => tone(880, 0.05, 'sine', 0, 0.05),
+};
+
 // ───────── 손님 흐름: 떠나지 않음, 대기가 차면 잠시 멈춤 ─────────
+const unlocked = () => unlockedAt(Math.min(S.shift, UNLOCKS.length));
 function pickOrder() {
   if (S.intro.length) return S.intro.shift();
+  const ok = new Set(unlocked());
   const waiting = new Set([...S.clients, ...S.backlog].map(c => c.order.id));
-  const total = Object.values(ROBOT_WEIGHT).reduce((a, b) => a + b, 0);
-  let r = Math.random() * total, robot = 'amr';
-  for (const [k, w] of Object.entries(ROBOT_WEIGHT)) { if ((r -= w) <= 0) { robot = k; break; } }
-  let ids = BY_ROBOT[robot].filter(id => !waiting.has(id));
-  if (!ids.length) ids = ORDERS.map(o => o.id).filter(id => !waiting.has(id));
-  return ids[Math.floor(Math.random() * ids.length)];
+  const fresh = ok.size > 2 ? new Set(UNLOCKS[Math.min(S.shift, UNLOCKS.length) - 1]) : new Set();
+  let pool = ORDERS.filter(o => o.wants.every(w => ok.has(w)) && !waiting.has(o.id));
+  if (!pool.length) pool = ORDERS.filter(o => o.wants.every(w => ok.has(w)));
+  // 새로 열린 로봇이 들어간 주문을 조금 더 자주
+  const weighted = pool.flatMap(o => o.wants.some(w => fresh.has(w)) ? [o, o] : [o]);
+  return weighted[Math.floor(Math.random() * weighted.length)].id;
 }
-const spawnGap = () => Math.max(4, 9 - (S.shift - 1) * 1.2) - (1 - S.time / SHIFT_SEC) * 2.5;
+const spawnGap = () => Math.max(5, 10 - (S.shift - 1) * 1) - (1 - S.time / SHIFT_SEC) * 3;
 function spawn() {
-  const c = { order: O[pickOrder()], fresh: true };
+  const order = O[pickOrder()];
+  const c = { order, left: order.wants.slice(), fresh: true, gold: S.shift >= 2 && !S.intro.length && Math.random() < 0.15 };
   if (S.clients.length < 3) S.clients.push(c); else S.backlog.push(c);
+  SFX.arrive();
   renderClients();
 }
 
+// ───────── 컨베이어: 손님에게 필요한 것 위주로, 가끔 엉뚱한 것도 ─────────
+function beltPick() {
+  const need = [];
+  S.clients.forEach(c => c.left.forEach(w => need.push(...baseParts(w))));
+  const pool = [...new Set(unlocked().flatMap(baseParts))];
+  const src = need.length && Math.random() < 0.7 ? need : pool;
+  return src[Math.floor(Math.random() * src.length)];
+}
+const beltSpeed = () => 48 + (S.shift - 1) * 6;
+function beltSpawn() {
+  const el = $('belt');
+  const id = beltPick();
+  const it = { uid: ++S.uid, id, x: el.clientWidth + 4 };
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = `bitem ${ITEMS[id].kind}`; b.dataset.belt = it.uid;
+  b.textContent = ITEMS[id].icon; b.setAttribute('aria-label', ITEMS[id].name);
+  el.appendChild(b); it.el = b;
+  S.belt.push(it);
+}
+function beltRemove(uid) {
+  const i = S.belt.findIndex(b => b.uid === uid);
+  if (i < 0) return;
+  S.belt[i].el.remove(); S.belt.splice(i, 1);
+}
+function beltTick(dt) {
+  const sp = beltSpeed();
+  S.belt.forEach(b => { if (!(drag && drag.src.belt === b.uid)) b.x -= sp * dt; b.el.style.transform = `translateX(${b.x}px)`; });
+  S.belt.filter(b => b.x < -64).forEach(b => beltRemove(b.uid));
+  if ((S.beltT -= dt) <= 0) { beltSpawn(); S.beltT = 72 / sp + Math.random() * 0.5; }
+  if (S.shift === 1) {
+    const need = new Set(S.clients[0] ? S.clients[0].left.flatMap(baseParts) : []);
+    S.belt.forEach(b => b.el.classList.toggle('glow', need.has(b.id)));
+  }
+}
+function beltClear() { S.belt.forEach(b => b.el.remove()); S.belt = []; }
+
 // ───────── 렌더링 ─────────
 const selRobot = () => S.sel !== null && S.board[S.sel] && ITEMS[S.board[S.sel]].kind === 'robot';
-function renderShelf() {
-  const first = S.running && S.shift === 1 && S.clients[0];
-  const need = first ? new Set(baseParts(first.order.want)) : new Set();
-  $('shelf').innerHTML = SHELF.map(id => `
-    <button class="stock ${ITEMS[id].kind}${need.has(id) ? ' glow' : ''}" type="button" data-stock="${id}" aria-label="${ITEMS[id].name}">
-      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span>
-    </button>`).join('');
-}
 function renderBoard(popAt) {
   $('board').innerHTML = S.board.map((id, i) => {
     if (!id) return `<button class="cell" type="button" data-cell="${i}" aria-label="빈 칸"></button>`;
@@ -248,27 +335,38 @@ function renderBoard(popAt) {
   }).join('');
   document.querySelectorAll('.card[data-client]').forEach(el => el.classList.toggle('target', selRobot()));
 }
+function cardHtml(c, i) {
+  const o = c.order;
+  const left = c.left.slice();
+  const icons = o.wants.map(w => {
+    const k = left.indexOf(w);
+    if (k >= 0) { left.splice(k, 1); return `<span>${ITEMS[w].icon}</span>`; }
+    return `<span class="done">${ITEMS[w].icon}</span>`;
+  }).join('');
+  const kinds = [...new Set(o.wants)];
+  const name = kinds.map(w => ITEMS[w].name).join(' + ') + (kinds.length === 1 && o.wants.length > 1 ? ` ×${o.wants.length}` : '');
+  const recipes = kinds.map(recipeOf).filter(Boolean).map(r => `${ITEMS[r[0]].icon}+${ITEMS[r[1]].icon}`).join(' ');
+  return `<button class="card${c.fresh ? ' enter' : ''}${c.gold ? ' gold' : ''}${selRobot() ? ' target' : ''}" type="button" data-client="${i}" aria-label="${o.who}: ${name}">
+    ${c.gold ? '<span class="badge">⭐×2</span>' : ''}
+    <span class="who"><span>${o.icon}</span><span>${o.who}</span></span>
+    <span class="want"><span class="icons${o.wants.length > 1 ? ' two' : ''}">${icons}</span><span class="nm">${name}</span></span>
+    <span class="recipe">${recipes}</span>
+  </button>`;
+}
 function renderClients() {
   $('clients').innerHTML = [0, 1, 2].map(i => {
     const c = S.clients[i];
     const extra = i === 2 && S.backlog.length ? `<span class="backlog">+${S.backlog.length}</span>` : '';
-    if (!c) return `<div class="card empty">${extra}</div>`;
-    const o = c.order, w = ITEMS[o.want], rc = recipeOf(o.want);
-    const recipe = rc ? `${ITEMS[rc[0]].icon}+${ITEMS[rc[1]].icon}` : '';
-    return `<button class="card${c.fresh ? ' enter' : ''}${selRobot() ? ' target' : ''}" type="button" data-client="${i}" aria-label="${o.who}: ${w.name} 주문">${extra}
-      <span class="who"><span>${o.icon}</span><span>${o.who}</span></span>
-      <span class="want"><span class="big">${w.icon}</span><span class="nm">${w.name}</span></span>
-      <span class="recipe">${recipe}</span>
-    </button>`;
+    return c ? cardHtml(c, i).replace('</button>', extra + '</button>') : `<div class="card empty">${extra}</div>`;
   }).join('');
   S.clients.forEach(c => (c.fresh = false));
-  renderShelf();
 }
 function renderHud() {
   const t = Math.max(0, Math.ceil(S.time));
   $('clock').textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
   $('score').textContent = S.score;
   $('combo').textContent = S.combo;
+  $('comboBox').classList.toggle('hot', S.combo >= 3);
   $('flowBar').style.width = (S.combo ? S.comboT / COMBO_SEC * 100 : 0).toFixed(1) + '%';
 }
 function floatText(el, text) {
@@ -276,65 +374,80 @@ function floatText(el, text) {
   const r = el.getBoundingClientRect();
   const f = document.createElement('div');
   f.className = 'float'; f.textContent = text;
-  f.style.left = (r.left + r.width / 2) + 'px'; f.style.top = (r.top + 20) + 'px';
+  f.style.left = (r.left + r.width / 2) + 'px'; f.style.top = (r.top + 24) + 'px';
   document.body.appendChild(f);
   setTimeout(() => f.remove(), 950);
 }
 
 // ───────── 동작 ─────────
 const firstEmpty = () => S.board.findIndex(x => !x);
-function placeStock(id, at) {
+function placeItem(id, at) {
   const i = at ?? firstEmpty();
-  if (i < 0) { nudge($('btnTrash')); return; }
-  S.board[i] = id; S.sel = null; renderBoard(i);
+  if (i < 0 || S.board[i]) { nudge($('btnTrash')); SFX.nope(); return false; }
+  S.board[i] = id; S.sel = null; SFX.part(); renderBoard(i);
+  return true;
 }
 function mergeInto(target, incoming, fromCell) {
   const r = recipe(S.board[target], incoming);
   if (!r) return false;
   if (fromCell !== undefined) S.board[fromCell] = null;
   S.board[target] = r; S.sel = null;
-  renderBoard(target);
+  SFX.merge(); renderBoard(target);
   return true;
 }
 function cellToCell(from, to) {
   if (from === to) return;
   if (!S.board[to]) { S.board[to] = S.board[from]; S.board[from] = null; S.sel = null; renderBoard(); return; }
   if (mergeInto(to, S.board[from], from)) return;
-  S.sel = null; renderBoard();
+  S.sel = null; renderBoard(); SFX.nope();
   nudge(document.querySelector(`[data-cell="${to}"]`));
 }
 function tapCell(i) {
-  if (S.sel === null) { if (S.board[i]) { S.sel = i; renderBoard(); } return; }
+  if (S.sel === null) { if (S.board[i]) { S.sel = i; SFX.pick(); renderBoard(); } return; }
   if (S.sel === i) { S.sel = null; renderBoard(); return; }
   if (!S.board[i]) { cellToCell(S.sel, i); return; }
   if (mergeInto(i, S.board[S.sel], S.sel)) return;
-  S.sel = i; renderBoard();
+  S.sel = i; SFX.pick(); renderBoard();
 }
-function tapStock(id) {
-  if (S.sel !== null && S.board[S.sel] && mergeInto(S.sel, id)) return;
-  placeStock(id);
+function takeBelt(uid, at) {
+  const b = S.belt.find(x => x.uid === uid);
+  if (!b) return;
+  let ok;
+  if (at === undefined && S.sel !== null && S.board[S.sel]) ok = mergeInto(S.sel, b.id);
+  if (!ok) ok = at !== undefined && S.board[at] ? mergeInto(at, b.id) : placeItem(b.id, at);
+  if (ok) beltRemove(uid); else if (at !== undefined) { SFX.nope(); nudge(document.querySelector(`[data-cell="${at}"]`)); }
 }
 function trash(i) {
   if (i === null || !S.board[i]) return;
   S.board[i] = null; S.sel = null; renderBoard();
 }
-// src: { cell } 또는 { stock } — 완제품은 스토리지에서 손님에게 바로 끌어다 줄 수 있음
+// src: { cell } 또는 { belt } — 완제품은 벨트에서 손님에게 바로 끌어다 줄 수 있음
 function deliver(src, ci) {
   const c = S.clients[ci];
-  const id = src.stock || S.board[src.cell];
+  const beltItem = src.belt !== undefined && S.belt.find(b => b.uid === src.belt);
+  const id = beltItem ? beltItem.id : S.board[src.cell];
   const card = document.querySelector(`.card[data-client="${ci}"]`);
   if (!c || !id) return;
-  if (id !== c.order.want) { nudge(card); return; }
+  const k = c.left.indexOf(id);
+  if (k < 0) { nudge(card); SFX.nope(); return; }
+  c.left.splice(k, 1);
+  if (beltItem) beltRemove(src.belt); else S.board[src.cell] = null;
+  S.sel = null;
+  if (c.left.length) {
+    SFX.part(); floatText(card, '✓');
+    renderClients(); renderBoard();
+    document.querySelector(`.card[data-client="${ci}"]`)?.classList.add('bump');
+    return;
+  }
   S.combo = S.comboT > 0 ? S.combo + 1 : 1;
   S.comboT = COMBO_SEC;
   S.best = Math.max(S.best, S.combo);
-  const gain = Math.round(100 * Math.min(3, 1 + 0.25 * (S.combo - 1)));
+  const gain = Math.round(100 * c.order.wants.length * Math.min(3, 1 + 0.25 * (S.combo - 1)) * (c.gold ? 2 : 1));
   S.score += gain;
   floatText(card, `+${gain}`);
+  SFX.done(S.combo);
   S.served.push(c.order.id);
   S.dex.add(c.order.id); saveDex();
-  if (src.cell !== undefined) S.board[src.cell] = null;
-  S.sel = null;
   S.clients.splice(ci, 1);
   if (S.backlog.length) S.clients.push(S.backlog.shift());
   if (!S.clients.length) S.spawnT = Math.min(S.spawnT, 0.6);
@@ -343,22 +456,25 @@ function deliver(src, ci) {
 
 // ───────── 끌기 + 누르기 ─────────
 let drag = null;
+const srcItem = src => src.belt !== undefined ? S.belt.find(b => b.uid === src.belt)?.id : S.board[src.cell];
 document.addEventListener('pointerdown', e => {
   if (!S.running || S.paused) return;
-  const cell = e.target.closest('[data-cell]'), stock = e.target.closest('[data-stock]');
-  if (!cell && !stock) return;
-  drag = { src: cell ? { cell: +cell.dataset.cell } : { stock: stock.dataset.stock }, x: e.clientX, y: e.clientY, started: false };
+  const cell = e.target.closest('[data-cell]'), belt = e.target.closest('[data-belt]');
+  if (!cell && !belt) return;
+  drag = { src: cell ? { cell: +cell.dataset.cell } : { belt: +belt.dataset.belt }, x: e.clientX, y: e.clientY, started: false };
 });
 document.addEventListener('pointermove', e => {
   if (!drag) return;
   if (!drag.started) {
     if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
-    const id = drag.src.stock || S.board[drag.src.cell];
+    const id = srcItem(drag.src);
     if (!id) { drag = null; return; }
     drag.started = true;
     drag.ghost = Object.assign(document.createElement('div'), { className: 'ghost', textContent: ITEMS[id].icon });
     document.body.appendChild(drag.ghost);
     if (drag.src.cell !== undefined) document.querySelector(`[data-cell="${drag.src.cell}"]`)?.classList.add('dim');
+    else S.belt.find(b => b.uid === drag.src.belt)?.el.classList.add('taken');
+    SFX.pick();
   }
   e.preventDefault();
   drag.ghost.style.left = e.clientX + 'px';
@@ -371,20 +487,23 @@ document.addEventListener('pointermove', e => {
 document.addEventListener('pointerup', e => {
   if (!drag) return;
   const d = drag; drag = null;
-  if (!d.started) { if (d.src.stock) tapStock(d.src.stock); else tapCell(d.src.cell); return; }
+  if (!d.started) { if (d.src.belt !== undefined) takeBelt(d.src.belt); else tapCell(d.src.cell); return; }
   d.ghost.remove();
   d.over?.classList.remove('drop', 'over');
+  S.belt.find(b => b.uid === d.src.belt)?.el.classList.remove('taken');
   const t = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-cell],[data-client],[data-trash]');
   if (!t) { renderBoard(); return; }
-  if (t.dataset.trash) { if (d.src.cell !== undefined) trash(d.src.cell); else renderBoard(); return; }
+  if (t.dataset.trash) { if (d.src.cell !== undefined) trash(d.src.cell); else beltRemove(d.src.belt); renderBoard(); return; }
   if (t.dataset.client !== undefined) { deliver(d.src, +t.dataset.client); renderBoard(); return; }
   const to = +t.dataset.cell;
-  if (d.src.stock) {
-    if (!S.board[to]) placeStock(d.src.stock, to);
-    else if (!mergeInto(to, d.src.stock)) { renderBoard(); nudge(document.querySelector(`[data-cell="${to}"]`)); }
-  } else cellToCell(d.src.cell, to);
+  if (d.src.belt !== undefined) takeBelt(d.src.belt, to); else cellToCell(d.src.cell, to);
 });
-document.addEventListener('pointercancel', () => { drag?.ghost?.remove(); drag = null; renderBoard(); });
+document.addEventListener('pointercancel', () => {
+  if (!drag) return;
+  drag.ghost?.remove();
+  S.belt.find(b => b.uid === drag.src.belt)?.el.classList.remove('taken');
+  drag = null; renderBoard();
+});
 $('clients').addEventListener('click', e => {
   const b = e.target.closest('[data-client]');
   if (!b || !S.running || S.paused || S.sel === null) return;
@@ -400,27 +519,44 @@ function loop(t) {
     S.time -= dt;
     if (S.comboT > 0 && (S.comboT -= dt) <= 0) { S.comboT = 0; S.combo = 0; }
     if (S.clients.length + S.backlog.length < MAX_WAIT && (S.spawnT -= dt) <= 0) { spawn(); S.spawnT = spawnGap(); }
+    beltTick(dt);
     renderHud();
     if (S.time <= 0) endShift();
   }
+  $('belt').classList.toggle('stop', !S.running || S.paused);
   requestAnimationFrame(loop);
 }
+let litBefore = new Set();
+const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
 function startShift() {
   Object.assign(S, { running: true, paused: false, time: SHIFT_SEC, score: 0, combo: 0, comboT: 0, best: 0,
-    served: [], board: Array(CELLS).fill(null), sel: null, clients: [], backlog: [], spawnT: 0.3,
+    served: [], board: Array(CELLS).fill(null), sel: null, clients: [], backlog: [], spawnT: 0.3, beltT: 0,
     intro: S.shift === 1 ? TUTORIAL.slice() : [] });
+  beltClear();
+  litBefore = litSectors();
   $('overlay').hidden = true;
   renderClients(); renderBoard(); renderHud();
 }
-const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${ITEMS[o.want].icon} ${ITEMS[o.want].name}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
+const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${o.wants.map(w => ITEMS[w].icon).join('')}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
+const mapHtml = () => {
+  const lit = litSectors();
+  return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}${lit.has(s.key) && !litBefore.has(s.key) ? ' new' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`;
+};
 function endShift() {
   S.running = false;
+  beltClear();
   const seen = [...new Set(S.served)].map(id => logItem(O[id])).join('');
+  const next = UNLOCKS[S.shift];
+  const unlock = next ? `<div class="unlock"><span class="ic">${next.map(w => ITEMS[w].icon).join('')}</span><div><b>다음 근무 NEW · ${next.map(w => ITEMS[w].name).join(', ')}</b><span>${next.map(w => { const r = recipeOf(w); return r ? `${ITEMS[r[0]].icon}+${ITEMS[r[1]].icon}=${ITEMS[w].icon}` : `벨트에서 ${ITEMS[w].icon}`; }).join('  ')}</span></div></div>` : '';
   openSheet(`
     <h2>근무 끝!</h2>
     <div class="big-stats"><span>📦<b class="num">${S.served.length}</b></span><span>⭐<b class="num">${S.score}</b></span><span>🔥<b class="num">${S.best}</b></span></div>
-    ${seen ? `<p>오늘 다녀온 현장</p><div class="log">${seen}</div>` : ''}
+    <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>
+    ${mapHtml()}
+    ${unlock}
+    ${seen ? `<span class="lbl">오늘 다녀온 현장</span><div class="log">${seen}</div>` : ''}
     <button class="primary" type="button" data-act="next">다음 근무 ▶</button>`);
+  SFX.done(3);
 }
 
 // ───────── 오버레이 ─────────
@@ -433,11 +569,11 @@ function openSheet(html, pause) {
 const HELP = `
   <h2>로봇 SI 납품소</h2>
   <div class="steps">
-    <div class="step">🛞 + 👁️ → 🚚 <span>끌어다 겹치면 조립</span></div>
-    <div class="step">🚚 → 📦 <span>주문 카드에 끌어다 놓으면 납품</span></div>
-    <div class="step">🦾 🐕 🚶 <span>완제품은 선반에서 바로 납품</span></div>
+    <div class="step">➡️ 🛞 👁️ 🧲 <span>컨베이어에서 집기</span></div>
+    <div class="step">🛞 + 👁️ → 🚚 <span>겹치면 조립</span></div>
+    <div class="step">🚚 → 📦 <span>주문 카드에 놓으면 납품</span></div>
   </div>
-  <p>손님은 떠나지 않고, 틀려도 괜찮아요. 연달아 납품하면 🔥콤보! 근무는 3분이에요.</p>
+  <p>손님은 떠나지 않고, 놓친 부품은 또 와요. 연달아 납품하면 🔥콤보! 근무마다 새 로봇이 열려요.</p>
   <button class="primary" type="button" data-act="begin">근무 시작 ▶</button>`;
 $('sheet').addEventListener('click', e => {
   const act = e.target.closest('[data-act]')?.dataset.act;
@@ -445,18 +581,27 @@ $('sheet').addEventListener('click', e => {
   else if (act === 'begin') startShift();
   else if (act === 'next') { S.shift++; startShift(); }
 });
-$('btnDex').addEventListener('click', () => openSheet(`
-  <h2>현장 도감 ${S.dex.size}/${ORDERS.length}</h2>
-  <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o)
-    : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
-  <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21)</p>
-  <button class="primary" type="button" data-act="close">닫기</button>`, true));
+$('btnDex').addEventListener('click', () => {
+  litBefore = litSectors();
+  openSheet(`
+    <h2>현장 도감 ${S.dex.size}/${ORDERS.length}</h2>
+    ${mapHtml()}
+    <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o)
+      : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
+    <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21)</p>
+    <button class="primary" type="button" data-act="close">닫기</button>`, true);
+});
 $('btnPause').addEventListener('click', () => {
   if (S.running) openSheet(`<h2>⏸</h2><button class="primary" type="button" data-act="close">계속 ▶</button>`, true);
 });
+const syncSound = () => { $('btnSound').textContent = S.sound ? '🔊' : '🔇'; };
+$('btnSound').addEventListener('click', () => {
+  S.sound = !S.sound; syncSound();
+  try { localStorage.setItem('robotsi.sound', S.sound ? '1' : '0'); } catch (e) {}
+});
 document.addEventListener('visibilitychange', () => { if (document.hidden && S.running && !S.paused) $('btnPause').click(); });
 
-renderShelf(); renderBoard(); renderClients(); renderHud();
+syncSound(); renderBoard(); renderClients(); renderHud();
 openSheet(HELP);
 requestAnimationFrame(loop);
 </script>
