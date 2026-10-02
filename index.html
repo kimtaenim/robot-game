@@ -103,7 +103,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 @keyframes pop { 0% { transform: scale(.5) rotate(-8deg); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
 /* 덱 */
-.deck { display: flex; gap: 6px; align-items: stretch; }
+.deck { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .pile { flex: 1; min-width: 0; position: relative; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; touch-action: none; box-shadow: 0 2px 0 var(--line), 0 4px 0 var(--card-head), 0 5px 0 var(--line); }
 .pile .ic { font-size: 26px; line-height: 1.1; }
 .pile .nm { font-size: 10px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
@@ -111,7 +111,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .pile:active { transform: translateY(2px); }
 .pile.lock { opacity: .25; pointer-events: none; }
 .pile.fresh::after { content: 'NEW'; position: absolute; top: -8px; right: -4px; background: var(--accent); color: #1A1400; font-size: 9px; font-weight: 700; border-radius: 6px; padding: 1px 4px; }
-.trash { width: 46px; background: var(--surface-2); border: 2px dashed var(--line); border-radius: 10px; font-size: 20px; padding: 0; touch-action: none; }
+.trash { min-height: 56px; background: var(--surface-2); border: 2px dashed var(--line); border-radius: 10px; font-size: 20px; padding: 0; touch-action: none; }
 .trash.drop { border-color: var(--accent); }
 .trash.nope { animation: shake .35s; }
 
@@ -179,30 +179,39 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
   <section class="rail" id="rail" aria-label="주문표"></section>
   <section class="table" id="table" aria-label="카드 테이블"></section>
-  <section class="deck" aria-label="부품 덱">
-    <div class="deck" id="deck" style="flex:1"></div>
-    <button class="trash" id="btnTrash" type="button" data-trash="1" aria-label="버리기">🗑</button>
-  </section>
+  <section class="deck" id="deck" aria-label="부품 덱"></section>
 </div>
 
 <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
 
 <script>
-// ───────── 카드 9종: 부품 3 + 완제품 3 + 조립 로봇 3. 아이콘은 임시 이모지 ─────────
+// ───────── 카드 15종: 부품·도구 7 + 완제품 2 + 조립 로봇 6. 아이콘은 임시 이모지 ─────────
 const ITEMS = {
-  wheel: { kind: 'part',  icon: '🛞', name: '바퀴' },
-  lidar: { kind: 'part',  icon: '👁️', name: '라이다' },
-  tape:  { kind: 'part',  icon: '🧲', name: '마그넷' },
-  cobot: { kind: 'robot', icon: '🦾', name: '협동로봇' },
-  quad:  { kind: 'robot', icon: '🐕', name: '4족보행' },
-  hum:   { kind: 'robot', icon: '🚶', name: '휴머노이드' },
-  amr:   { kind: 'robot', icon: '🚚', name: 'AMR' },
-  agv:   { kind: 'robot', icon: '🛤️', name: 'AGV' },
-  mm:    { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
+  wheel:   { kind: 'part',  icon: '🛞', name: '바퀴' },
+  lidar:   { kind: 'part',  icon: '👁️', name: '라이다' },
+  tape:    { kind: 'part',  icon: '🧲', name: '마그넷' },
+  arm:     { kind: 'part',  icon: '🦾', name: '협동로봇 팔' },
+  torch:   { kind: 'part',  icon: '🔥', name: '용접 토치' },
+  pan:     { kind: 'part',  icon: '🍳', name: '조리 도구' },
+  gripper: { kind: 'part',  icon: '🤏', name: '그리퍼' },
+  quad:    { kind: 'robot', icon: '🐕', name: '4족보행' },
+  hum:     { kind: 'robot', icon: '🚶', name: '휴머노이드' },
+  amr:     { kind: 'robot', icon: '🚚', name: 'AMR' },
+  agv:     { kind: 'robot', icon: '🛤️', name: 'AGV' },
+  weld:    { kind: 'robot', icon: '🧑‍🏭', name: '용접 협동로봇' },
+  cook:    { kind: 'robot', icon: '🧑‍🍳', name: '조리 협동로봇' },
+  pick:    { kind: 'robot', icon: '🤖', name: '피킹 협동로봇' },
+  mm:      { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
 };
-const DECK = ['wheel', 'lidar', 'tape', 'cobot', 'quad', 'hum'];
-// 자료에 나온 조합만: AMR(스스로 길 찾기) / AGV(바닥 경로) / AMR 위에 협동로봇 팔(⑧ LG엔솔)
-const RECIPES = [['wheel', 'lidar', 'amr'], ['wheel', 'tape', 'agv'], ['amr', 'cobot', 'mm']];
+const DECK = ['wheel', 'lidar', 'tape', 'arm', 'torch', 'pan', 'gripper', 'quad', 'hum'];
+// 자료에 나온 조합만: AMR(스스로 길 찾기) / AGV(바닥 경로)
+// 협동로봇 팔은 도구를 붙여야(SI) 일을 함: 용접(④ 조선), 조리(⑱ 급식), 그리퍼(집기)
+// AMR 위에 협동로봇을 얹은 모바일 매니퓰레이터(⑧ LG엔솔)
+const RECIPES = [
+  ['wheel', 'lidar', 'amr'], ['wheel', 'tape', 'agv'],
+  ['arm', 'torch', 'weld'], ['arm', 'pan', 'cook'], ['arm', 'gripper', 'pick'],
+  ['amr', 'pick', 'mm'],
+];
 const recipe = (a, b) => (RECIPES.find(([x, y]) => (x === a && y === b) || (x === b && y === a)) || [])[2] || null;
 const recipeOf = r => RECIPES.find(x => x[2] === r);
 const baseParts = r => { const x = recipeOf(r); return x ? [...baseParts(x[0]), ...baseParts(x[1])] : [r]; };
@@ -211,7 +220,9 @@ const HINTS = {
   agv:   { icon: '🛣️', text: '정해진 길' },
   amr:   { icon: '🧭', text: '스스로 길 찾기' },
   mm:    { icon: '🧭✋', text: '다니며 집기' },
-  cobot: { icon: '🤝', text: '사람 옆 작업' },
+  weld:  { icon: '⚡', text: '용접' },
+  cook:  { icon: '🍲', text: '조리' },
+  pick:  { icon: '📥', text: '집어 옮기기' },
   quad:  { icon: '🪜', text: '계단·험지' },
   hum:   { icon: '👷', text: '사람 자리' },
 };
@@ -219,11 +230,11 @@ const HINTS = {
 const NEEDS = {
   port: '정해진 길로 컨테이너', kai: '공정 사이 자재 이송', stl: '스스로 오더피킹', transys: '바닥 공사 불가',
   ford: '공장 자재 운반', ecopro: '설비 돌며 점검', lg: '다니며 셀 집기', mipo: '사람 옆 용접',
-  gwangjin: '양산 라인 옆', polytech: '학생 실습 장비', busanEdu: '급식 조리 보조', posco: '계단·배관 점검',
+  gwangjin: '라인에서 부품 집기', polytech: '실습: 집어 옮기기', busanEdu: '급식 조리 보조', posco: '계단·배관 점검',
   police: '폭발물 현장', army: '산악 정찰', fire: '무너진 현장', hyundai: '사람 자리 그대로',
   bmw: '사람처럼 교대 근무', cj: '양팔로 포장', catl: '생산라인 투입', samsung: '운반 + 설비 점검', lotte: '운반 + 사람 일',
 };
-const UNLOCKS = [['amr', 'agv'], ['cobot'], ['mm'], ['quad'], ['hum']];
+const UNLOCKS = [['amr', 'agv'], ['weld', 'cook'], ['pick', 'mm'], ['quad'], ['hum']];
 const unlockedAt = lv => UNLOCKS.slice(0, Math.max(0, Math.min(lv, UNLOCKS.length))).flat();
 
 // ───────── 현장: 자료가 로봇 종류를 직접 밝힌 곳만 (로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
@@ -235,11 +246,11 @@ const ORDERS = [
   { id: 'ford',     wants: ['amr'],        icon: '🔌', who: '포드',        sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
   { id: 'ecopro',   wants: ['amr'],        icon: '🧪', who: '에코프로',    sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
   { id: 'lg',       wants: ['mm'],         icon: '🔋', who: 'LG엔솔',      sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
-  { id: 'mipo',     wants: ['cobot', 'cobot'], icon: '🚢', who: 'HD현대미포', sec: '④ 조선',     fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
-  { id: 'gwangjin', wants: ['cobot'],      icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
-  { id: 'polytech', wants: ['cobot'],      icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
-  { id: 'busanEdu', wants: ['cobot'],      icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
-  { id: 'posco',    wants: ['quad'],       icon: '🔥', who: '포스코',      sec: '⑦ 철강',        fact: '계단·배관이 많은 고로에서 스팟이 하루 12번 가스 누설을 점검해요.' },
+  { id: 'mipo',     wants: ['weld', 'weld'], icon: '🚢', who: 'HD현대미포', sec: '④ 조선',     fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
+  { id: 'gwangjin', wants: ['pick'],       icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
+  { id: 'polytech', wants: ['pick'],       icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
+  { id: 'busanEdu', wants: ['cook'],       icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
+  { id: 'posco',    wants: ['quad'],       icon: '🌋', who: '포스코',      sec: '⑦ 철강',        fact: '계단·배관이 많은 고로에서 스팟이 하루 12번 가스 누설을 점검해요.' },
   { id: 'police',   wants: ['quad', 'quad'], icon: '🚓', who: '경찰청',    sec: '㉖ 소방·경찰',   fact: '사족보행 로봇 6대가 폭발물 현장에 먼저 들어가 영상을 보내요.' },
   { id: 'army',     wants: ['quad'],       icon: '🎖️', who: '방사청',      sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
   { id: 'fire',     wants: ['quad'],       icon: '🚒', who: '소방청',      sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
@@ -375,7 +386,8 @@ function renderDeck() {
   const before = new Set(unlockedAt(S.lv - 1).flatMap(baseParts));
   $('deck').innerHTML = DECK.map(id => `
     <button class="pile ${ITEMS[id].kind}${ok.has(id) ? '' : ' lock'}${S.lv > 1 && ok.has(id) && !before.has(id) ? ' fresh' : ''}" type="button" data-pile="${id}" aria-label="${ITEMS[id].name} 카드 뽑기">
-      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span></button>`).join('');
+      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span></button>`).join('')
+    + `<button class="trash" id="btnTrash" type="button" data-trash="1" aria-label="버리기">🗑</button>`;
 }
 function renderHud() {
   const n = levelTarget(S.lv), [p3, p2] = levelPar(S.lv);
@@ -425,7 +437,13 @@ function banner(text, delay) {
 
 // ───────── 카드 동작 ─────────
 const firstEmpty = () => S.table.findIndex(x => !x);
-const neededRobots = () => new Set(S.tickets.flatMap(t => t.left));
+// 주문에 필요한 로봇과, 그 로봇을 만드는 중간 단계까지
+const neededRobots = () => {
+  const need = new Set();
+  const add = r => { need.add(r); const rc = recipeOf(r); if (rc) { add(rc[0]); add(rc[1]); } };
+  S.tickets.forEach(t => t.left.forEach(add));
+  return need;
+};
 const ticketFor = id => S.tickets.findIndex(t => t.left.includes(id));
 
 // 완성된 로봇은 찾는 주문표로 저절로 날아감
@@ -444,7 +462,12 @@ function mergeInto(target, incoming, from) {
   if (from !== undefined) S.table[from] = null;
   S.table[target] = r; S.sel = null;
   SFX.merge(); renderTable(target);
-  if (!autoShip(target) && !neededRobots().has(r)) document.querySelector(`[data-spot="${target}"]`)?.classList.add('idle');
+  if (autoShip(target)) return true;
+  const need = neededRobots();
+  // 다음 조합 짝이 테이블에 있으면 이어서 조립 (예: 피킹 협동로봇 → AMR 위로)
+  const k = S.table.findIndex((x, j) => x && j !== target && need.has(recipe(x, r)));
+  if (k >= 0) setTimeout(() => { if (S.table[target] === r && S.table[k]) mergeInto(k, r, target); }, 200);
+  else if (!need.has(r)) document.querySelector(`[data-spot="${target}"]`)?.classList.add('idle');
   return true;
 }
 function place(id, at) {
@@ -584,7 +607,7 @@ $('rail').addEventListener('click', e => {
   if (!b || !S.running || S.paused || S.sel === null) return;
   deliver({ spot: S.sel }, +b.dataset.ticket);
 });
-$('btnTrash').addEventListener('click', () => { if (S.running && !S.paused) trash(S.sel); });
+$('deck').addEventListener('click', e => { if (e.target.closest('[data-trash]') && S.running && !S.paused) trash(S.sel); });
 
 // ───────── 진행: 단계를 깨면 멈추지 않고 바로 다음 단계 ─────────
 function loop(t) {
@@ -646,6 +669,7 @@ const HELP = `
   <h2>로봇 SI 납품소</h2>
   <div class="steps">
     <div class="step">🛞 👁️ <span>덱을 톡톡 누르면</span></div>
+    <div class="step">🦾 + 🔥 = 🧑‍🏭 <span>협동로봇은 도구를 붙여야 일해요</span></div>
     <div class="step">🛞 + 👁️ = 🚚 <span>카드가 겹쳐 조립되고</span></div>
     <div class="step">🚚 ➜ 🧾 <span>찾는 주문표로 저절로 날아가요</span></div>
   </div>
