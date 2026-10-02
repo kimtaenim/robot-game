@@ -582,7 +582,7 @@ const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1
 // 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
 const JUICE = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2.0;
 const FALL_GRAVITY = 140; // 칸/초²
-const BREATH = 0.06;      // 타일 숨쉬기: 크기가 ±6% 눈에 띄게 들썩임
+const BREATH = 0.1;       // 타일 숨쉬기: 크기가 ±10% 크게 들썩임
 
 // ───────── 상태 ─────────
 const S = {
@@ -668,16 +668,24 @@ function voiceAwOh(t) {
   vowel(t + 0.24, 0.42, 225 * p, 175 * p, [[480, 1], [820, 0.55], [2400, 0.15]], 1.6);  // 낮게 처지는 "오"
 }
 const SFX = {
-  // 스왑: 서보모터가 위잉
-  swap: () => { if (!audio()) return; const t = ac.currentTime; osc('sawtooth', 180, t, 0.13, 0.035, 420); nz(t, 0.1, 0.02, 'bandpass', 2400, 3); },
+  // 스왑: "치킹" (짧은 쇳소리 딸깍 + 높은 금속 울림)
+  swap: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    nz(t, 0.018, 0.12, 'highpass', 6500);                       // 치
+    osc('square', 2600, t + 0.012, 0.03, 0.025, 2200);
+    [3150, 4720, 6900].forEach((f, i) => osc('sine', f, t + 0.03, 0.22 - i * 0.05, 0.05 / (i + 1)));  // 킹
+  },
   // 안 맞는 스왑: 경고 부저
   nope: () => { if (!audio()) return; const t = ac.currentTime; osc('square', 120, t, 0.12, 0.05); osc('square', 95, t + 0.13, 0.16, 0.05); },
-  // 매치: 쇠붙이 땡그랑 (비배음 부분음), 연쇄마다 음이 올라감
+  // 매치: "차캉" (잠금쇠 철컥 + 묵직한 쇳덩이 울림), 연쇄마다 음이 올라감
   match: k => {
     if (!audio()) return;
-    const t = ac.currentTime, base = 330 * Math.pow(2, (k * 2) / 12);
-    [1, 2.76, 5.4, 8.93].forEach((m, i) => osc('sine', base * m, t, 0.35 - i * 0.06, 0.09 / (i + 1)));
-    nz(t, 0.04, 0.08, 'highpass', 3000);
+    const t = ac.currentTime, base = 440 * Math.pow(2, (k * 2) / 12);
+    nz(t, 0.035, 0.16, 'bandpass', 3400, 1.2);                   // 차
+    osc('triangle', 170, t + 0.05, 0.12, 0.12, 70);              // 쿵
+    nz(t + 0.05, 0.03, 0.12, 'highpass', 4000);
+    [1, 2.41, 3.93, 5.62].forEach((m, i) => osc('sine', base * m, t + 0.05, 0.5 - i * 0.08, 0.1 / (i + 1)));  // 캉
   },
   // 부분 납품: 계산대 캐시 소리 (철컥 + 짤랑)
   stick: () => {
@@ -687,7 +695,15 @@ const SFX = {
     osc('square', 180, t, 0.05, 0.04);
     [2093, 2637, 3136, 4186].forEach((f, i) => osc('sine', f, t + 0.06 + i * 0.012, 0.5, 0.05));
   },
-  part: () => {},
+  // 부품이 가운데서 커질 때: "번쩍" (위로 쓸어 올리는 소리 + 반짝이)
+  part: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    osc('sine', 900, t, 0.2, 0.05, 4200);
+    osc('triangle', 1800, t + 0.02, 0.16, 0.025, 7000);
+    nz(t, 0.22, 0.03, 'highpass', 7500);
+    for (let i = 0; i < 5; i++) osc('sine', 3200 + Math.random() * 3200, t + 0.12 + i * 0.035, 0.12, 0.03);
+  },
   cash: () => {
     if (!audio()) return;
     const t = ac.currentTime;
@@ -711,12 +727,14 @@ const SFX = {
   star: n => { if (!audio()) return; const t = ac.currentTime; for (let i = 0; i < n; i++) osc('sine', 1568 + i * 220, t + 0.9 + i * 0.12, 0.25, 0.06); },
   // 주문 없는 부품 날려버림: 압축공기 치익
   waste: () => { if (!audio()) return; const t = ac.currentTime; nz(t, 0.45, 0.07, 'highpass', 2500); },
-  // 휴머노이드 투입: 로봇 목소리 삐빅삐빅
+  // 휴머노이드 투입: 크게 번쩍 + 로봇 목소리 삐빅삐빅
   hum: () => {
     if (!audio()) return;
     const t = ac.currentTime;
-    for (let i = 0; i < 6; i++) osc('square', 500 + Math.random() * 900, t + i * 0.055, 0.05, 0.035);
-    osc('sawtooth', 300, t + 0.34, 0.25, 0.03, 120);
+    osc('sine', 600, t, 0.3, 0.06, 5200); nz(t, 0.35, 0.04, 'highpass', 7000);
+    for (let i = 0; i < 8; i++) osc('sine', 2800 + Math.random() * 4000, t + 0.15 + i * 0.03, 0.14, 0.03);
+    for (let i = 0; i < 6; i++) osc('square', 500 + Math.random() * 900, t + 0.45 + i * 0.055, 0.05, 0.035);
+    osc('sawtooth', 300, t + 0.79, 0.25, 0.03, 120);
   },
   // 단계 클리어: 긴 빵빠레
   clear: () => {
@@ -1135,8 +1153,8 @@ function drawTiles() {
   const now = performance.now();
   tileEls.forEach((e, t) => {
     const x = geo.pad + t.x * geo.step, y = geo.pad + t.y * geo.step;
-    // 숨쉬기: 타일마다 박자가 조금씩 다르게 크기가 아주 조금 변함
-    const br = 1 + BREATH * Math.sin(now / 1000 * Math.PI * 2 / 2.2 + t.phase);
+    // 숨쉬기: 타일마다 박자가 조금씩 다르게 크게 들썩임 (가운데를 0.96으로 낮춰 이웃 타일과 덜 겹치게: 0.86~1.06)
+    const br = 0.96 + BREATH * Math.sin(now / 1000 * Math.PI * 2 / 2.2 + t.phase);
     e.style.transform = `translate(${x + (t.ox || 0)}px, ${y + (t.oy || 0)}px) scale(${t.scale * t.sx * br}, ${t.scale * t.sy * br})`;
     e.style.opacity = t.alpha;
     e.style.filter = t.flash > 0 ? `brightness(${1 + t.flash * 1.5})` : '';
