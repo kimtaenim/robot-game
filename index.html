@@ -111,8 +111,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .fxc { position: absolute; left: -40px; top: -40px; pointer-events: none; z-index: 5; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
 .tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; pointer-events: none; transform-origin: 50% 50%; }
-.tile .ic { font-size: 30px; line-height: 1; }
-.tile .nm { font-size: 9.5px; font-weight: 700; color: var(--ink); opacity: .75; margin-top: 2px; }
+.tile .ic { font-size: 28px; line-height: 1; }
+.tile .nm { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-top: 3px; text-align: center; line-height: 1.1; word-break: keep-all; padding-inline: 2px; }
 .tile.hum { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
 .tile.sel { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
 .tile.hint { animation: hint 1s ease-in-out infinite; }
@@ -400,14 +400,14 @@ class Board {
 
 // ═════════ 여기부터 로봇 SI 납품소 (위 Board는 kimtaenim/bosses-of-our-world의 js/board.js 그대로) ═════════
 
-// ───────── 타일: 일반 6종(엔드이펙터는 '툴' 하나로 묶음) + 특수 휴머노이드 ─────────
+// ───────── 타일: 일반 6종(용접·조리·그리퍼 같은 엔드포인트는 'SI' 하나로 묶음) + 특수 휴머노이드 ─────────
 // 휴머노이드는 처음부터 보드에 없고, 4개 이상 한 번에 맞출 때만 위에서 하나씩 내려옴
 const TILES = {
   wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
   auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
   arm:   { icon: '🦾', name: '로봇 팔',  color: 'var(--t-arm)' },
-  tool:  { icon: '🔧', name: '툴',       color: 'var(--t-tool)' },
+  tool:  { icon: '🔧', name: '엔드포인트 SI', color: 'var(--t-tool)' },
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)' },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true },
 };
