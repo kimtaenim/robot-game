@@ -831,7 +831,7 @@ async function runStage() {
   stage.busy = false;
 }
 const stageIdle = () => !stage.busy && !stage.q.length;
-// 손님 등장: 주문서가 화면 가운데에 크게 4초 떠 있다가 작아지며 그 손님 말풍선 자리로 들어감
+// 손님 등장: 주문서가 화면 가운데에 크게 3.5초 떠 있다가 작아지며 그 손님 말풍선 자리로 들어감
 async function orderIntro(c, i) {
   if (JUICE <= 0) { c.intro = false; renderClients(); return; }
   const el = document.createElement('div');
@@ -842,7 +842,7 @@ async function orderIntro(c, i) {
   set(mx, my, 0.3, 0);
   document.body.appendChild(el);
   await tween(260, q => set(mx, my, 0.3 + 0.7 * q, q), EASE.outQuad);
-  await wait(4000);
+  await wait(2920);  // 나타남 0.26 + 떠 있음 2.92 + 말풍선으로 0.32 = 3.5초
   const target = document.querySelector(`[data-slot="${i}"] .bubble`);
   const [tx, ty] = target ? centerOf(target) : [mx, 80];
   const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width : 0.4;
@@ -865,9 +865,10 @@ async function leaveShow(c, i, happy) {
   document.body.appendChild(el);
   const mx = centerX(), my = innerHeight * 0.45;
   if (happy) SFX.done();  // 등장하며 빵빠레
-  await tween(380, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
+  await tween(330, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
   // 몇 초 떠 있음 (살짝 둥실)
-  await tween(1800, q => set(mx, my - 6 * Math.sin(q * Math.PI * 3), 1, 1));
+  // 전체 2초: 만족은 떠 있음 1.53 + 펑 0.14, 화남은 떠 있음 1.29 + 연기 0.38
+  await tween(happy ? 1530 : 1290, q => set(mx, my - 6 * Math.sin(q * Math.PI * 3), 1, 1));
   const r = el.getBoundingClientRect();
   if (happy) {
     // 캐시 소리와 함께 펑! 돈이 쏟아짐
