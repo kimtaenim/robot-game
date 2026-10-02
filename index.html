@@ -765,7 +765,7 @@ function clientTick(dt) {
     if (c.state === 'wait') {
       if (c.intro || c.noTimer) return;  // 주문서를 읽는 동안·휴머노이드 손님은 기다림 바가 흐르지 않음
       if ((c.t -= dt) > 0) return;
-      // 너무 늦음: 계약 취소. 해골이 뜨고 피식 사라짐
+      // 너무 늦음: 계약 취소. 우는 얼굴이 뜨고 피식 사라짐
       c.state = 'gone'; c.until = GONE_SEC;
       vibrate([40, 40, 40]);
       S.dead += c.needs.filter(nd => nd.got).length;
@@ -891,7 +891,7 @@ async function orderIntro(c, i) {
   c.intro = false;
   if (S.slots[i] === c) renderClients();
 }
-// 떠나는 연출 (2초): 만족 → 별이 크게 뜨며 빵빠레, 캐시 소리와 함께 돈이 우수수 / 중간에 떠남 → 해골 + "아 오" + 피식 연기
+// 떠나는 연출 (2초): 만족 → 별이 크게 뜨며 빵빠레, 캐시 소리와 함께 돈이 우수수 / 중간에 떠남 → 우는 얼굴 + "아 오" + 피식 연기
 async function leaveShow(c, i, happy) {
   const src = document.querySelector(`[data-slot="${i}"]`);
   if (!src || JUICE <= 0) { (happy ? SFX.cash : SFX.leave)(); return; }
@@ -900,7 +900,7 @@ async function leaveShow(c, i, happy) {
   el.className = 'leave' + (happy ? ' happy' : ' angry');
   el.innerHTML = happy
     ? `<div class="lstars">${'⭐'.repeat(c.stars)}<span>${'☆'.repeat(3 - c.stars)}</span></div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]}</div>`
-    : `<div class="lskull">💀</div><div class="lword">계약 취소</div>`;
+    : `<div class="lskull">😭</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
@@ -1438,7 +1438,7 @@ const HELP = `
     <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 주문서로 날아가 붙어요</span></div>
     <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
   </div>
-  <p>주문서 아래 바가 다 떨어지면 💀 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
+  <p>주문서 아래 바가 다 떨어지면 😭 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
   ${recipesHtml()}
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
