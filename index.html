@@ -215,6 +215,14 @@ const HINTS = {
   quad:  { icon: '🪜', text: '계단·험지' },
   hum:   { icon: '👷', text: '사람 자리' },
 };
+// 현장 상황 문구: 자료에 나온 그 현장의 특징 (그림은 HINTS의 로봇별 그림)
+const NEEDS = {
+  port: '정해진 길로 컨테이너', kai: '공정 사이 자재 이송', stl: '스스로 오더피킹', transys: '바닥 공사 불가',
+  ford: '공장 자재 운반', ecopro: '설비 돌며 점검', lg: '다니며 셀 집기', mipo: '사람 옆 용접',
+  gwangjin: '양산 라인 옆', polytech: '학생 실습 장비', busanEdu: '급식 조리 보조', posco: '계단·배관 점검',
+  police: '폭발물 현장', army: '산악 정찰', fire: '무너진 현장', hyundai: '사람 자리 그대로',
+  bmw: '사람처럼 교대 근무', cj: '양팔로 포장', catl: '생산라인 투입', samsung: '운반 + 설비 점검', lotte: '운반 + 사람 일',
+};
 const UNLOCKS = [['amr', 'agv'], ['cobot'], ['mm'], ['quad'], ['hum']];
 const unlockedAt = lv => UNLOCKS.slice(0, Math.max(0, Math.min(lv, UNLOCKS.length))).flat();
 
@@ -249,7 +257,7 @@ ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push(
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
 // ───────── 템포 ─────────
-const COMBO_SEC = 5, SPOTS = 8, RAIL = 4, FAST_SEC = 7, REVEAL_SEC = 6;
+const COMBO_SEC = 5, SPOTS = 8, RAIL = 4, FAST_SEC = 7, REVEAL_SEC = 8;
 const levelTarget = lv => Math.min(16, 6 + lv);                 // 이 단계에서 쳐낼 주문 수
 const levelGap = lv => Math.max(1.4, 3.2 - (lv - 1) * 0.22);   // 주문이 떨어지는 간격
 const levelPar = lv => { const n = levelTarget(lv); return [n * 4.2, n * 6.5]; }; // ⭐⭐⭐ / ⭐⭐ 기준 초
@@ -313,8 +321,8 @@ function pickOrder() {
 }
 function addTicket() {
   const order = O[pickOrder()];
-  const stage = Math.min(2, S.stage[order.id] || 0);
-  // 학습 단계: 0 = 로봇 그림, 1 = 힌트, 2 = 현장만. 오래 머물면 저절로 한 단계씩 풀림
+  const stage = Math.min(1, S.stage[order.id] || 0);
+  // 학습 단계: 0 = 로봇 그림, 1 = 현장 상황 그림. 오래 머물면 로봇 그림이 저절로 드러남
   S.tickets.push({ order, left: order.wants.slice(), stage, shown: stage, born: S.clock, fresh: true });
   S.spawned++;
   SFX.ticket();
@@ -338,8 +346,8 @@ function askHtml(t) {
     const icons = o.wants.map(w => { const k = left.indexOf(w); if (k >= 0) { left.splice(k, 1); return `<span>${ITEMS[w].icon}</span>`; } return `<span class="done">${ITEMS[w].icon}</span>`; }).join('');
     return `<span class="icons">${icons}</span><span class="t">${kinds.map(w => ITEMS[w].name).join('+')}</span>`;
   }
-  if (t.shown === 1) return `<span class="icons">${kinds.map(w => `<span>${HINTS[w].icon}</span>`).join('')}</span><span class="t">${kinds.map(w => HINTS[w].text).join(' + ')}</span>`;
-  return `<span class="q">?</span>`;
+  const text = NEEDS[o.id] || kinds.map(w => HINTS[w].text).join(' + ');
+  return `<span class="icons">${kinds.map(w => `<span>${HINTS[w].icon}</span>`).join('')}</span><span class="t">${text}</span>`;
 }
 function renderRail() {
   const rest = levelTarget(S.lv) - S.spawned;
@@ -509,7 +517,7 @@ function deliver(src, ti) {
   S.best = Math.max(S.best, S.combo);
   const shown = shownStage(t);
   const fast = S.clock - t.born < FAST_SEC;
-  const gain = Math.round(100 * t.order.wants.length * [1, 1.5, 2][shown] * Math.min(3, 1 + 0.2 * (S.combo - 1)) + (fast ? 50 : 0));
+  const gain = Math.round(100 * t.order.wants.length * [1, 2][shown] * Math.min(3, 1 + 0.2 * (S.combo - 1)) + (fast ? 50 : 0));
   S.score += gain;
   floatText(el, `+${gain}`, S.combo >= 3);
   SFX.done(S.combo);
@@ -519,7 +527,7 @@ function deliver(src, ti) {
   const lit = S.dex.has(t.order.id) || [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
   S.dex.add(t.order.id);
   if (!lit) banner(`${secKey(t.order)}${t.order.icon} 점등!`, 150);
-  S.stage[t.order.id] = Math.min(2, shown + 1);
+  S.stage[t.order.id] = 1;
   S.bestScore = Math.max(S.bestScore, S.score);
   save();
   S.tickets.splice(ti, 1);
@@ -641,7 +649,7 @@ const HELP = `
     <div class="step">🛞 + 👁️ = 🚚 <span>카드가 겹쳐 조립되고</span></div>
     <div class="step">🚚 ➜ 🧾 <span>찾는 주문표로 저절로 날아가요</span></div>
   </div>
-  <p>주문이 쏟아져요. 단계마다 주문을 다 쳐내면 바로 다음 단계! 빨리 깰수록 ⭐, 연달아 쳐내면 🔥. 익숙한 현장은 주문표에 <b>?</b>만 떠요. 맞히면 점수 2배.</p>
+  <p>주문이 쏟아져요. 단계마다 주문을 다 쳐내면 바로 다음 단계! 빨리 깰수록 ⭐, 연달아 쳐내면 🔥. 익숙한 현장은 주문표에 로봇 대신 <b>현장 상황</b>(🪜 계단·배관, 🛣️ 정해진 길…)만 떠요. 상황을 보고 맞히면 점수 2배.</p>
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
   const seen = [...new Set(S.runServed)].map(id => logItem(O[id])).join('');
