@@ -1,7 +1,7 @@
-<title>로봇 SI 납품소</title>
+<title>Robots Wanted</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
 /* 레이아웃: 위 클라이언트 3명(말풍선 주문) → 아래 5×5 매치3 보드. 공장 작업장 톤 */
 :root {
@@ -53,8 +53,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .app.fever { background: var(--gold-soft); }
 
 /* 상단 바 */
-.title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1; letter-spacing: .02em; display: flex; align-items: baseline; gap: 10px; text-wrap: balance; }
-.title small { font-family: var(--font-body); font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .06em; }
+.title { margin: 0; font-family: 'Bungee', var(--font-display); font-weight: 400; font-size: 26px; line-height: 1; color: var(--steel); white-space: nowrap; letter-spacing: .01em; }
+.title small { display: block; margin-top: 4px; font-family: var(--font-body); font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .06em; white-space: nowrap; }
 .top { display: flex; align-items: center; gap: 12px; font-size: 15px; }
 .lv { font-family: var(--font-display); font-size: 18px; }
 .top .stat { display: flex; align-items: center; gap: 4px; }
@@ -167,7 +167,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 </style>
 
 <div class="app" id="app">
-  <h1 class="title">로봇 스터디<small>산업별 로봇 도입 지도</small></h1>
+  <h1 class="title">Robots Wanted<small>로봇 스터디 · 산업별 로봇 도입 지도</small></h1>
   <header class="top">
     <span class="lv" id="lv">1단계</span>
     <span class="goal" aria-label="단계 진행"><i id="goalBar"></i></span>
@@ -458,8 +458,8 @@ const ORDERS = [
 ];
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
 // 기다리는 시간(초): 부품 하나마다 조금씩 더. 휴머노이드 손님은 아주 길고 바가 천천히 내려감
-const MOODS = { hot: 34, mid: 46, calm: 60, long: 170 };
-const PART_SEC = 5;
+const MOODS = { hot: 22, mid: 30, calm: 40, long: 120 };
+const PART_SEC = 3.5;
 const secKey = o => o.sec.split(' ')[0];
 const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
@@ -485,7 +485,7 @@ const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1
 // 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
 const JUICE = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2.0;
 const FALL_GRAVITY = 140; // 칸/초²
-const BREATH = 0.025;     // 타일 숨쉬기: 크기가 ±2.5% 아주 조금 변함
+const BREATH = 0.06;      // 타일 숨쉬기: 크기가 ±6% 눈에 띄게 들썩임
 
 // ───────── 상태 ─────────
 const S = {
@@ -547,7 +547,7 @@ function addClient(i) {
   const order = pickOrder();
   const needs = [];
   for (let k = 0; k < order.n; k++) needs.push(...ROBOTS[order.want].parts);
-  const max = (MOODS[order.mood] + needs.length * PART_SEC) * (order.mood === 'long' ? 1 : Math.max(0.6, 1 - (S.lv - 1) * 0.05));
+  const max = (MOODS[order.mood] + needs.length * PART_SEC) * (order.mood === 'long' ? 1 : Math.max(0.5, 1 - (S.lv - 1) * 0.06));
   const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, slow: order.mood === 'long' };
   S.slots[i] = c;
   S.spawned++;
@@ -846,7 +846,7 @@ function drawTiles() {
   tileEls.forEach((e, t) => {
     const x = geo.pad + t.x * geo.step, y = geo.pad + t.y * geo.step;
     // 숨쉬기: 타일마다 박자가 조금씩 다르게 크기가 아주 조금 변함
-    const br = 1 + BREATH * Math.sin(now / 1000 * Math.PI * 2 / 2.6 + t.phase);
+    const br = 1 + BREATH * Math.sin(now / 1000 * Math.PI * 2 / 2.2 + t.phase);
     e.style.transform = `translate(${x + (t.ox || 0)}px, ${y + (t.oy || 0)}px) scale(${t.scale * t.sx * br}, ${t.scale * t.sy * br})`;
     e.style.opacity = t.alpha;
     e.style.filter = t.flash > 0 ? `brightness(${1 + t.flash * 1.5})` : '';
@@ -1026,7 +1026,7 @@ async function resolve() {
 // 손님이 필요로 하는 부품이 조금 더 자주 떨어짐 (휴머노이드는 여기서 안 나옴)
 function biasedType() {
   const need = waiting().flatMap(c => c.needs.filter(n => !n.res).map(n => n.p)).filter(p => S.def.tiles.includes(p));
-  if (need.length && Math.random() < 0.3) return need[Math.floor(Math.random() * need.length)];
+  if (need.length && Math.random() < 0.12) return need[Math.floor(Math.random() * need.length)];
   return S.def.tiles[Math.floor(Math.random() * S.def.tiles.length)];
 }
 
@@ -1169,7 +1169,7 @@ function resume() {
   if (S.pendingStart) { S.pendingStart = false; startLevel(); }
 }
 const HELP = `
-  <h2>로봇 SI 납품소</h2>
+  <h2>Robots Wanted</h2>
   <div class="steps">
     <div class="step">💬 <span>클라이언트가 말풍선으로 로봇을 주문해요</span></div>
     <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 말풍선으로 날아가 붙어요</span></div>
