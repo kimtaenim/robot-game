@@ -103,7 +103,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ocard .ind { font-family: var(--font-display); font-size: 16px; line-height: 1.12; text-align: center; word-break: keep-all; max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: none; }
 .ocard .co { font-size: 11px; font-weight: 700; color: var(--muted); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .ocard .task { font-size: 11.5px; font-weight: 700; color: var(--steel); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.ocard .rb { display: flex; align-items: center; justify-content: center; gap: 3px; margin-top: auto; max-width: 100%; }
+.ocard .cface { font-size: 34px; line-height: 1; margin: auto 0; min-height: 0; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .18)); }
+.ocard .rb { display: flex; align-items: center; justify-content: center; gap: 3px; max-width: 100%; }
 .ocard .rb .ric { font-size: 32px; line-height: 1; }
 .ocard .rb b { font-family: var(--font-display); font-weight: 400; font-size: 16px; }
 .ocard .rname { font-family: var(--font-display); font-size: 12px; color: var(--steel); line-height: 1.15; text-align: left; word-break: keep-all; }
@@ -112,6 +113,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 /* 좁은 휴머노이드 상시 주문서 */
 .ocard.hum { padding: 7px 3px 6px; background: linear-gradient(180deg, #FFF8E1, var(--surface) 45%); border-color: var(--gold-deep); }
 .ocard.hum .ind { font-size: 22px; }
+.ocard.hum .rb { margin-top: auto; }
 .ocard.hum .rname { font-size: 11px; text-align: center; }
 .ocard.hum .needs { flex-wrap: wrap; gap: 2px; }
 .ocard.hum .need { width: 21px; height: 21px; font-size: 14px; }
@@ -545,7 +547,7 @@ const ORDERS = [
 const IND = {
   port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', ecopro: '배터리 소재 공장',
   mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
-  posco: '제철소', posco2: '제철소', fire2: '소방', police: '경찰', army: '국방', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
+  posco: '제철소', posco2: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
 };
 ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
 const robotLabel = o => o.label || ROBOTS[o.want].name;
@@ -897,6 +899,7 @@ function orderBody(c, big) {
     return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">휴머노이드</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
   }
   return `<div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div>
+    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}">${faceOf(c)}</div>`}
     <div class="rb"><span class="ric">${r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
     <div class="needs">${needs}</div>`;
 }
@@ -983,6 +986,9 @@ function burstAt(x, y) {
 // 기다림 바 색 구간: 세룰리안 → 노랑 → 다홍 → 버건디
 const BANDS = [{ at: 0.6 }, { at: 0.35 }, { at: 0.15 }, { at: 0 }];
 const bandOf = c => Math.max(0, BANDS.findIndex(b => c.t / c.max >= b.at));
+// 주문서 가운데 손님 얼굴: 기다림 바 구간마다 표정이 바뀜, 납품하면 활짝, 떠나면 눈물
+const FACES = ['😊', '😐', '😠', '😡'];
+const faceOf = c => c.state === 'done' ? '😄' : c.state === 'gone' ? '😢' : FACES[bandOf(c)];
 function renderClients() {
   $('rail').innerHTML = S.slots.map((c, i) => {
     const hum = isHumSlot(i) ? ' hum' : '';
@@ -1001,6 +1007,8 @@ function updateBars() {
     const f = Math.max(0, c.t / c.max);
     const el = document.querySelector(`[data-pat="${i}"] i`);
     if (el) { el.style.transform = `scaleX(${c.state === 'wait' ? f : 0})`; el.className = 'p' + (bandOf(c) + 1); }
+    const fe = document.querySelector(`[data-face="${i}"]`);
+    if (fe) { const f2 = faceOf(c); if (fe.textContent !== f2) fe.textContent = f2; }
   });
 }
 function renderStock() {}
