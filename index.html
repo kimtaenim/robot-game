@@ -672,7 +672,8 @@ function fxDust(x, y) {
 }
 function fxRing(x, y, r0, r1, dur, w = 3, rgb = '255,255,255') { if (JUICE > 0) FX.rings.push({ x, y, r0, r1, dur: dur / 1000, w, rgb, t: 0 }); }
 function fxText(x, y, str, size, color) { if (JUICE > 0) FX.texts.push({ x, y, str, size, color, t: 0, dur: 0.9 }); }
-function fxShake(px) { if (JUICE > 0) FX.amp = Math.max(FX.amp, Math.min(px * JUICE, 10 * JUICE)); }
+// 보드 흔들림은 쓰지 않음 (타일이 흔들리지 않게). 호출은 남겨 두고 아무것도 안 함
+function fxShake() {}
 function vibrate(p) { if (JUICE > 0 && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } }
 function fxUpdate(s) {
   for (const p of FX.parts) { p.life += s; p.vy += p.g * s; p.x += p.vx * s; p.y += p.vy * s; p.rot += p.vr * s; }
