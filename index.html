@@ -152,6 +152,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .35); }
 .boardwrap { padding: 7px 0 2px; }
 .tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; pointer-events: none; transform-origin: 50% 50%; }
+.sv { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; flex: none; }
 .tile .ic { font-size: calc(var(--ts, 60px) * 0.66); line-height: 1; }
 .tile .nm { font-size: 9.5px; font-weight: 500; color: var(--t-ink-light); opacity: .75; margin-bottom: 0; text-align: center; line-height: 1.1; white-space: nowrap; letter-spacing: -0.02em; }
 .tile .nm.long { letter-spacing: -0.07em; }
@@ -476,15 +477,27 @@ class Board {
 
 // ═════════ 여기부터 로봇 SI 납품소 (위 Board는 kimtaenim/bosses-of-our-world의 js/board.js 그대로) ═════════
 
+// 이모지에 없는 부품 그림: 회색 금속 SVG (로봇 집게·로봇 발·로봇 손)
+const MET = 'fill="#C9CFD5" stroke="#2F3A44" stroke-width="2.6" stroke-linejoin="round"';
+const MET2 = 'fill="#959FA9" stroke="#2F3A44" stroke-width="2.6" stroke-linejoin="round"';
+const SVGS = {
+  grip: `<rect x="24" y="3" width="16" height="11" rx="2" ${MET2}/><rect x="10" y="14" width="44" height="12" rx="3" ${MET}/><circle cx="32" cy="20" r="3" fill="#2F3A44"/><path d="M13 26H24V40L31 50L26 57L13 43Z" ${MET}/><path d="M51 26H40V40L33 50L38 57L51 43Z" ${MET}/><path d="M16 30h5M43 30h5" stroke="#F4F6F8" stroke-width="2" stroke-linecap="round"/>`,
+  foot: `<rect x="22" y="3" width="16" height="24" rx="3" ${MET}/><path d="M26 8v14" stroke="#F4F6F8" stroke-width="2.5" stroke-linecap="round"/><circle cx="30" cy="31" r="7" ${MET2}/><path d="M13 37H40Q53 37 57 47V51H8V43Q8 37 13 37Z" ${MET}/><rect x="6" y="50" width="53" height="7" rx="2.5" ${MET2}/><path d="M44 42v8M50 44v6" stroke="#2F3A44" stroke-width="2"/>`,
+  hand: `<rect x="24" y="49" width="16" height="11" rx="2" ${MET2}/><rect x="16" y="27" width="31" height="25" rx="5" ${MET}/><rect x="16.5" y="9" width="7" height="21" rx="3.5" ${MET}/><rect x="25" y="4" width="7" height="26" rx="3.5" ${MET}/><rect x="33.5" y="5" width="7" height="25" rx="3.5" ${MET}/><rect x="42" y="11" width="6.5" height="19" rx="3.2" ${MET}/><path d="M17 18h6M25.5 16h6M34 16h6M42.5 20h5.5" stroke="#2F3A44" stroke-width="2"/><rect x="3" y="31" width="17" height="8" rx="4" transform="rotate(-38 18 36)" ${MET}/><circle cx="31.5" cy="40" r="3" fill="#2F3A44"/>`,
+};
+const svgIcon = k => `<svg class="sv" viewBox="0 0 64 64" aria-hidden="true">${SVGS[k]}</svg>`;
+// 캔버스 효과(부품×2 글자)에 쓸 그림
+const svgImg = k => { const im = new Image(); im.src = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">${SVGS[k]}</svg>`); return im; };
+
 // ───────── 타일: 일반 6종(용접·조리·그리퍼 같은 엔드포인트는 'SI' 하나로 묶음) + 특수 휴머노이드 ─────────
 // 휴머노이드는 처음부터 보드에 없고, 4개 이상 한 번에 맞출 때만 위에서 하나씩 내려옴
 const TILES = {
   wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
   auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
-  arm:   { icon: '🦾', name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
-  tool:  { icon: '🤏', name: '엔드포인트 SI', color: 'var(--t-tool)' },
-  legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
+  arm:   { icon: svgIcon('hand'), img: svgImg('hand'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
+  tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
+  legs:  { icon: svgIcon('foot'), img: svgImg('foot'), name: '다리',     color: 'var(--t-legs)', lite: true },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
@@ -551,9 +564,9 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 // 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.7%, 6종 6.3% (막히면 섞음)
 // 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
 // 로봇은 단계마다 갈아치우지 않고, 쌓아 가며 천천히 늘림
-//   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (🛞🧭🦾🤏)
+//   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (바퀴·자율주행·팔·SI)
 //   5~9단계: + AGV (🚧 바닥 공사 추가)
-//   10단계~: + 4족로봇 (🦿 다리 추가) / 12단계~: + 팔 달린 4족 / 14단계~: + 켄타우로스
+//   10단계~: + 4족로봇 (다리 추가) / 12단계~: + 팔 달린 4족 / 14단계~: + 켄타우로스
 const STAGES = [
   { from: 1,  robots: ['amr', 'cobot', 'mm', 'hum'],                tiles: ['wheel', 'auto', 'arm', 'tool'] },
   { from: 5,  robots: ['amr', 'cobot', 'mm', 'agv', 'hum'],         tiles: ['wheel', 'auto', 'arm', 'tool', 'floor'] },
@@ -1019,7 +1032,7 @@ function fxDust(x, y) {
   for (let i = 0; i < 3; i++) FX.parts.push({ x: x + rand(-10, 10), y, vx: (i % 2 ? 1 : -1) * rand(30, 70), vy: rand(-40, -10), g: 0, size: rand(3, 6), color: 'rgba(160,170,180,.7)', rot: 0, vr: 0, life: 0, max: rand(0.3, 0.45), round: true });
 }
 function fxRing(x, y, r0, r1, dur, w = 3, rgb = '255,255,255') { if (JUICE > 0) FX.rings.push({ x, y, r0, r1, dur: dur / 1000, w, rgb, t: 0 }); }
-function fxText(x, y, str, size, color) { if (JUICE > 0) FX.texts.push({ x, y, str, size, color, t: 0, dur: 0.9 }); }
+function fxText(x, y, str, size, color, img) { if (JUICE > 0) FX.texts.push({ x, y, str, size, color, img, t: 0, dur: 0.9 }); }
 // 보드 흔들림은 쓰지 않음 (타일이 흔들리지 않게). 호출은 남겨 두고 아무것도 안 함
 function fxShake() {}
 function vibrate(p) { if (JUICE > 0 && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } }
@@ -1059,8 +1072,10 @@ function fxDraw() {
     ctx.save(); ctx.translate(t.x, t.y - 30 * p); ctx.scale(s, s);
     ctx.globalAlpha = p > 0.7 ? (1 - p) / 0.3 : 1;
     ctx.font = `${t.size}px 'Black Han Sans', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(19,32,42,.85)'; ctx.strokeText(t.str, 0, 0);
-    ctx.fillStyle = t.color; ctx.fillText(t.str, 0, 0);
+    let tx = 0;
+    if (t.img && t.img.complete) { const w = ctx.measureText(t.str).width, d = t.size * 1.15; tx = d / 2; ctx.drawImage(t.img, -w / 2 - d / 2 - 2, -d / 2, d, d); }
+    ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(19,32,42,.85)'; ctx.strokeText(t.str, tx, 0);
+    ctx.fillStyle = t.color; ctx.fillText(t.str, tx, 0);
     ctx.restore();
   }
   ctx.globalAlpha = 1;
@@ -1265,7 +1280,7 @@ async function resolve() {
       S.score += pts;
       let gx = 0, gy = 0;
       g.cells.forEach(i => { const [r, c] = S.board.rc(i); gx += cx(c); gy += cy(r); });
-      fxText(gx / g.cells.length, gy / g.cells.length + (chain >= 2 ? 26 : 0), gain > 1 ? `${TILES[g.type].icon}×${gain}` : `+${pts}`, gain > 1 ? 26 : 18, gain > 1 ? '#FFD84A' : '#ffffff');
+      fxText(gx / g.cells.length, gy / g.cells.length + (chain >= 2 ? 26 : 0), gain > 1 ? `${TILES[g.type].img ? '' : TILES[g.type].icon}×${gain}` : `+${pts}`, gain > 1 ? 26 : 18, gain > 1 ? '#FFD84A' : '#ffffff', gain > 1 ? TILES[g.type].img : null);
     }
     const doomed = [...m.matched].map(i => S.board.cells[i]);
     await Promise.all(doomed.map(popTile));
@@ -1448,7 +1463,7 @@ const HELP = `
   <div class="steps">
     <div class="step">📨 <span>새 주문서가 뜨면 눌러서 수락! (어느 업종이 어떤 로봇을 사는지 읽어 보세요)</span></div>
     <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 주문서로 날아가 붙어요</span></div>
-    <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 휴머노이드도 🤏 SI를 붙여야 납품돼요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
+    <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 휴머노이드도 엔드포인트 SI(로봇 집게)를 붙여야 납품돼요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
   </div>
   <p>주문서 아래 바가 다 떨어지면 😢 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
   ${recipesHtml()}
