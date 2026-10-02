@@ -21,7 +21,8 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(12, 20, 27, 0.55);
-  --t-wheel: #F4E3C1; --t-auto: #CFE6FA; --t-floor: #FBD3B0; --t-arm: #D9D2F5; --t-tool: #CDEFD8; --t-legs: #F7D0DA; --t-hum: #FFE27A;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D;
+  --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --font-display: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -31,7 +32,6 @@
     --bg: #0F151A; --board: #1A242C; --cell: #222E38; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0;
     --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115; --steel: #72AEDC; --steel-soft: #1D3346;
     --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65);
-    --t-wheel: #5A4A2A; --t-auto: #234A6B; --t-floor: #6B3F1F; --t-arm: #3F3670; --t-tool: #22553A; --t-legs: #6B2E3F; --t-hum: #7A6418;
     color-scheme: dark;
   }
 }
@@ -39,7 +39,6 @@
   --bg: #0F151A; --board: #1A242C; --cell: #222E38; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0;
   --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115; --steel: #72AEDC; --steel-soft: #1D3346;
   --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65);
-  --t-wheel: #5A4A2A; --t-auto: #234A6B; --t-floor: #6B3F1F; --t-arm: #3F3670; --t-tool: #22553A; --t-legs: #6B2E3F; --t-hum: #7A6418;
   color-scheme: dark;
 }
 [hidden] { display: none !important; }
@@ -111,9 +110,10 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .fxc { position: absolute; left: -40px; top: -40px; pointer-events: none; z-index: 5; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
 .tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; pointer-events: none; transform-origin: 50% 50%; }
-.tile .ic { font-size: 30px; line-height: 1; }
-.tile .nm { font-size: 9.5px; font-weight: 500; color: var(--ink); opacity: .45; margin-bottom: 2px; text-align: center; line-height: 1.1; white-space: nowrap; letter-spacing: -0.02em; }
+.tile .ic { font-size: calc(var(--ts, 60px) * 0.66); line-height: 1; }
+.tile .nm { font-size: 9.5px; font-weight: 500; color: var(--t-ink-light); opacity: .75; margin-bottom: 0; text-align: center; line-height: 1.1; white-space: nowrap; letter-spacing: -0.02em; }
 .tile .nm.long { letter-spacing: -0.07em; }
+.tile.lite .nm { color: var(--t-ink-dark); opacity: .55; }
 .tile.hum { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
 .tile.sel { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
 .tile.hint { animation: hint 1s ease-in-out infinite; }
@@ -407,10 +407,10 @@ const TILES = {
   wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
   auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
-  arm:   { icon: '🦾', name: '로봇 팔',  color: 'var(--t-arm)' },
+  arm:   { icon: '🦾', name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
   tool:  { icon: '🔧', name: '엔드포인트 SI', color: 'var(--t-tool)' },
-  legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)' },
-  hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true },
+  legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
+  hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
 // AMR = 바퀴+자율주행 / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI)
@@ -765,14 +765,14 @@ function layout() {
   const cs = getComputedStyle(document.documentElement);
   Object.keys(TILES).forEach(k => { tileHex[k] = cs.getPropertyValue('--t-' + k).trim() || '#cccccc'; });
 }
-function sizeTile(e) { e.style.width = geo.size + 'px'; e.style.height = geo.size + 'px'; }
+function sizeTile(e) { e.style.width = geo.size + 'px'; e.style.height = geo.size + 'px'; e.style.setProperty('--ts', geo.size + 'px'); }
 const cx = c => geo.pad + c * geo.step + geo.size / 2;
 const cy = r => geo.pad + r * geo.step + geo.size / 2;
 function tileEl(t) {
   let e = tileEls.get(t);
   if (!e) {
     e = document.createElement('div');
-    e.className = 'tile' + (TILES[t.type].special ? ' hum' : '');
+    e.className = 'tile' + (TILES[t.type].special ? ' hum' : '') + (TILES[t.type].lite ? ' lite' : '');
     e.style.background = TILES[t.type].color;
     e.innerHTML = `<span class="nm${TILES[t.type].name.length > 6 ? ' long' : ''}">${TILES[t.type].name}</span><span class="ic">${TILES[t.type].icon}</span>`;
     sizeTile(e);
