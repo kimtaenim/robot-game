@@ -168,8 +168,9 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 @keyframes banner { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
 
 .order-card { position: fixed; z-index: 38; pointer-events: none; width: 210px; box-sizing: border-box; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 20px; padding: 14px 12px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0, 0, 0, .45); }
-.order-card .oc-who { font-size: 16px; font-weight: 700; }
-.order-card .oc-say { font-size: 13px; color: var(--muted); font-weight: 700; text-align: center; word-break: keep-all; }
+.order-card .oc-ind { font-family: var(--font-display); font-size: 26px; line-height: 1.1; text-align: center; word-break: keep-all; }
+.order-card .oc-who { font-size: 12px; font-weight: 700; color: var(--muted); }
+.order-card .oc-say { font-size: 14px; color: var(--ink); font-weight: 700; text-align: center; word-break: keep-all; }
 .order-card .oc-robot { font-size: 54px; line-height: 1.1; display: flex; align-items: center; gap: 4px; }
 .order-card .oc-robot b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
 .order-card .oc-name { font-family: var(--font-display); font-size: 18px; color: var(--steel); }
@@ -496,10 +497,11 @@ const ORDERS = [
   { id: 'transys',  want: 'amr',   n: 1, mood: 'mid',  icon: '🏭', who: '현대트랜시스', task: '바닥 공사 없이 운반', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요.' },
   { id: 'ford',     want: 'amr',   n: 1, mood: 'hot',  icon: '🔌', who: '포드',        task: '공장 자재 운반',     sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
   { id: 'ecopro',   want: 'amr',   n: 1, mood: 'mid',  icon: '🧪', who: '에코프로',    task: '설비 순찰 점검',     sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
-  { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: 'HD현대미포',  task: '선체 용접',          sec: '④ 조선',        fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
-  { id: 'busanEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '부산교육청',  task: '급식 조리',          sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
-  { id: 'gwangjin', want: 'cobot', n: 1, mood: 'hot',  icon: '⚙️', who: '광진',        task: '양산 라인 피킹',     sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
-  { id: 'polytech', want: 'cobot', n: 1, mood: 'calm', icon: '🎓', who: '폴리텍',      task: '학생 실습',          sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
+  { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: '',            task: '선체 용접',          sec: '④ 조선',        weight: 4, label: '용접 협동로봇', fact: '한 조선소는 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공을 구하지 못해 "일을 못 받는다"는 현장이에요.' },
+  { id: 'ship2',    want: 'cobot', n: 1, mood: 'hot',  icon: '🚢', who: '',            task: '고열·분진 속 용접',   sec: '④ 조선',        weight: 4, label: '용접 협동로봇', fact: '조선소는 고열·먼지·용접 스패터 속에서 용접선을 따라 움직여야 해요. 작업자가 말로 지시하면 로봇이 토치 각도와 속도를 정하는 AI 과제도 진행 중이에요.' },
+  { id: 'busanEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '부산교육청',  task: '급식 조리',          sec: '⑱ 학교 급식',   label: '조리 협동로봇',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
+  { id: 'gwangjin', want: 'cobot', n: 1, mood: 'hot',  icon: '⚙️', who: '광진',        task: '양산 라인 피킹',     sec: '③ 제조 SI',     label: '피킹 협동로봇',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
+  { id: 'polytech', want: 'cobot', n: 1, mood: 'calm', icon: '🎓', who: '폴리텍',      task: '학생 실습',          sec: '① 교육용 로봇', label: '실습용 협동로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
   { id: 'lg',       want: 'mm',    n: 1, mood: 'mid',  icon: '🔋', who: 'LG엔솔',      task: '다니며 불량 셀 빼기', sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
   { id: 'posco',    want: 'quad',  n: 1, mood: 'mid',  icon: '🌋', who: '포스코',      task: '고로 가스 누설 점검', sec: '⑦ 철강',       fact: '스팟이 고로를 순찰하며 누수·발열 징후를 감지하고, 하루 12번 배관 누설을 점검해요.' },
   { id: 'police',   want: 'quad',  n: 2, mood: 'hot',  icon: '🚓', who: '경찰청',      task: '폭발물 현장 정찰',   sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
@@ -510,6 +512,14 @@ const ORDERS = [
   { id: 'cj',       want: 'hum',   n: 1, mood: 'long', icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
   { id: 'catl',     want: 'hum',   n: 1, mood: 'long', icon: '⚡', who: 'CATL',        task: '생산 라인 투입',     sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
 ];
+// 업종: 주문서·손님 자리에 회사 이름보다 크게 보여 줌
+const IND = {
+  port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', ecopro: '배터리 소재 공장',
+  mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
+  posco: '제철소', police: '경찰', army: '국방', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
+};
+ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
+const robotLabel = o => o.label || ROBOTS[o.want].name;
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
 // 기다리는 시간(초): 부품 하나마다 조금씩 더. 휴머노이드 손님은 아주 길고 바가 천천히 내려감
 const MOODS = { hot: 22, mid: 30, calm: 40, long: 120 };
@@ -708,7 +718,7 @@ function pickOrder() {
   let pool = ORDERS.filter(o => ok.has(o.want) && !open.has(o.id) && !(humOpen && o.want === 'hum'));
   if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum');
   // 휴머노이드 손님은 드물게
-  const weighted = pool.flatMap(o => o.want === 'hum' ? (Math.random() < 0.5 ? [o] : []) : [o, o]);
+  const weighted = pool.flatMap(o => o.want === 'hum' ? (Math.random() < 0.5 ? [o] : []) : Array(2 * (o.weight || 1)).fill(o));
   const list = weighted.length ? weighted : pool;
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -791,7 +801,7 @@ function complete(i) {
 // 주문 카드 내용: 로봇 + 필요한 부품
 const orderCardHtml = (c, big) => {
   const r = ROBOTS[c.order.want];
-  return `<span class="oc-robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</span><span class="oc-name">${r.name}</span>` +
+  return `<span class="oc-robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</span><span class="oc-name">${robotLabel(c.order)}</span>` +
     (big ? `<span class="oc-needs">${c.needs.map(nd => `<i>${TILES[nd.p].icon}</i>`).join('')}</span>` : '');
 };
 const centerX = () => innerWidth / 2;
@@ -801,7 +811,7 @@ async function orderIntro(c, i) {
   if (JUICE <= 0) { c.intro = false; renderClients(); return; }
   const el = document.createElement('div');
   el.className = 'order-card';
-  el.innerHTML = `<span class="oc-who">${c.order.icon} ${c.order.who}</span><span class="oc-say">${c.order.task}</span>${orderCardHtml(c, true)}<span class="oc-face">${BANDS[0].face}</span>`;
+  el.innerHTML = `<span class="oc-ind">${c.order.icon} ${c.order.ind}</span>${c.order.who ? `<span class="oc-who">${c.order.who}</span>` : ''}<span class="oc-say">${c.order.task}</span>${orderCardHtml(c, true)}<span class="oc-face">${BANDS[0].face}</span>`;
   const k = introStack++;
   const mx = centerX(), my = innerHeight * (0.42 + 0.06 * (k % 3));
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
@@ -906,7 +916,7 @@ function sayOf(c) {
   if (c.state === 'gone') return '계약은 없던 걸로 하죠!';
   if (c.state === 'done') return `${['', '그럭저럭이네요', '좋아요, 감사합니다', '최고예요!'][c.stars]}<span class="stars">${'⭐'.repeat(c.stars)}${'☆'.repeat(3 - c.stars)}</span>`;
   const r = ROBOTS[c.order.want];
-  return `${c.order.task}에 ${r.name}${c.order.n > 1 ? ` ${c.order.n}대` : ''} 주세요`;
+  return `${c.order.task}에 ${robotLabel(c.order)}${c.order.n > 1 ? ` ${c.order.n}대` : ''} 주세요`;
 }
 function renderClients() {
   $('rail').innerHTML = S.slots.map((c, i) => {
@@ -917,7 +927,7 @@ function renderClients() {
     return `<div class="client ${c.state}${c.fresh ? ' enter' : ''}${c.slow ? ' slow' : ''}${c.intro ? ' intro' : ''}" data-slot="${i}">
       <div class="bubble"><span class="say">${sayOf(c)}</span>${robot}</div>${needs}
       <div class="face" data-face="${i}">${faceOf(c)}</div>
-      <div class="who">${c.order.icon} ${c.order.who}<small>${c.order.sec}</small></div>
+      <div class="who">${c.order.icon} ${c.order.ind}<small>${c.order.who || '&nbsp;'}</small></div>
       <div class="pat" data-pat="${i}"><i></i></div>
     </div>`;
   }).join('');
@@ -1396,7 +1406,7 @@ function levelClear() {
 
 // ───────── 오버레이 ─────────
 const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
-const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${ROBOTS[o.want].icon}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
+const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.ind}${o.who ? ' · ' + o.who : ''} ${ROBOTS[o.want].icon} ${robotLabel(o)}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
 const mapHtml = () => { const lit = litSectors(); return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`; };
 const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon).join('')}${r.parts.length === 1 ? '×3' : ''} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
 function openSheet(html, pause) {
