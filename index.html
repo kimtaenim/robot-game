@@ -113,9 +113,6 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .pile:active { transform: translateY(2px); }
 .pile.lock { opacity: .25; pointer-events: none; }
 .pile.fresh::after { content: 'NEW'; position: absolute; top: -8px; right: -4px; background: var(--accent); color: #1A1400; font-size: 9px; font-weight: 700; border-radius: 6px; padding: 1px 4px; }
-.trash { min-height: 0; background: var(--surface-2); border: 2px dashed var(--line); border-radius: 10px; font-size: 20px; padding: 0; touch-action: none; }
-.trash.drop { border-color: var(--accent); }
-.trash.nope { animation: shake .35s; }
 
 .ghost { position: fixed; z-index: 40; pointer-events: none; font-size: 40px; transform: translate(-50%, -65%) rotate(-6deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
 .float { position: fixed; z-index: 35; pointer-events: none; font-family: var(--font-display); font-size: 24px; color: var(--good); transform: translate(-50%, 0); animation: floatUp .9s ease-out forwards; text-shadow: 0 1px 0 var(--surface); }
@@ -160,7 +157,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .lbl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ticket.enter, .ticket.shake, .ticket.bump, .card.pop, .card.nope, .spot.nope, .trash.nope, .float, .banner, .sector.new, .unlock .ic, .stars span { animation: none; }
+  .ticket.enter, .ticket.shake, .ticket.bump, .card.pop, .card.nope, .spot.nope, .float, .banner, .sector.new, .unlock .ic, .stars span { animation: none; }
   .card { transition: none; }
 }
 </style>
@@ -388,8 +385,7 @@ function renderDeck() {
   const before = new Set(unlockedAt(S.lv - 1).flatMap(baseParts));
   $('deck').innerHTML = DECK.map(id => `
     <button class="pile ${ITEMS[id].kind}${ok.has(id) ? '' : ' lock'}${S.lv > 1 && ok.has(id) && !before.has(id) ? ' fresh' : ''}" type="button" data-pile="${id}" aria-label="${ITEMS[id].name} 카드 뽑기">
-      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span></button>`).join('')
-    + `<button class="trash" id="btnTrash" type="button" data-trash="1" aria-label="버리기">🗑</button>`;
+      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span></button>`).join('');
 }
 function renderHud() {
   const n = levelTarget(S.lv), [p3, p2] = levelPar(S.lv);
@@ -474,7 +470,7 @@ function mergeInto(target, incoming, from) {
 }
 function place(id, at) {
   const i = at ?? firstEmpty();
-  if (i < 0 || S.table[i]) { SFX.nope(); nudge($('btnTrash')); return false; }
+  if (i < 0 || S.table[i]) { SFX.nope(); nudge($('table')); return false; }
   S.table[i] = id; S.sel = null; SFX.card(); renderTable(i);
   return true;
 }
@@ -504,20 +500,18 @@ function moveCard(from, to) {
   S.sel = null; renderTable(); SFX.nope();
   nudge(document.querySelector(`[data-spot="${to}"]`));
 }
+// 조립대 카드 누르기: 찾는 주문이 있으면 납품, 없으면 덱으로 되돌리기
 function tapSpot(i) {
-  if (S.sel === null) {
-    if (!S.table[i]) return;
-    if (autoShip(i)) return;
-    S.sel = i; SFX.pick(); renderTable(); return;
-  }
-  if (S.sel === i) { S.sel = null; renderTable(); return; }
-  if (!S.table[i]) { moveCard(S.sel, i); return; }
-  if (mergeInto(i, S.table[S.sel], S.sel)) return;
-  S.sel = i; SFX.pick(); renderTable();
+  if (!S.table[i]) return;
+  if (autoShip(i)) return;
+  toDeck(i);
 }
-function trash(i) {
-  if (i === null || i === undefined || !S.table[i]) return;
-  S.table[i] = null; S.sel = null; renderTable();
+function toDeck(i) {
+  const id = S.table[i];
+  if (!id) return;
+  const pile = baseParts(id).find(x => DECK.includes(x));
+  fly(document.querySelector(`[data-spot="${i}"]`), document.querySelector(`[data-pile="${pile}"]`), ITEMS[id].icon);
+  S.table[i] = null; S.sel = null; SFX.pick(); renderTable();
 }
 // src: { spot } 또는 { pile }
 function deliver(src, ti) {
@@ -584,7 +578,7 @@ document.addEventListener('pointermove', e => {
   e.preventDefault();
   drag.ghost.style.left = e.clientX + 'px';
   drag.ghost.style.top = e.clientY + 'px';
-  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],[data-trash]');
+  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],#deck');
   if (drag.over && drag.over !== over) drag.over.classList.remove('drop', 'over');
   if (over) over.classList.add(over.dataset.ticket !== undefined ? 'over' : 'drop');
   drag.over = over;
@@ -596,9 +590,9 @@ document.addEventListener('pointerup', e => {
   if (!d.started) { if (d.src.pile) drawCard(d.src.pile); else tapSpot(d.src.spot); return; }
   d.ghost.remove();
   d.over?.classList.remove('drop', 'over');
-  const t = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],[data-trash]');
+  const t = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],#deck');
   if (!t) { renderTable(); return; }
-  if (t.dataset.trash) { trash(d.src.spot); renderTable(); return; }
+  if (t.id === 'deck') { if (d.src.spot !== undefined) toDeck(d.src.spot); else renderTable(); return; }
   if (t.dataset.ticket !== undefined) { deliver(d.src, +t.dataset.ticket); renderTable(); return; }
   const to = +t.dataset.spot;
   if (d.src.pile) drawCard(d.src.pile, to); else moveCard(d.src.spot, to);
@@ -609,7 +603,6 @@ $('rail').addEventListener('click', e => {
   if (!b || !S.running || S.paused || S.sel === null) return;
   deliver({ spot: S.sel }, +b.dataset.ticket);
 });
-$('deck').addEventListener('click', e => { if (e.target.closest('[data-trash]') && S.running && !S.paused) trash(S.sel); });
 
 // ───────── 진행: 단계를 깨면 멈추지 않고 바로 다음 단계 ─────────
 function loop(t) {
