@@ -3,12 +3,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 주문표 레일 → 카드 테이블(겹치면 조합) → 부품 덱. 카드 게임 테이블 같은 작업장 */
+/* 레이아웃: 위 주문표(손님·현장) → 받은 부품 재고 → 아래 5×5 매치3 보드. 공장 작업장 톤 */
 :root {
   --bg: #DDE4E8;
-  --table: #C9D4DA;
-  --card: #FFFDF7;
-  --card-head: #E9E2D0;
+  --board: #C3CED5;
+  --cell: #D2DBE1;
   --surface: #FFFFFF;
   --surface-2: #F2F5F7;
   --ink: #13202A;
@@ -22,21 +21,26 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(12, 20, 27, 0.55);
+  --t-wheel: #F4E3C1; --t-auto: #CFE6FA; --t-floor: #FBD3B0; --t-arm: #D9D2F5; --t-tool: #CDEFD8; --t-legs: #F7D0DA;
   --font-display: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0F151A; --table: #1A242C; --card: #252F38; --card-head: #33404B; --surface: #18212A; --surface-2: #202B35;
-    --ink: #E4EBF0; --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115;
-    --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
+    --bg: #0F151A; --board: #1A242C; --cell: #222E38; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0;
+    --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115; --steel: #72AEDC; --steel-soft: #1D3346;
+    --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65);
+    --t-wheel: #5A4A2A; --t-auto: #234A6B; --t-floor: #6B3F1F; --t-arm: #3F3670; --t-tool: #22553A; --t-legs: #6B2E3F;
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0F151A; --table: #1A242C; --card: #252F38; --card-head: #33404B; --surface: #18212A; --surface-2: #202B35;
-  --ink: #E4EBF0; --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115;
-  --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
+  --bg: #0F151A; --board: #1A242C; --cell: #222E38; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0;
+  --muted: #91A2AF; --line: #3A4855; --accent: #F5C12B; --gold-soft: #3A3115; --steel: #72AEDC; --steel-soft: #1D3346;
+  --good: #3FA86C; --warn: #E0A030; --bad: #E0594A; --scrim: rgba(0, 0, 0, 0.65);
+  --t-wheel: #5A4A2A; --t-auto: #234A6B; --t-floor: #6B3F1F; --t-arm: #3F3670; --t-tool: #22553A; --t-legs: #6B2E3F;
+  color-scheme: dark;
 }
 [hidden] { display: none !important; }
 html, body { height: 100%; }
@@ -45,128 +49,90 @@ button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-.app { box-sizing: border-box; height: 100%; max-width: 640px; margin: 0 auto; padding-inline: 16px; padding-block: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
+.app { box-sizing: border-box; height: 100%; max-width: 480px; margin: 0 auto; padding-inline: 16px; padding-block: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
+.app.fever { background: var(--gold-soft); }
 
 /* 상단 바 */
-.top { display: flex; align-items: center; gap: 12px; font-size: 16px; }
+.top { display: flex; align-items: center; gap: 12px; font-size: 15px; }
 .lv { font-family: var(--font-display); font-size: 18px; }
 .top .stat { display: flex; align-items: center; gap: 4px; }
-.top .stat b { font-size: 17px; }
-.goal { flex: 1; min-width: 0; height: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; position: relative; overflow: visible; }
-.goal i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 6px; }
-.goal .st { position: absolute; top: -7px; font-size: 13px; transform: translateX(-50%); filter: grayscale(1); opacity: .5; }
-.goal .st.on { filter: none; opacity: 1; }
+.top .stat b { font-size: 16px; }
+.goal { flex: 1; min-width: 0; height: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.goal i { display: block; height: 100%; width: 0; background: var(--accent); }
 .tools { display: flex; gap: 6px; }
 .tool { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; width: 32px; height: 32px; font-size: 15px; padding: 0; }
-.subbar { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-.subbar .combo { font-family: var(--font-display); font-size: 16px; color: var(--muted); }
-.subbar .combo.hot { color: var(--accent); }
-.subbar .meter { flex: 1; height: 5px; background: var(--surface); border-radius: 4px; overflow: hidden; }
-.subbar .meter i { display: block; height: 100%; width: 0; background: var(--accent); }
+.sub { display: flex; align-items: center; gap: 12px; font-size: 14px; min-height: 20px; }
+.sub .chain { font-family: var(--font-display); color: var(--accent); font-size: 16px; }
+.sub .left { margin-left: auto; color: var(--muted); font-size: 12px; }
 
 /* 주문표 */
-.rail { flex: 1.25 1 0; min-height: 170px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.ticket { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 10px 10px 4px 4px; padding: 10px 5px 10px; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; box-sizing: border-box; box-shadow: 0 2px 0 var(--line); }
-.ticket::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 10px 10px 0 0; background: var(--steel); }
-.ticket.slot { border-style: dashed; background: transparent; box-shadow: none; cursor: default; }
-.ticket.slot::before { display: none; }
-.ticket .site { font-size: 38px; line-height: 1.1; margin-top: 2px; }
-.ticket .who { font-size: 12.5px; font-weight: 700; max-width: 100%; text-align: center; line-height: 1.2; word-break: keep-all; }
-.ticket .ask { flex: 1; width: 100%; min-height: 64px; background: var(--steel-soft); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: 3px 0; box-sizing: border-box; }
-.ticket .ask .icons { display: flex; gap: 1px; }
-.ticket .ask .icons span { font-size: 46px; line-height: 1.05; position: relative; }
-.ticket .ask .icons span.done { opacity: .28; }
-.ticket .ask .icons.two span { font-size: 26px; }
-.ticket .ask .rc { font-size: 15px; margin-top: 3px; text-align: center; line-height: 1.25; padding-inline: 2px; }
-.ticket.bulk { grid-column: 1 / -1; background: var(--gold-soft); border: 2px solid var(--accent); flex-direction: row; justify-content: space-around; align-items: center; gap: 10px; padding: 10px 12px; }
-.ticket.bulk::before { background: var(--accent); }
-.bulk .siren { font-family: var(--font-display); font-size: 20px; color: var(--ink); text-align: center; line-height: 1.2; }
-.bulk .siren small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); font-weight: 700; margin-top: 4px; }
-.bulk .count { font-family: var(--font-display); font-size: 44px; color: var(--steel); line-height: 1; text-align: center; }
-.bulk .count small { display: block; font-size: 30px; }
-.bulk .left { font-family: var(--font-mono); font-size: 13px; color: var(--muted); text-align: center; }
-.bulk .fact { font-size: 12px; color: var(--muted); line-height: 1.45; max-width: 16em; }
-.app.fever { background: var(--gold-soft); }
-.fever-tag { display: none; font-family: var(--font-display); color: var(--accent); font-size: 16px; text-shadow: 0 1px 0 var(--ink); }
-.app.fever .fever-tag { display: inline; }
-.ticket .ask .t { font-size: 12px; font-weight: 700; color: var(--steel); text-align: center; line-height: 1.2; padding-inline: 2px; }
-.ticket .ask .q { font-family: var(--font-display); font-size: 26px; color: var(--steel); line-height: 1; }
-.ticket .qty { position: absolute; top: -7px; right: -5px; background: var(--ink); color: var(--bg); border-radius: 9px; font-size: 11px; font-weight: 700; padding: 1px 6px; }
-.ticket .mood { position: absolute; top: 4px; left: 5px; font-size: 18px; line-height: 1; }
+.rail { flex: 1 1 0; min-height: 168px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ticket { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 6px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; box-sizing: border-box; box-shadow: 0 2px 0 var(--line); }
+.ticket.slot { border-style: dashed; background: transparent; box-shadow: none; }
+.ticket .mood { position: absolute; top: 6px; left: 7px; font-size: 18px; line-height: 1; }
+.ticket .site { font-size: 30px; line-height: 1.1; }
+.ticket .who { font-size: 13px; font-weight: 700; text-align: center; line-height: 1.2; word-break: keep-all; }
 .ticket .task { font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; line-height: 1.2; word-break: keep-all; }
-.ticket .pat { width: 100%; height: 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; flex: none; }
-.ticket .pat i { display: block; height: 100%; background: var(--good); transform-origin: left; }
-.ticket .pat i.warn { background: var(--warn); }
-.ticket .pat i.crit { background: var(--bad); }
-.ticket.target { box-shadow: 0 0 0 2px var(--steel); }
-.ticket.over { box-shadow: 0 0 0 3px var(--accent); }
+.ticket .robot { flex: 1; width: 100%; background: var(--steel-soft); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; }
+.ticket .robot .ic { font-size: 34px; line-height: 1.1; }
+.ticket .robot .nm { font-family: var(--font-display); font-size: 13px; color: var(--steel); text-align: center; line-height: 1.15; }
+.ticket .needs { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.need { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 17px; border: 2px dashed var(--line); box-sizing: border-box; }
+.need.got { border: 2px solid var(--good); background: var(--surface-2); }
+.need.got::after { content: '✓'; position: absolute; }
+.need { position: relative; }
+.need.got::after { right: -4px; bottom: -6px; font-size: 11px; font-weight: 700; color: var(--good); }
+.need.miss { opacity: .45; }
+.pat { width: 100%; height: 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; flex: none; }
+.pat i { display: block; height: 100%; background: var(--good); transform-origin: left; }
+.pat i.warn { background: var(--warn); }
+.pat i.crit { background: var(--bad); }
+.qty { position: absolute; top: -7px; right: -5px; background: var(--ink); color: var(--bg); border-radius: 9px; font-size: 11px; font-weight: 700; padding: 1px 6px; }
 .ticket.enter { animation: drop .3s ease-out; }
-.ticket.shake { animation: shake .4s; }
-.ticket.bump { animation: bump .3s; }
-.more { position: absolute; bottom: -8px; right: -5px; background: var(--accent); color: #1A1400; border-radius: 9px; font-size: 11px; font-weight: 700; padding: 1px 6px; }
-@keyframes drop { from { transform: translateY(-20px) rotate(-3deg); opacity: .2; } to { transform: none; opacity: 1; } }
-@keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
-@keyframes bump { 50% { transform: scale(1.06); } }
+.ticket.bump { animation: bump .25s; }
+@keyframes drop { from { transform: translateY(-18px); opacity: .2; } to { transform: none; opacity: 1; } }
+@keyframes bump { 50% { transform: scale(1.05); } }
 
-/* 카드 테이블 */
-.table { flex: none; background: var(--table); border-radius: 12px; padding: 8px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.spot { border: 2px dashed var(--line); border-radius: 10px; background: transparent; padding: 0; height: 60px; touch-action: none; }
-.card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 0; height: 60px; display: flex; flex-direction: column; overflow: hidden; touch-action: none; box-shadow: 0 3px 0 var(--line); transition: transform .12s; }
-.card .hd { background: var(--card-head); font-size: 9.5px; font-weight: 700; padding: 2px 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card .ic { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; }
-.card .ic.multi { font-size: 17px; flex-wrap: wrap; gap: 0 1px; padding-inline: 2px; }
-.card.robot { border-color: var(--steel); }
-.card.robot .hd { background: var(--steel); color: var(--surface); }
-.card.sel { transform: translateY(-6px) rotate(-2deg); box-shadow: 0 0 0 3px var(--accent), 0 8px 0 var(--line); }
-.card.dim { opacity: .3; }
-.card.pop { animation: pop .35s ease-out; }
-.card.nope, .spot.nope { animation: shake .35s; }
-.spot.drop, .card.drop { box-shadow: 0 0 0 3px var(--accent); }
-@keyframes pop { 0% { transform: scale(.5) rotate(-8deg); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+/* 재고 */
+.stock { display: flex; gap: 6px; align-items: center; min-height: 28px; font-size: 13px; color: var(--muted); }
+.stock .chip { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 2px 8px; font-size: 15px; color: var(--ink); }
+.stock .chip b { font-size: 12px; }
 
-/* 덱 */
-.deck { flex: 1 1 0; min-height: 150px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; }
-.pile { flex: 1; min-width: 0; position: relative; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; touch-action: none; box-shadow: 0 2px 0 var(--line), 0 4px 0 var(--card-head), 0 5px 0 var(--line); }
-.pile .ic { font-size: 32px; line-height: 1.1; }
-.pile .nm { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.pile.robot { border-color: var(--steel); }
-.pile:active { transform: translateY(2px); }
-.pile.lock { opacity: .25; pointer-events: none; }
-.pile.fresh::after { content: 'NEW'; position: absolute; top: -8px; right: -4px; background: var(--accent); color: #1A1400; font-size: 9px; font-weight: 700; border-radius: 6px; padding: 1px 4px; }
+/* 매치3 보드 */
+.boardwrap { flex: none; display: flex; justify-content: center; }
+.board { position: relative; width: min(100%, 400px); aspect-ratio: 1; background: var(--board); border-radius: 14px; touch-action: none; overflow: hidden; }
+.cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
+.tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; transition: transform .16s ease-out; pointer-events: none; }
+.tile .ic { font-size: 30px; line-height: 1; }
+.tile .nm { font-size: 9.5px; font-weight: 700; color: var(--ink); opacity: .75; margin-top: 2px; }
+.tile.sel { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
+.tile.pop { transition: transform .2s ease-in, opacity .2s ease-in; opacity: 0; }
+.tile.hint { animation: hint 1s ease-in-out infinite; }
+@keyframes hint { 50% { filter: brightness(1.25); } }
 
-.ghost { position: fixed; z-index: 40; pointer-events: none; font-size: 40px; transform: translate(-50%, -65%) rotate(-6deg); filter: drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
+.flyer { position: fixed; z-index: 38; pointer-events: none; font-size: 28px; transform: translate(-50%, -50%); transition: left .32s ease-in, top .32s ease-in, transform .32s ease-in; }
 .float { position: fixed; z-index: 35; pointer-events: none; font-family: var(--font-display); font-size: 24px; color: var(--good); transform: translate(-50%, 0); animation: floatUp .9s ease-out forwards; text-shadow: 0 1px 0 var(--surface); }
-.float.big { font-size: 34px; color: var(--accent); }
+.float.bad { color: var(--bad); }
+.float.big { font-size: 30px; color: var(--accent); }
 @keyframes floatUp { to { transform: translate(-50%, -54px); opacity: 0; } }
-.banner { position: fixed; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 40px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
+.banner { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
 @keyframes banner { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
-
-.flyer { position: fixed; z-index: 38; pointer-events: none; font-size: 36px; transform: translate(-50%, -50%); transition: left .22s ease-in, top .22s ease-in, transform .22s ease-in; }
-.card.idle { animation: shake .35s; }
-.par { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
 /* 오버레이 */
 .overlay { position: fixed; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 30; }
-.sheet { background: var(--surface); color: var(--ink); border-radius: 16px; width: 100%; max-width: 520px; max-height: 88%; overflow: auto; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; user-select: text; -webkit-user-select: text; }
+.sheet { background: var(--surface); color: var(--ink); border-radius: 16px; width: 100%; max-width: 480px; max-height: 88%; overflow: auto; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; user-select: text; -webkit-user-select: text; }
 .sheet h2 { font-family: var(--font-display); font-weight: 400; font-size: 28px; margin: 0; text-wrap: balance; }
 .sheet p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
 .steps { display: grid; gap: 10px; }
-.step { display: flex; align-items: center; gap: 12px; font-size: 26px; }
+.step { display: flex; align-items: center; gap: 12px; font-size: 24px; }
 .step span { font-size: 14px; color: var(--muted); }
-.stars { font-size: 44px; letter-spacing: 6px; }
-.stars span { display: inline-block; animation: pop .5s ease-out both; }
-.stars span.off { filter: grayscale(1); opacity: .3; }
+.recipes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; font-size: 14px; }
 .big-stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 15px; }
 .big-stats b { font-size: 24px; margin-left: 4px; }
 .map { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-.sector { aspect-ratio: 1; max-width: 100%; border-radius: 10px; border: 1px dashed var(--line); display: flex; align-items: center; justify-content: center; font-size: 22px; position: relative; filter: grayscale(1); opacity: .35; }
+.sector { aspect-ratio: 1; max-width: 100%; border-radius: 10px; border: 1px dashed var(--line); display: flex; align-items: center; justify-content: center; font-size: 20px; position: relative; filter: grayscale(1); opacity: .35; }
 .sector small { position: absolute; top: 2px; left: 4px; font-size: 10px; color: var(--muted); font-weight: 700; }
 .sector.lit { filter: none; opacity: 1; border: 1px solid var(--steel); background: var(--steel-soft); }
-.sector.new { animation: pop .6s ease-out .2s both; box-shadow: 0 0 0 2px var(--accent); }
-.unlock { display: flex; align-items: center; gap: 14px; background: var(--gold-soft); border: 2px solid var(--accent); border-radius: 14px; padding: 12px 14px; }
-.unlock .ic { font-size: 44px; animation: pop .6s ease-out; }
-.unlock b { font-family: var(--font-display); font-weight: 400; font-size: 20px; display: block; }
-.unlock span { font-size: 18px; color: var(--muted); }
 .log { display: grid; gap: 6px; }
 .log-item { display: grid; grid-template-columns: 34px 1fr; gap: 2px 8px; align-items: start; border-bottom: 1px solid var(--line); padding: 7px 0; font-size: 13px; line-height: 1.5; }
 .log-item .i { font-size: 24px; grid-row: span 2; }
@@ -177,143 +143,345 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .lbl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .ticket.enter, .ticket.shake, .ticket.bump, .card.pop, .card.nope, .spot.nope, .float, .banner, .sector.new, .unlock .ic, .stars span { animation: none; }
-  .card { transition: none; }
+  .ticket.enter, .ticket.bump, .float, .banner, .tile.hint { animation: none; }
+  .tile, .flyer { transition: none; }
 }
 </style>
 
 <div class="app" id="app">
   <header class="top">
     <span class="lv" id="lv">1단계</span>
-    <span class="stat" aria-label="걸린 시간">⏱<b class="num" id="clock">0:00</b></span>
     <span class="goal" aria-label="단계 진행"><i id="goalBar"></i></span>
-    <span class="stat" aria-label="납품 진행">📦<b class="num" id="prog">0/8</b></span>
+    <span class="stat" aria-label="손님 진행">🧾<b class="num" id="prog">0/6</b></span>
     <span class="tools">
       <button class="tool" id="btnSound" type="button" aria-label="소리 켜고 끄기">🔊</button>
-      <button class="tool" id="btnDex" type="button" aria-label="현장 도감">📖</button>
-      <button class="tool" id="btnPause" type="button" aria-label="일시정지">⏸</button>
+      <button class="tool" id="btnPause" type="button" aria-label="일시정지와 도감">⏸</button>
     </span>
   </header>
-  <div class="subbar"><span class="num" aria-label="점수">💰 <b id="score">0</b></span><span class="par" id="par"></span><span class="combo" id="combo">🔥0</span><span class="fever-tag">FEVER ×2</span><span class="meter"><i id="flowBar"></i></span></div>
+  <div class="sub"><span class="num">💰 <b id="score">0</b></span><span class="chain" id="chain"></span><span class="left" id="left"></span></div>
 
   <section class="rail" id="rail" aria-label="주문표"></section>
-  <section class="table" id="table" aria-label="카드 테이블"></section>
-  <section class="deck" id="deck" aria-label="부품 덱"></section>
+  <div class="stock" id="stock" aria-label="남은 부품"></div>
+  <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"></div></div>
 </div>
 
 <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
 
 <script>
-// ───────── 부품 카드 11종: 본체·이동부·SI(도구·손·센서). 아이콘은 임시 이모지 ─────────
-const PARTS = {
-  wheel:    { icon: '🛞', name: '바퀴' },
-  auto:     { icon: '🧭', name: '자율주행' },
-  floor:    { icon: '🚧', name: '바닥 공사' },
-  arm:      { icon: '🦾', name: '협동로봇 팔' },
-  quad:     { icon: '🐕', name: '4족 본체' },
-  humanoid: { icon: '🧍', name: '휴머노이드' },
-  torch:    { icon: '🔥', name: '용접 토치' },
-  pan:      { icon: '🍳', name: '조리 도구' },
-  gripper:  { icon: '🤏', name: '그리퍼' },
-  hand:     { icon: '🖐️', name: '로봇 손' },
-  sensor:   { icon: '📷', name: '점검 센서' },
-};
-const DECK = ['wheel', 'auto', 'floor', 'arm', 'quad', 'humanoid', 'torch', 'pan', 'gripper', 'hand', 'sensor'];
+// 보드 순수 로직 (렌더링·애니메이션 없음). 셀 인덱스 idx = r * cols + c.
+// 타일 객체는 로직 필드(type, special)와 렌더용 필드(x, y, scale ...)를 함께 가진다.
 
-// ───────── 납품 로봇 9종 = 부품을 쌓아 올린 것 (순서 상관없음) ─────────
-// 바퀴 + 자율주행(센서·SW) = AMR / 바퀴 + 바닥 공사(마그넷·QR 경로) = AGV
-// 협동로봇 팔은 도구를 붙여야 일함(SI) / AMR 위에 협동로봇 = 모바일 매니퓰레이터(⑧ LG엔솔)
-// 4족은 점검 센서를 얹어 순찰(⑦ 포스코, ㉖ 경찰) / 휴머노이드는 손을 붙여 작업 / AMR 하체 휴머노이드(② 티로보틱스)
+let nextId = 1;
+
+function makeTile(type, special = false, r = 0, c = 0) {
+  return {
+    id: nextId++,
+    type,          // characters 배열 인덱스
+    special,
+    x: c, y: r,    // 셀 단위 렌더 위치
+    scale: 1, sx: 1, sy: 1, alpha: 1, jx: 0,
+    // 표정·몸짓 (faces.js)
+    expr: 'smirk', exprUntil: 0, exprPrio: 0, flip: false,
+    ox: 0, oy: 0, rot: 0, motion: 0, nextIdle: 0, phase: Math.random() * Math.PI * 2,
+  };
+}
+
+class Board {
+  constructor(cols, rows, types, rng = Math.random) {
+    this.cols = cols;
+    this.rows = rows;
+    this.types = types;
+    this.rng = rng;
+    this.cells = new Array(cols * rows).fill(null);
+  }
+
+  idx(r, c) { return r * this.cols + c; }
+  rc(idx) { return [Math.floor(idx / this.cols), idx % this.cols]; }
+  inBounds(r, c) { return r >= 0 && r < this.rows && c >= 0 && c < this.cols; }
+  get(r, c) { return this.inBounds(r, c) ? this.cells[this.idx(r, c)] : null; }
+  // noMatch 아이템(시한폭탄·비둘기 민병대)은 어떤 것과도 매치되지 않는다 (드론은 드론끼리 매치됨)
+  typeAt(r, c) { const t = this.get(r, c); return t && !t.noMatch ? t.type : -1; }
+
+  randomType() { return this.types[Math.floor(this.rng() * this.types.length)]; }
+
+  // 매치 없이 + 가능한 수가 하나 이상 있는 보드 생성
+  fillInitial() {
+    for (let attempt = 0; attempt < 200; attempt++) {
+      for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols; c++) {
+          let type, guard = 0;
+          do {
+            type = this.randomType();
+            guard++;
+          } while (guard < 50 && this.makesRunWhenPlaced(r, c, type));
+          this.cells[this.idx(r, c)] = makeTile(type, false, r, c);
+        }
+      }
+      if (this.findMatches().groups.length === 0 && this.findMove()) return;
+    }
+  }
+
+  // (r,c)에 type을 놓으면 왼쪽 두 칸 또는 위쪽 두 칸과 3연속이 되는지
+  makesRunWhenPlaced(r, c, type) {
+    if (c >= 2 && this.typeAt(r, c - 1) === type && this.typeAt(r, c - 2) === type) return true;
+    if (r >= 2 && this.typeAt(r - 1, c) === type && this.typeAt(r - 2, c) === type) return true;
+    return false;
+  }
+
+  swap(a, b) {
+    const ia = this.idx(a.r, a.c), ib = this.idx(b.r, b.c);
+    const t = this.cells[ia];
+    this.cells[ia] = this.cells[ib];
+    this.cells[ib] = t;
+  }
+
+  // 가로/세로 3개 이상 연속 동일 인물. 겹치는(같은 셀 공유) 런은 한 그룹으로 합친다.
+  findMatches() {
+    const n = this.cells.length;
+    const parent = new Int32Array(n).fill(-1);
+    const find = (i) => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i]; } return i; };
+    const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[rb] = ra; };
+    const mark = (list) => {
+      for (const i of list) if (parent[i] === -1) parent[i] = i;
+      for (let k = 1; k < list.length; k++) union(list[0], list[k]);
+    };
+
+    const scan = (outer, inner, at) => {
+      for (let o = 0; o < outer; o++) {
+        let run = [];
+        let runType = -1;
+        for (let i = 0; i <= inner; i++) {
+          const idx = i < inner ? at(o, i) : -1;
+          const type = idx >= 0 && this.cells[idx] && !this.cells[idx].noMatch ? this.cells[idx].type : -1;
+          if (type !== -1 && type === runType) {
+            run.push(idx);
+          } else {
+            if (run.length >= 3) mark(run);
+            run = type === -1 ? [] : [idx];
+            runType = type;
+          }
+        }
+      }
+    };
+    scan(this.rows, this.cols, (r, c) => this.idx(r, c));
+    scan(this.cols, this.rows, (c, r) => this.idx(r, c));
+
+    const byRoot = new Map();
+    for (let i = 0; i < n; i++) {
+      if (parent[i] === -1) continue;
+      const root = find(i);
+      if (!byRoot.has(root)) byRoot.set(root, { type: this.cells[i].type, cells: [] });
+      byRoot.get(root).cells.push(i);
+    }
+    const groups = [...byRoot.values()];
+    const matched = new Set();
+    for (const g of groups) for (const i of g.cells) matched.add(i);
+    return { groups, matched };
+  }
+
+  // (r,c)를 포함하는 3연속이 있는지
+  hasMatchAt(r, c) {
+    const type = this.typeAt(r, c);
+    if (type === -1) return false;
+    let h = 1, v = 1;
+    for (let k = c - 1; this.typeAt(r, k) === type; k--) h++;
+    for (let k = c + 1; this.typeAt(r, k) === type; k++) h++;
+    for (let k = r - 1; this.typeAt(k, c) === type; k--) v++;
+    for (let k = r + 1; this.typeAt(k, c) === type; k++) v++;
+    return h >= 3 || v >= 3;
+  }
+
+  wouldMatch(a, b) {
+    if (!this.get(a.r, a.c) || !this.get(b.r, b.c)) return false;
+    this.swap(a, b);
+    const ok = this.hasMatchAt(a.r, a.c) || this.hasMatchAt(b.r, b.c);
+    this.swap(a, b);
+    return ok;
+  }
+
+  // a↔b를 바꾸면 한 줄로 맞춰지는 칸들 [{ r, c }] (바꾼 뒤 위치 기준)
+  matchCellsFor(a, b) {
+    if (!this.get(a.r, a.c) || !this.get(b.r, b.c)) return [];
+    this.swap(a, b);
+    const out = new Map();
+    for (const p of [a, b]) {
+      const type = this.typeAt(p.r, p.c);
+      for (const [dr, dc] of [[0, 1], [1, 0]]) {
+        const run = [p];
+        for (let k = 1; this.typeAt(p.r - dr * k, p.c - dc * k) === type; k++) run.push({ r: p.r - dr * k, c: p.c - dc * k });
+        for (let k = 1; this.typeAt(p.r + dr * k, p.c + dc * k) === type; k++) run.push({ r: p.r + dr * k, c: p.c + dc * k });
+        if (run.length >= 3) for (const q of run) out.set(q.r * this.cols + q.c, q);
+      }
+    }
+    this.swap(a, b);
+    return [...out.values()];
+  }
+
+  // 가능한 수 목록 (없으면 빈 배열)
+  allMoves() {
+    const moves = [];
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        const a = { r, c };
+        if (c + 1 < this.cols && this.wouldMatch(a, { r, c: c + 1 })) moves.push([a, { r, c: c + 1 }]);
+        if (r + 1 < this.rows && this.wouldMatch(a, { r: r + 1, c })) moves.push([a, { r: r + 1, c }]);
+      }
+    }
+    return moves;
+  }
+
+  findMove() {
+    const moves = this.allMoves();
+    return moves.length ? moves[Math.floor(this.rng() * moves.length)] : null;
+  }
+
+  // 빈칸을 아래로 채우고 위에서 새 타일 생성.
+  // 반환: [{ tile, c, fromY, toR }] — fromY가 음수면 보드 위에서 새로 생긴 타일
+  collapse() {
+    const falls = [];
+    for (let c = 0; c < this.cols; c++) {
+      let write = this.rows - 1;
+      for (let r = this.rows - 1; r >= 0; r--) {
+        const t = this.cells[this.idx(r, c)];
+        if (!t) continue;
+        if (write !== r) {
+          this.cells[this.idx(write, c)] = t;
+          this.cells[this.idx(r, c)] = null;
+          falls.push({ tile: t, c, fromY: r, toR: write });
+        }
+        write--;
+      }
+      const empty = write + 1;
+      for (let r = write; r >= 0; r--) {
+        const t = makeTile(this.randomType(), false, r - empty, c);
+        this.cells[this.idx(r, c)] = t;
+        falls.push({ tile: t, c, fromY: r - empty, toR: r });
+      }
+    }
+    return falls;
+  }
+
+  // 타일 객체를 섞어 재배치. 매치 없음 + 가능한 수 있음이 될 때까지.
+  shuffle() {
+    const tiles = this.cells.filter(Boolean);
+    for (let attempt = 0; attempt < 300; attempt++) {
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(this.rng() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+      tiles.forEach((t, i) => { this.cells[i] = t; });
+      if (this.findMatches().groups.length === 0 && this.findMove()) return;
+    }
+    // 드물게 실패하면 일반 타일의 인물을 새로 뽑는다
+    for (let attempt = 0; attempt < 300; attempt++) {
+      for (let r = 0; r < this.rows; r++) {
+        for (let c = 0; c < this.cols; c++) {
+          const t = this.cells[this.idx(r, c)];
+          if (t.special) continue;
+          this.cells[this.idx(r, c)] = null;
+          let guard = 0, type;
+          do { type = this.randomType(); guard++; } while (guard < 50 && this.makesRunWhenPlaced(r, c, type));
+          t.type = type;
+          this.cells[this.idx(r, c)] = t;
+        }
+      }
+      if (this.findMatches().groups.length === 0 && this.findMove()) return;
+    }
+  }
+}
+
+// ═════════ 여기부터 로봇 SI 납품소 (위 Board는 kimtaenim/bosses-of-our-world의 js/board.js 그대로) ═════════
+
+// ───────── 타일 6종: 엔드이펙터(용접·조리·그리퍼·손)는 '툴' 하나로 묶음 ─────────
+const TILES = {
+  wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
+  auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
+  floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
+  arm:   { icon: '🦾', name: '로봇 팔',  color: 'var(--t-arm)' },
+  tool:  { icon: '🔧', name: '툴',       color: 'var(--t-tool)' },
+  legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)' },
+};
+// ───────── 로봇 6종 = 부품 묶음 ─────────
+// AMR = 바퀴+자율주행 / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI)
+// 모바일 매니퓰레이터 = AMR 위에 협동로봇(⑧ LG엔솔) / 4족 = 다리+자율주행 / 휴머노이드 = 다리+팔+툴(손)
 const ROBOTS = {
-  agv:  { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
-  amr:  { icon: '🚚', name: 'AMR',               parts: ['wheel', 'auto'] },
-  weld: { icon: '🧑‍🏭', name: '용접 협동로봇',      parts: ['arm', 'torch'] },
-  cook: { icon: '🧑‍🍳', name: '조리 협동로봇',      parts: ['arm', 'pan'] },
-  pick: { icon: '📥', name: '피킹로봇',           parts: ['arm', 'gripper'] },
-  mm:   { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'gripper'] },
-  quad: { icon: '🐕‍🦺', name: '점검 4족로봇',      parts: ['quad', 'sensor'] },
-  hum:  { icon: '🚶', name: '휴머노이드',         parts: ['humanoid', 'hand'] },
-  humw: { icon: '🤖', name: '바퀴형 휴머노이드',   parts: ['wheel', 'auto', 'humanoid', 'hand'] },
+  amr:   { icon: '🚚', name: 'AMR',               parts: ['wheel', 'auto'] },
+  agv:   { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
+  cobot: { icon: '🦾', name: '협동로봇',           parts: ['arm', 'tool'] },
+  mm:    { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'tool'] },
+  quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'auto'] },
+  hum:   { icon: '🚶', name: '휴머노이드',         parts: ['legs', 'arm', 'tool'] },
 };
-const sameSet = (a, b) => a.length === b.length && a.every(x => b.includes(x));
-const robotOf = stack => Object.keys(ROBOTS).find(r => sameSet(ROBOTS[r].parts, stack)) || null;
-const UNLOCKS = [['amr', 'agv'], ['weld', 'cook', 'pick'], ['mm'], ['quad'], ['hum', 'humw']];
-const unlockedAt = lv => UNLOCKS.slice(0, Math.max(0, Math.min(lv, UNLOCKS.length))).flat();
 
-// ───────── 현장: 자료가 로봇 종류를 직접 밝힌 곳만 (로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
+// ───────── 손님 (로봇 스터디 2차 발제 자료, 2026.09.21에서 로봇 종류를 밝힌 현장) ─────────
+// mood는 게임용 성격: hot 급함 / mid 보통 / calm 느긋
 const ORDERS = [
-  { id: 'port',     wants: ['agv', 'agv'],   icon: '⚓', who: '부산항',      sec: '⑮ 항만',        fact: '국내 첫 완전 자동화 부두에서 AGV가 시스템 지시대로 컨테이너를 옮겨요.' },
-  { id: 'kai',      wants: ['agv'],          icon: '🛩️', who: 'KAI',         sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
-  { id: 'stl',      wants: ['amr', 'amr'],   icon: '💄', who: '에스티엘',    sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
-  { id: 'transys',  wants: ['amr'],          icon: '🏭', who: '현대트랜시스', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요. AGV는 바닥 경로가 필요해요.' },
-  { id: 'ford',     wants: ['amr'],          icon: '🔌', who: '포드',        sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
-  { id: 'ecopro',   wants: ['amr'],          icon: '🧪', who: '에코프로',    sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
-  { id: 'mipo',     wants: ['weld', 'weld'], icon: '🚢', who: 'HD현대미포',  sec: '④ 조선',        fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
-  { id: 'busanEdu', wants: ['cook'],         icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
-  { id: 'gwangjin', wants: ['pick'],         icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
-  { id: 'polytech', wants: ['pick'],         icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
-  { id: 'lg',       wants: ['mm'],           icon: '🔋', who: 'LG엔솔',      sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
-  { id: 'posco',    wants: ['quad'],         icon: '🌋', who: '포스코',      sec: '⑦ 철강',        fact: '스팟이 고로를 순찰하며 누수·발열 징후를 감지하고, 하루 12번 배관 누설을 점검해요.' },
-  { id: 'police',   wants: ['quad', 'quad'], icon: '🚓', who: '경찰청',      sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
-  { id: 'army',     wants: ['quad'],         icon: '🎖️', who: '방사청',      sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
-  { id: 'fire',     wants: ['quad'],         icon: '🚒', who: '소방청',      sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
-  { id: 'hyundai',  wants: ['hum'],          icon: '🚙', who: '현대차',      sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
-  { id: 'bmw',      wants: ['hum', 'hum'],   icon: '🇺🇸', who: 'BMW',        sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
-  { id: 'cj',       wants: ['hum', 'hum'],   icon: '🧴', who: 'CJ대한통운',  sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
-  { id: 'catl',     wants: ['hum'],          icon: '⚡', who: 'CATL',        sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
-  { id: 'tro',      wants: ['humw'],         icon: '🛠️', who: 'TR-Works',    sec: '② AMR',         fact: '티로보틱스가 AMR을 하체로 쓴 산업용 휴머노이드 TR-Works를 공개해 제조라인 투입을 겨냥해요.' },
-  { id: 'samsung',  wants: ['amr', 'hum'],   icon: '💾', who: '삼성전자',    sec: '⑥ 반도체 공장', fact: '디지털 트윈 시나리오에서 AMR이 공구를 나르고 휴머노이드가 설비를 점검해요.' },
+  { id: 'port',     want: 'agv',   n: 2, mood: 'calm', icon: '⚓', who: '부산항',      task: '컨테이너 이송',     sec: '⑮ 항만',        fact: '국내 첫 완전 자동화 부두에서 AGV가 시스템 지시대로 컨테이너를 옮겨요.' },
+  { id: 'kai',      want: 'agv',   n: 1, mood: 'calm', icon: '🛩️', who: 'KAI',         task: '공정 사이 자재 이송', sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
+  { id: 'stl',      want: 'amr',   n: 2, mood: 'mid',  icon: '💄', who: '에스티엘',    task: '오더피킹',           sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
+  { id: 'transys',  want: 'amr',   n: 1, mood: 'mid',  icon: '🏭', who: '현대트랜시스', task: '바닥 공사 없이 운반', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요.' },
+  { id: 'ford',     want: 'amr',   n: 1, mood: 'hot',  icon: '🔌', who: '포드',        task: '공장 자재 운반',     sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
+  { id: 'ecopro',   want: 'amr',   n: 1, mood: 'mid',  icon: '🧪', who: '에코프로',    task: '설비 순찰 점검',     sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
+  { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: 'HD현대미포',  task: '선체 용접',          sec: '④ 조선',        fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
+  { id: 'busanEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '부산교육청',  task: '급식 조리',          sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
+  { id: 'gwangjin', want: 'cobot', n: 1, mood: 'hot',  icon: '⚙️', who: '광진',        task: '양산 라인 피킹',     sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
+  { id: 'polytech', want: 'cobot', n: 1, mood: 'calm', icon: '🎓', who: '폴리텍',      task: '학생 실습',          sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
+  { id: 'lg',       want: 'mm',    n: 1, mood: 'mid',  icon: '🔋', who: 'LG엔솔',      task: '다니며 불량 셀 빼기', sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
+  { id: 'posco',    want: 'quad',  n: 1, mood: 'mid',  icon: '🌋', who: '포스코',      task: '고로 가스 누설 점검', sec: '⑦ 철강',       fact: '스팟이 고로를 순찰하며 누수·발열 징후를 감지하고, 하루 12번 배관 누설을 점검해요.' },
+  { id: 'police',   want: 'quad',  n: 2, mood: 'hot',  icon: '🚓', who: '경찰청',      task: '폭발물 현장 정찰',   sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
+  { id: 'army',     want: 'quad',  n: 1, mood: 'calm', icon: '🎖️', who: '방사청',      task: '산악 정찰',          sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
+  { id: 'fire',     want: 'quad',  n: 1, mood: 'hot',  icon: '🚒', who: '소방청',      task: '화재 현장 탐색',     sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
+  { id: 'hyundai',  want: 'hum',   n: 1, mood: 'hot',  icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
+  { id: 'bmw',      want: 'hum',   n: 1, mood: 'hot',  icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
+  { id: 'cj',       want: 'hum',   n: 1, mood: 'mid',  icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
+  { id: 'catl',     want: 'hum',   n: 1, mood: 'hot',  icon: '⚡', who: 'CATL',        task: '생산 라인 투입',     sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
 ];
-// 손님 성격(게임용 설정): hot 급함 / mid 보통 / calm 느긋. task = 자료에 나온 쓰임새
-const CLIENT = {
-  port: ['calm', '컨테이너 이송'], kai: ['calm', '공정 사이 자재 이송'], stl: ['mid', '오더피킹'],
-  transys: ['mid', '부품 운반'], ford: ['hot', '공장 자재 운반'], ecopro: ['mid', '설비 순찰 점검'],
-  mipo: ['mid', '선체 용접'], busanEdu: ['calm', '급식 조리'], gwangjin: ['hot', '양산 라인 부품 집기'],
-  polytech: ['calm', '학생 실습'], lg: ['mid', '불량 셀 빼내기'], posco: ['mid', '고로 가스 누설 점검'],
-  police: ['hot', '폭발물 현장 정찰'], army: ['calm', '산악 정찰'], fire: ['hot', '화재 현장 탐색'],
-  hyundai: ['hot', '조립 라인 투입'], bmw: ['hot', '차체 라인 교대 근무'], cj: ['mid', '완충재 포장'],
-  catl: ['hot', '생산 라인 투입'], tro: ['mid', '제조 라인 투입'], samsung: ['mid', '공구 운반 + 설비 점검'],
-};
-ORDERS.forEach(o => { [o.mood, o.task] = CLIENT[o.id]; });
-const MOODS = { hot: { face: '😤', label: '급함', sec: 13 }, mid: { face: '🙂', label: '보통', sec: 19 }, calm: { face: '😌', label: '느긋', sec: 27 } };
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
-// 대량 수주: 자료 속 실제 대수
-const BULKS = [
-  { who: '에스티엘', icon: '💄', robot: 'amr',  n: 12, sec: 18, minLv: 2, fact: '오더피킹 AMR 12대를 먼저 넣어 검증했어요 (②)' },
-  { who: '부산교육청', icon: '🍱', robot: 'cook', n: 5,  sec: 14, minLv: 2, fact: '5개교에 조리로봇 설치 (⑱)' },
-  { who: '경찰청',   icon: '🚓', robot: 'quad', n: 6,  sec: 15, minLv: 4, fact: '사족보행 로봇 6대 도입 방침 (㉖)' },
-  { who: '인천공항', icon: '✈️', robot: 'amr',  n: 10, sec: 16, minLv: 3, fact: '1·2터미널에 셀프체크인 로봇을 5대씩, 10대 배치 (⑯)' },
-];
+const MOODS = { hot: { face: '😤', sec: 30 }, mid: { face: '🙂', sec: 42 }, calm: { face: '😌', sec: 56 } };
 const secKey = o => o.sec.split(' ')[0];
 const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
-// ───────── 템포 ─────────
-const COMBO_SEC = 5, SPOTS = 4, RAIL = 4, FEVER_AT = 5, FEVER_SEC = 8;
-const levelTarget = lv => Math.min(16, 6 + lv);
-const levelGap = lv => Math.max(1.6, 3.4 - (lv - 1) * 0.22);
+// ───────── 단계: 그 단계의 로봇 → 보드 타일 4~5종 ─────────
+const LEVELS = [
+  { robots: ['amr', 'agv'],          tiles: ['wheel', 'auto', 'floor', 'arm'] },
+  { robots: ['amr', 'cobot'],        tiles: ['wheel', 'auto', 'arm', 'tool'] },
+  { robots: ['agv', 'cobot', 'mm'],  tiles: ['wheel', 'auto', 'floor', 'arm', 'tool'] },
+  { robots: ['quad', 'amr'],         tiles: ['legs', 'auto', 'wheel', 'arm'] },
+  { robots: ['hum', 'quad', 'cobot'], tiles: ['legs', 'arm', 'tool', 'auto'] },
+];
+function levelDef(lv) {
+  if (lv <= LEVELS.length) return LEVELS[lv - 1];
+  const all = Object.keys(ROBOTS);
+  for (let k = 0; k < 50; k++) {
+    const robots = all.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+    const tiles = [...new Set(robots.flatMap(r => ROBOTS[r].parts))];
+    if (tiles.length <= 5) {
+      while (tiles.length < 4) { const f = Object.keys(TILES).find(t => !tiles.includes(t)); tiles.push(f); }
+      return { robots, tiles };
+    }
+  }
+  return LEVELS[2];
+}
+const NEW_ROBOT_AT = { 1: ['amr', 'agv'], 2: ['cobot'], 3: ['mm'], 4: ['quad'], 5: ['hum'] };
+const levelTarget = lv => Math.min(12, 5 + lv);
+const RAIL = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3;
 
 // ───────── 상태 ─────────
 const S = {
-  lv: 1, running: false, paused: false, score: 0, combo: 0, comboT: 0, best: 0, bestScore: 0,
-  table: Array.from({ length: SPOTS }, () => []), tickets: [], spawned: 0, done: 0, missed: 0, spawnT: 0,
-  elapsed: 0, clock: 0, runServed: [], dex: new Set(), last: 0, sound: true, intro: [],
-  fever: 0, bulk: null, bulkCD: 25,
+  lv: 1, running: false, paused: false, busy: false, score: 0, best: 0,
+  def: null, tickets: [], spawned: 0, done: 0, missed: 0, spawnT: 0, stock: {},
+  board: null, sel: null, idle: 0, chainMax: 0, dex: new Set(), sound: true, last: 0, runServed: [],
 };
 try {
-  JSON.parse(localStorage.getItem('robotsi.dex6') || '[]').forEach(id => O[id] && S.dex.add(id));
+  JSON.parse(localStorage.getItem('robotsi.m3.dex') || '[]').forEach(id => O[id] && S.dex.add(id));
   S.sound = localStorage.getItem('robotsi.sound') !== '0';
-  S.bestScore = +localStorage.getItem('robotsi.best') || 0;
+  S.best = +localStorage.getItem('robotsi.m3.best') || 0;
 } catch (e) {}
-const save = () => { try {
-  localStorage.setItem('robotsi.dex6', JSON.stringify([...S.dex]));
-  localStorage.setItem('robotsi.best', String(S.bestScore));
-} catch (e) {} };
+const save = () => { try { localStorage.setItem('robotsi.m3.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotsi.m3.best', String(S.best)); } catch (e) {} };
 const $ = id => document.getElementById(id);
-const nudge = el => { if (!el) return; el.classList.remove('nope', 'shake'); void el.offsetWidth; el.classList.add(el.classList.contains('ticket') ? 'shake' : 'nope'); };
-const fmt = s => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
-const partsIcons = r => ROBOTS[r].parts.map(p => PARTS[p].icon).join('');
+const wait = ms => new Promise(r => setTimeout(r, ms));
 
 // ───────── 효과음 ─────────
 let ac = null;
@@ -329,157 +497,323 @@ function tone(freq, dur, type, delay, vol) {
   } catch (e) {}
 }
 const SFX = {
-  card:  n => tone(560 + n * 110, 0.06, 'triangle', 0, 0.08),
-  built: () => { tone(523, 0.07, 'square', 0, 0.06); tone(784, 0.12, 'square', 0.06, 0.06); },
-  half:  () => tone(880, 0.1, 'triangle', 0, 0.1),
-  done:  n => [523, 659, 784, 1047, 1319].slice(0, 2 + Math.min(3, n)).forEach((f, i) => tone(f * (1 + Math.min(n, 10) * 0.03), 0.13, 'triangle', i * 0.05, 0.12)),
-  nope:  () => tone(150, 0.14, 'sawtooth', 0, 0.06),
-  back:  () => tone(400, 0.06, 'sine', 0, 0.06),
+  swap:  () => tone(420, 0.05, 'triangle', 0, 0.07),
+  nope:  () => { tone(220, 0.08, 'square', 0, 0.05); tone(180, 0.1, 'square', 0.08, 0.05); },
+  match: k => [0, 4, 7].forEach((s, i) => tone(523 * Math.pow(2, (s + k * 2) / 12), 0.12, 'triangle', i * 0.04, 0.1)),
+  part:  () => tone(1046, 0.06, 'sine', 0, 0.07),
+  done:  () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.14, 'triangle', i * 0.06, 0.12)),
+  leave: () => tone(150, 0.25, 'sawtooth', 0, 0.06),
   ticket: () => tone(1200, 0.04, 'sine', 0, 0.05),
-  siren: () => [880, 660, 880, 660].forEach((f, i) => tone(f, 0.12, 'square', i * 0.13, 0.05)),
   clear: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.18, 'triangle', i * 0.07, 0.11)),
 };
 
 // ───────── 주문 ─────────
-const unlocked = () => unlockedAt(S.lv);
 function pickOrder() {
-  if (S.intro.length) return S.intro.shift();
-  const ok = new Set(unlocked());
-  const fresh = new Set(UNLOCKS[S.lv - 1] || []);
+  const ok = new Set(S.def.robots);
   const open = new Set(S.tickets.map(t => t.order.id));
-  let pool = ORDERS.filter(o => o.wants.every(w => ok.has(w)) && !open.has(o.id));
-  if (!pool.length) pool = ORDERS.filter(o => o.wants.every(w => ok.has(w)));
-  const weighted = pool.flatMap(o => o.wants.some(w => fresh.has(w)) ? [o, o, o] : [o]);
-  return weighted[Math.floor(Math.random() * weighted.length)].id;
+  let pool = ORDERS.filter(o => ok.has(o.want) && !open.has(o.id));
+  if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want));
+  const fresh = new Set(NEW_ROBOT_AT[S.lv] || []);
+  const weighted = pool.flatMap(o => fresh.has(o.want) ? [o, o] : [o]);
+  return weighted[Math.floor(Math.random() * weighted.length)];
 }
 function addTicket() {
-  const order = O[pickOrder()];
-  // 인내심: 성격 기본값 + 큰 로봇일수록 조금 더, 단계가 오를수록 조금씩 짧게
-  const size = order.wants.reduce((s, w) => s + ROBOTS[w].parts.length, 0);
-  const max = (MOODS[order.mood].sec + Math.max(0, size - 2) * 1.5) * Math.max(0.6, 1 - (S.lv - 1) * 0.05);
-  S.tickets.push({ order, left: order.wants.slice(), max, t: max, fresh: true });
+  const order = pickOrder();
+  const needs = [];
+  for (let k = 0; k < order.n; k++) needs.push(...ROBOTS[order.want].parts);
+  const max = (MOODS[order.mood].sec + needs.length * 4) * Math.max(0.6, 1 - (S.lv - 1) * 0.05);
+  const t = { order, needs: needs.map(p => ({ p, got: false })), max, t: max, fresh: true };
+  // 재고에 있던 부품 먼저 채움
+  t.needs.forEach(nd => { if (S.stock[nd.p] > 0) { S.stock[nd.p]--; nd.got = true; } });
+  S.tickets.push(t);
   S.spawned++;
   SFX.ticket();
+  if (t.needs.every(nd => nd.got)) setTimeout(() => complete(S.tickets.indexOf(t)), 300);
 }
 function spawnTick(dt) {
-  if (S.bulk || S.spawned >= levelTarget(S.lv) || S.tickets.length >= RAIL) return;
-  S.spawnT -= dt * (S.fever > 0 ? 1.6 : 1);
-  if (S.spawnT <= 0 || !S.tickets.length) {
-    addTicket(); renderRail();
-    S.spawnT = levelGap(S.lv) * (0.8 + Math.random() * 0.4);
+  if (S.spawned >= levelTarget(S.lv) || S.tickets.length >= RAIL) return;
+  if ((S.spawnT -= dt) <= 0 || !S.tickets.length) {
+    addTicket(); renderRail(); renderStock();
+    S.spawnT = Math.max(4, 9 - S.lv * 0.5);
   }
 }
-// 지금 만들어야 하는 로봇들 (대량 수주 중이면 그 로봇만)
-const wantedRobots = () => S.bulk ? [S.bulk.robot] : [...new Set(S.tickets.flatMap(t => t.left))];
-
-// ───────── 대량 수주 이벤트 ─────────
-function bulkTick(dt) {
-  if (S.bulk) {
-    S.bulk.t -= dt;
-    if (S.bulk.t <= 0) endBulk();
-    return;
+function patienceTick(dt) {
+  for (let i = S.tickets.length - 1; i >= 0; i--) {
+    const t = S.tickets[i];
+    if ((t.t -= dt) > 0) continue;
+    floatText(document.querySelector(`[data-ticket="${i}"]`), '💢 떠남', 'bad');
+    SFX.leave();
+    // 받아둔 부품은 재고로 돌림
+    t.needs.forEach(nd => { if (nd.got) addStock(nd.p); });
+    S.tickets.splice(i, 1);
+    S.missed++; S.done++;
+    S.spawnT = Math.min(S.spawnT, 1);
+    renderRail(); renderStock(); renderHud();
+    if (S.done >= levelTarget(S.lv)) levelClear();
   }
-  if (S.lv < 2 || S.done >= levelTarget(S.lv) - 1) return;
-  if ((S.bulkCD -= dt) > 0) return;
-  const ok = new Set(unlocked());
-  const pool = BULKS.filter(b => b.minLv <= S.lv && ok.has(b.robot));
-  if (!pool.length) return;
-  const b = pool[Math.floor(Math.random() * pool.length)];
-  S.bulk = { ...b, got: 0, t: b.sec };
-  SFX.siren();
-  banner(`🚨 대량 수주! ${b.who} ${ROBOTS[b.robot].name} ${b.n}대`);
-  renderRail();
 }
-function endBulk() {
-  const b = S.bulk;
-  S.bulk = null;
-  S.bulkCD = 30 + Math.random() * 15;
-  const full = b.got >= b.n;
-  const bonus = b.got * 120 + (full ? 600 : 0);
-  S.score += bonus;
-  if (full) { SFX.clear(); banner(`🎉 ${b.who} ${b.n}대 완납! +${bonus}`); }
-  else if (b.got) banner(`${b.who} ${b.got}/${b.n}대 +${bonus}`);
-  S.spawnT = 0;
+function addStock(p) { S.stock[p] = Math.min(STOCK_MAX, (S.stock[p] || 0) + 1); }
+// 매치로 얻은 부품 하나를 주문표에 넣음: 가장 먼저 온 손님부터
+function givePart(p, fromEl) {
+  for (let i = 0; i < S.tickets.length; i++) {
+    const nd = S.tickets[i].needs.find(x => x.p === p && !x.got);
+    if (!nd) continue;
+    nd.got = true;
+    const slot = document.querySelector(`[data-ticket="${i}"] [data-need="${S.tickets[i].needs.indexOf(nd)}"]`);
+    fly(fromEl, slot, TILES[p].icon);
+    setTimeout(() => {
+      SFX.part();
+      if (S.tickets[i] && S.tickets[i].needs.every(x => x.got)) complete(i); else renderRail();
+    }, 330);
+    return true;
+  }
+  addStock(p);
+  fly(fromEl, $('stock'), TILES[p].icon);
+  setTimeout(renderStock, 330);
+  return false;
+}
+function complete(i) {
+  const t = S.tickets[i];
+  if (!t || !S.running) return;
+  const el = document.querySelector(`[data-ticket="${i}"]`);
+  const tip = Math.round(100 * t.t / t.max);
+  const gain = 60 * t.needs.length + tip;
+  S.score += gain; S.best = Math.max(S.best, S.score);
+  floatText(el, `+${gain}`, 'big');
+  SFX.done();
+  const lit = [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
+  S.dex.add(t.order.id); S.runServed.push(t.order.id); save();
+  if (!lit) banner(`${secKey(t.order)}${t.order.icon} 점등!`, 200);
+  S.tickets.splice(i, 1);
+  S.done++;
+  S.spawnT = Math.min(S.spawnT, 0.8);
   renderRail(); renderHud();
+  if (S.done >= levelTarget(S.lv)) levelClear();
 }
 
-// ───────── 렌더링 ─────────
-function ticketHtml(t, i) {
-  const o = t.order, kinds = [...new Set(o.wants)];
-  const left = t.left.slice();
-  const icons = o.wants.map(w => { const k = left.indexOf(w); if (k >= 0) { left.splice(k, 1); return `<span>${ROBOTS[w].icon}</span>`; } return `<span class="done">${ROBOTS[w].icon}</span>`; }).join('');
-  const qty = o.wants.length > 1 ? `<span class="qty">${o.wants.length - t.left.length}/${o.wants.length}</span>` : '';
-  const m = MOODS[o.mood];
-  return `<button class="ticket${t.fresh ? ' enter' : ''}" type="button" data-ticket="${i}" aria-label="${o.who} 주문, ${m.label}">
-    ${qty}<span class="mood" data-mood="${i}">${m.face}</span><span class="site">${o.icon}</span><span class="who">${o.who}</span>
-    <span class="task">${o.task}</span>
-    <span class="ask"><span class="icons${o.wants.length > 1 ? ' two' : ''}">${icons}</span>
-      <span class="t">${kinds.map(w => ROBOTS[w].name).join(' + ')}</span>
-      <span class="rc">${kinds.map(partsIcons).join(' ')}</span></span>
-    <span class="pat" data-pat="${i}"><i></i></span>`;
-}
+// ───────── 렌더링: 주문표 ─────────
 function renderRail() {
-  if (S.bulk) {
-    const b = S.bulk, r = ROBOTS[b.robot];
-    $('rail').innerHTML = `<div class="ticket bulk enter" data-ticket="bulk">
-      <div class="siren">🚨 대량 수주<br>${b.icon} ${b.who}<small>${b.fact}</small></div>
-      <div class="count">${r.icon}<small>${b.got}/${b.n}</small></div>
-      <div><div class="rc" style="font-size:22px;text-align:center">${partsIcons(b.robot)}</div><div class="left" id="bulkLeft">${Math.ceil(b.t)}초</div></div>
-    </div>`;
-    return;
-  }
   const rest = levelTarget(S.lv) - S.spawned;
   $('rail').innerHTML = Array.from({ length: RAIL }, (_, i) => {
     const t = S.tickets[i];
-    const more = i === RAIL - 1 && rest > 0 ? `<span class="more">+${rest}</span>` : '';
-    if (!t) return `<div class="ticket slot">${more}</div>`;
-    return ticketHtml(t, i) + more + '</button>';
+    if (!t) return `<div class="ticket slot"></div>`;
+    const o = t.order, r = ROBOTS[o.want];
+    const needs = t.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('');
+    return `<div class="ticket${t.fresh ? ' enter' : ''}" data-ticket="${i}">
+      ${o.n > 1 ? `<span class="qty">×${o.n}</span>` : ''}
+      <span class="mood" data-mood="${i}">${MOODS[o.mood].face}</span>
+      <span class="site">${o.icon}</span><span class="who">${o.who}</span><span class="task">${o.task}</span>
+      <span class="robot"><span class="ic">${r.icon}</span><span class="nm">${r.name}</span></span>
+      <span class="needs">${needs}</span>
+      <span class="pat" data-pat="${i}"><i></i></span>
+    </div>`;
   }).join('');
   S.tickets.forEach(t => (t.fresh = false));
+  $('left').textContent = rest > 0 ? `대기 손님 ${rest}` : '';
+  updateBars();
 }
-function renderTable(popAt) {
-  $('table').innerHTML = S.table.map((st, i) => {
-    if (!st.length) return `<button class="spot" type="button" data-spot="${i}" aria-label="빈 조립대"></button>`;
-    const r = robotOf(st);
-    const body = r ? `<span class="ic">${ROBOTS[r].icon}</span>` : `<span class="ic multi">${st.map(p => PARTS[p].icon).join('')}</span>`;
-    return `<button class="card${r ? ' robot' : ''}${popAt === i ? ' pop' : ''}" type="button" data-spot="${i}" aria-label="${r ? ROBOTS[r].name : '조립 중'}"><span class="hd">${r ? ROBOTS[r].name : '조립 중'}</span>${body}</button>`;
-  }).join('');
-}
-function renderDeck() {
-  const ok = new Set(unlocked().flatMap(r => ROBOTS[r].parts));
-  const before = new Set(unlockedAt(S.lv - 1).flatMap(r => ROBOTS[r].parts));
-  $('deck').innerHTML = DECK.map(id => `
-    <button class="pile${ok.has(id) ? '' : ' lock'}${S.lv > 1 && ok.has(id) && !before.has(id) ? ' fresh' : ''}" type="button" data-pile="${id}" aria-label="${PARTS[id].name}">
-      <span class="ic">${PARTS[id].icon}</span><span class="nm">${PARTS[id].name}</span></button>`).join('');
-}
-function renderHud() {
-  const n = levelTarget(S.lv);
-  $('clock').textContent = fmt(S.elapsed);
-  $('prog').textContent = `${S.done}/${n}`;
-  $('goalBar').style.width = (S.done / n * 100).toFixed(1) + '%';
-  $('par').textContent = S.missed ? `💢 떠난 손님 ${S.missed}` : '';
-  $('score').textContent = S.score;
-  $('lv').textContent = `${S.lv}단계`;
-  $('combo').textContent = `🔥${S.combo}`;
-  $('combo').classList.toggle('hot', S.combo >= 3);
-  $('flowBar').style.width = (S.fever > 0 ? S.fever / FEVER_SEC * 100 : S.combo ? S.comboT / COMBO_SEC * 100 : 0).toFixed(1) + '%';
-  $('app').classList.toggle('fever', S.fever > 0);
-  if (S.bulk) { const el = $('bulkLeft'); if (el) el.textContent = `${Math.ceil(S.bulk.t)}초`; }
-  S.tickets.forEach((tk, i) => {
-    const f = Math.max(0, tk.t / tk.max);
+function updateBars() {
+  S.tickets.forEach((t, i) => {
+    const f = Math.max(0, t.t / t.max);
     const el = document.querySelector(`[data-pat="${i}"] i`);
     if (el) { el.style.transform = `scaleX(${f})`; el.className = f < 0.25 ? 'crit' : f < 0.5 ? 'warn' : ''; }
     const face = document.querySelector(`[data-mood="${i}"]`);
-    if (face) face.textContent = f < 0.25 ? '😡' : f < 0.5 ? '😠' : MOODS[tk.order.mood].face;
+    if (face) face.textContent = f < 0.25 ? '😡' : f < 0.5 ? '😠' : MOODS[t.order.mood].face;
   });
 }
+function renderStock() {
+  const chips = Object.entries(S.stock).filter(([, n]) => n > 0).map(([p, n]) => `<span class="chip">${TILES[p].icon}<b class="num">${n}</b></span>`).join('');
+  $('stock').innerHTML = chips ? `재고 ${chips}` : '';
+}
+function renderHud() {
+  const n = levelTarget(S.lv);
+  $('lv').textContent = `${S.lv}단계`;
+  $('prog').textContent = `${S.done}/${n}`;
+  $('goalBar').style.width = (S.done / n * 100).toFixed(1) + '%';
+  $('score').textContent = S.score;
+}
+
+// ───────── 렌더링: 보드 (DOM 타일, 위치는 transform) ─────────
+let geo = { size: 0, step: 0, pad: 0 };
+const tileEls = new Map();
+function layout() {
+  const el = $('board');
+  const W = el.clientWidth;
+  const pad = 6, gap = 5;
+  const size = (W - pad * 2 - gap * (COLS - 1)) / COLS;
+  geo = { size, step: size + gap, pad };
+  el.querySelectorAll('.cellbg').forEach(x => x.remove());
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const b = document.createElement('div');
+    b.className = 'cellbg';
+    Object.assign(b.style, { left: pad + c * geo.step + 'px', top: pad + r * geo.step + 'px', width: size + 'px', height: size + 'px' });
+    el.prepend(b);
+  }
+  tileEls.forEach((e, t) => sizeTile(e));
+}
+function sizeTile(e) { e.style.width = geo.size + 'px'; e.style.height = geo.size + 'px'; }
+const posOf = (r, c) => [geo.pad + c * geo.step, geo.pad + r * geo.step];
+function tileEl(t) {
+  let e = tileEls.get(t);
+  if (!e) {
+    e = document.createElement('div');
+    e.className = 'tile';
+    e.style.background = TILES[t.type].color;
+    e.innerHTML = `<span class="ic">${TILES[t.type].icon}</span><span class="nm">${TILES[t.type].name}</span>`;
+    sizeTile(e);
+    const [x, y] = posOf(t.y, t.x);
+    e.style.transition = 'none';
+    e.style.transform = `translate(${x}px, ${y}px)`;
+    $('board').appendChild(e);
+    void e.offsetWidth;
+    e.style.transition = '';
+    tileEls.set(t, e);
+  }
+  return e;
+}
+function place(t, r, c, ms) {
+  const e = tileEl(t);
+  t.x = c; t.y = r;
+  if (ms !== undefined) e.style.transitionDuration = ms + 'ms';
+  const [x, y] = posOf(r, c);
+  e.style.transform = `translate(${x}px, ${y}px)`;
+}
+function renderBoard() {
+  const live = new Set();
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const t = S.board.get(r, c);
+    if (!t) continue;
+    live.add(t);
+    place(t, r, c);
+    tileEl(t).classList.toggle('sel', !!S.sel && S.sel.r === r && S.sel.c === c);
+  }
+  tileEls.forEach((e, t) => { if (!live.has(t)) { e.remove(); tileEls.delete(t); } });
+}
+function clearBoardEls() { tileEls.forEach(e => e.remove()); tileEls.clear(); }
+
+// ───────── 매치3 진행 ─────────
+async function trySwap(a, b) {
+  if (S.busy || !S.running || S.paused) return;
+  S.busy = true; S.sel = null; S.idle = 0; clearHint();
+  const ta = S.board.get(a.r, a.c), tb = S.board.get(b.r, b.c);
+  SFX.swap();
+  if (!S.board.wouldMatch(a, b)) {
+    place(ta, b.r, b.c, 140); place(tb, a.r, a.c, 140);
+    await wait(150);
+    SFX.nope();
+    place(ta, a.r, a.c, 140); place(tb, b.r, b.c, 140);
+    await wait(150);
+    S.busy = false; renderBoard();
+    return;
+  }
+  S.board.swap(a, b);
+  place(ta, b.r, b.c, 150); place(tb, a.r, a.c, 150);
+  await wait(160);
+  await resolve();
+  S.busy = false;
+}
+async function resolve() {
+  let chain = 0;
+  for (;;) {
+    const m = S.board.findMatches();
+    if (!m.groups.length) break;
+    chain++;
+    S.chainMax = Math.max(S.chainMax, chain);
+    if (chain >= 2) { $('chain').textContent = `연쇄 ×${chain}`; }
+    SFX.match(chain - 1);
+    for (const g of m.groups) {
+      // 3개 = 부품 1, 4개 = 2, 5개 이상 = 3
+      const gain = Math.min(3, g.cells.length - 2);
+      const mid = g.cells[Math.floor(g.cells.length / 2)];
+      const [mr, mc] = S.board.rc(mid);
+      const fromEl = tileEls.get(S.board.get(mr, mc));
+      for (let k = 0; k < gain; k++) givePart(g.type, fromEl);
+      S.score += 10 * g.cells.length * chain;
+      if (gain > 1) floatText(fromEl, `${TILES[g.type].icon}×${gain}`, 'big');
+    }
+    for (const i of m.matched) {
+      const t = S.board.cells[i];
+      const e = tileEls.get(t);
+      if (e) { e.classList.add('pop'); const [x, y] = posOf(t.y, t.x); e.style.transform = `translate(${x}px, ${y}px) scale(.3)`; }
+      S.board.cells[i] = null;
+    }
+    renderHud();
+    await wait(210);
+    tileEls.forEach((e, t) => { if (e.classList.contains('pop')) { e.remove(); tileEls.delete(t); } });
+    const falls = S.board.collapse();
+    for (const f of falls) {
+      tileEl(f.tile);
+      const dist = f.toR - f.fromY;
+      place(f.tile, f.toR, f.c, 90 + dist * 55);
+    }
+    await wait(90 + ROWS * 55);
+  }
+  setTimeout(() => { $('chain').textContent = ''; }, 600);
+  if (!S.board.findMove()) {
+    banner('🔀 섞는 중');
+    await wait(400);
+    S.board.shuffle();
+    renderBoard();
+  }
+}
+// 손님이 필요로 하는 부품이 조금 더 자주 떨어짐 (흐름이 끊기지 않게)
+function biasedType() {
+  const need = S.tickets.flatMap(t => t.needs.filter(n => !n.got).map(n => n.p)).filter(p => S.def.tiles.includes(p));
+  if (need.length && Math.random() < 0.35) return need[Math.floor(Math.random() * need.length)];
+  return S.def.tiles[Math.floor(Math.random() * S.def.tiles.length)];
+}
+
+// 오래 손을 안 대면 맞출 수 있는 두 칸을 반짝임
+let hintCells = [];
+function clearHint() { hintCells.forEach(t => tileEls.get(t)?.classList.remove('hint')); hintCells = []; }
+function showHint() {
+  const mv = S.board.findMove();
+  if (!mv) return;
+  hintCells = mv.map(p => S.board.get(p.r, p.c)).filter(Boolean);
+  hintCells.forEach(t => tileEl(t).classList.add('hint'));
+}
+
+// ───────── 입력: 끌어서 스왑, 또는 두 칸 차례로 탭 ─────────
+let drag = null;
+function cellAt(x, y) {
+  const r0 = $('board').getBoundingClientRect();
+  const c = Math.floor((x - r0.left - geo.pad + 2) / geo.step), r = Math.floor((y - r0.top - geo.pad + 2) / geo.step);
+  return r >= 0 && r < ROWS && c >= 0 && c < COLS ? { r, c } : null;
+}
+const adjacent = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c) === 1;
+$('board').addEventListener('pointerdown', e => {
+  if (!S.running || S.paused || S.busy) return;
+  const cell = cellAt(e.clientX, e.clientY);
+  if (!cell) return;
+  if (S.sel && adjacent(S.sel, cell)) { const a = S.sel; S.sel = null; trySwap(a, cell); return; }
+  const same = S.sel && S.sel.r === cell.r && S.sel.c === cell.c;
+  S.sel = same ? null : cell;
+  renderBoard();
+  drag = { cell, x: e.clientX, y: e.clientY, id: e.pointerId };
+  try { $('board').setPointerCapture(e.pointerId); } catch (_) {}
+});
+$('board').addEventListener('pointermove', e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < geo.step * 0.3) return;
+  const { r, c } = drag.cell;
+  const to = Math.abs(dx) > Math.abs(dy) ? { r, c: c + Math.sign(dx) } : { r: r + Math.sign(dy), c };
+  drag = null; S.sel = null;
+  if (S.board.inBounds(to.r, to.c)) trySwap({ r, c }, to); else renderBoard();
+});
+const endDrag = e => { if (drag && e.pointerId === drag.id) drag = null; };
+$('board').addEventListener('pointerup', endDrag);
+$('board').addEventListener('pointercancel', endDrag);
+window.addEventListener('resize', () => { if (S.board) { layout(); renderBoard(); } });
+
+// ───────── 효과 ─────────
 function centerOf(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
-function floatText(el, text, big) {
+function floatText(el, text, kind) {
   if (!el) return;
   const [x, y] = centerOf(el);
   const f = document.createElement('div');
-  f.className = 'float' + (big ? ' big' : ''); f.textContent = text;
-  f.style.left = x + 'px'; f.style.top = (y - 30) + 'px';
+  f.className = 'float' + (kind ? ' ' + kind : ''); f.textContent = text;
+  f.style.left = x + 'px'; f.style.top = (y - 20) + 'px';
   document.body.appendChild(f);
   setTimeout(() => f.remove(), 950);
 }
@@ -490,8 +824,8 @@ function fly(fromEl, toEl, icon) {
   f.className = 'flyer'; f.textContent = icon;
   f.style.left = x0 + 'px'; f.style.top = y0 + 'px';
   document.body.appendChild(f);
-  requestAnimationFrame(() => requestAnimationFrame(() => { f.style.left = x1 + 'px'; f.style.top = y1 + 'px'; f.style.transform = 'translate(-50%, -50%) scale(.6)'; }));
-  setTimeout(() => f.remove(), 260);
+  requestAnimationFrame(() => requestAnimationFrame(() => { f.style.left = x1 + 'px'; f.style.top = y1 + 'px'; f.style.transform = 'translate(-50%, -50%) scale(.7)'; }));
+  setTimeout(() => f.remove(), 340);
 }
 function banner(text, delay) {
   setTimeout(() => {
@@ -502,197 +836,50 @@ function banner(text, delay) {
   }, delay || 0);
 }
 
-// ───────── 조립: 부품 카드를 조립대 위에 쌓기 ─────────
-// 이 스택에 이 부품을 얹으면 아직 누군가 원하는 로봇이 될 수 있나
-const fitsWanted = (stack, p) => !stack.includes(p) && wantedRobots().some(r => [...stack, p].every(x => ROBOTS[r].parts.includes(x)));
-function addPart(p, at) {
-  let i = at;
-  if (i === undefined) {
-    // 가장 많이 쌓인(완성에 가까운) 맞는 스택 → 빈 조립대
-    let bestLen = -1;
-    S.table.forEach((st, k) => { if (st.length && fitsWanted(st, p) && st.length > bestLen) { bestLen = st.length; i = k; } });
-    if (i === undefined) i = S.table.findIndex(st => !st.length);
-    if (i < 0) { SFX.nope(); nudge($('table')); return; }
-  } else if (S.table[i].includes(p)) { SFX.nope(); nudge(document.querySelector(`[data-spot="${i}"]`)); return; }
-  fly(document.querySelector(`[data-pile="${p}"]`), document.querySelector(`[data-spot="${i}"]`), PARTS[p].icon);
-  S.table[i] = [...S.table[i], p];
-  const r = robotOf(S.table[i]);
-  if (r) SFX.built(); else SFX.card(S.table[i].length);
-  renderTable(i);
-  if (r) tryShip(i);
-  else if (!wantedRobots().some(w => S.table[i].every(x => ROBOTS[w].parts.includes(x)))) document.querySelector(`[data-spot="${i}"]`)?.classList.add('idle');
-}
-// 완성된 로봇은 찾는 주문표로 저절로 날아감
-function tryShip(i) {
-  const r = robotOf(S.table[i]);
-  if (!r) return false;
-  if (S.bulk) {
-    if (S.bulk.robot !== r) return false;
-    fly(document.querySelector(`[data-spot="${i}"]`), document.querySelector('[data-ticket="bulk"]'), ROBOTS[r].icon);
-    S.table[i] = [];
-    S.bulk.got++;
-    S.score += Math.round(60 * (S.fever > 0 ? 2 : 1));
-    SFX.done(Math.min(4, S.bulk.got));
-    renderTable(); renderRail();
-    floatText(document.querySelector('[data-ticket="bulk"]'), `${S.bulk.got}/${S.bulk.n}`, true);
-    if (S.bulk.got >= S.bulk.n) endBulk();
-    renderHud();
-    return true;
-  }
-  const ti = S.tickets.findIndex(t => t.left.includes(r));
-  if (ti < 0) return false;
-  fly(document.querySelector(`[data-spot="${i}"]`), document.querySelector(`[data-ticket="${ti}"]`), ROBOTS[r].icon);
-  deliver(i, ti);
-  return true;
-}
-// 조립대 누르기: 완성품이면 납품, 아니면 부품을 덱으로 되돌리기
-function tapSpot(i) {
-  if (!S.table[i].length) return;
-  if (tryShip(i)) return;
-  const el = document.querySelector(`[data-spot="${i}"]`);
-  fly(el, document.querySelector(`[data-pile="${S.table[i][0]}"]`), S.table[i].map(p => PARTS[p].icon).join(''));
-  S.table[i] = []; SFX.back(); renderTable();
-}
-function deliver(spot, ti) {
-  const t = S.tickets[ti];
-  const r = robotOf(S.table[spot]);
-  const el = document.querySelector(`[data-ticket="${ti}"]`);
-  if (!t || !r) return;
-  const k = t.left.indexOf(r);
-  if (k < 0) { SFX.nope(); nudge(el); S.combo = 0; S.comboT = 0; return; }
-  t.left.splice(k, 1);
-  S.table[spot] = [];
-  if (t.left.length) { SFX.half(); floatText(el, '✓'); renderRail(); renderTable(); document.querySelector(`[data-ticket="${ti}"]`)?.classList.add('bump'); return; }
-  S.combo = S.comboT > 0 ? S.combo + 1 : 1;
-  S.comboT = COMBO_SEC;
-  S.best = Math.max(S.best, S.combo);
-  if (S.combo === FEVER_AT && S.fever <= 0) { S.fever = FEVER_SEC; banner('🔥 FEVER ×2'); }
-  const tip = Math.round(80 * t.t / t.max);
-  const size = t.order.wants.reduce((s, w) => s + ROBOTS[w].parts.length, 0);
-  const gain = Math.round((50 * size * Math.min(3, 1 + 0.2 * (S.combo - 1)) + tip) * (S.fever > 0 ? 2 : 1));
-  S.score += gain;
-  floatText(el, `+${gain}`, S.combo >= 3);
-  SFX.done(S.combo);
-  if (S.combo >= 3 && S.combo % 4 === 0 && S.combo !== FEVER_AT) banner(`🔥 ${S.combo} 콤보!`);
-  S.done++;
-  S.runServed.push(t.order.id);
-  const lit = [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
-  S.dex.add(t.order.id);
-  if (!lit) banner(`${secKey(t.order)}${t.order.icon} 점등!`, 150);
-  S.bestScore = Math.max(S.bestScore, S.score);
-  save();
-  S.tickets.splice(ti, 1);
-  if (!S.tickets.length) S.spawnT = 0;
-  renderRail(); renderTable(); renderHud();
-  if (S.done >= levelTarget(S.lv)) levelClear();
-}
-
-// ───────── 입력: 누르기 + 끌기(덱 카드를 원하는 조립대로, 완성품을 주문표로) ─────────
-let drag = null;
-document.addEventListener('pointerdown', e => {
-  if (!S.running || S.paused) return;
-  const spot = e.target.closest('[data-spot]'), pile = e.target.closest('[data-pile]');
-  if (!spot && !pile) return;
-  drag = { src: spot ? { spot: +spot.dataset.spot } : { pile: pile.dataset.pile }, x: e.clientX, y: e.clientY, started: false };
-});
-document.addEventListener('pointermove', e => {
-  if (!drag) return;
-  if (!drag.started) {
-    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10) return;
-    const st = drag.src.spot !== undefined ? S.table[drag.src.spot] : null;
-    if (st && !st.length) { drag = null; return; }
-    const r = st && robotOf(st);
-    drag.started = true;
-    drag.ghost = Object.assign(document.createElement('div'), { className: 'ghost', textContent: drag.src.pile ? PARTS[drag.src.pile].icon : r ? ROBOTS[r].icon : st.map(p => PARTS[p].icon).join('') });
-    document.body.appendChild(drag.ghost);
-  }
-  e.preventDefault();
-  drag.ghost.style.left = e.clientX + 'px';
-  drag.ghost.style.top = e.clientY + 'px';
-  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],#deck');
-  if (drag.over && drag.over !== over) drag.over.classList.remove('drop', 'over');
-  if (over) over.classList.add(over.dataset.ticket !== undefined ? 'over' : 'drop');
-  drag.over = over;
-}, { passive: false });
-document.addEventListener('pointerup', e => {
-  if (!drag) return;
-  const d = drag; drag = null;
-  if (!S.running) { d.ghost?.remove(); return; }
-  if (!d.started) { if (d.src.pile) addPart(d.src.pile); else tapSpot(d.src.spot); return; }
-  d.ghost.remove();
-  d.over?.classList.remove('drop', 'over');
-  const t = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],#deck');
-  if (!t) return;
-  if (d.src.pile) { if (t.dataset.spot !== undefined) addPart(d.src.pile, +t.dataset.spot); return; }
-  if (t.id === 'deck') { S.table[d.src.spot] = []; SFX.back(); renderTable(); return; }
-  if (t.dataset.ticket !== undefined) {
-    if (t.dataset.ticket === 'bulk') tryShip(d.src.spot); else deliver(d.src.spot, +t.dataset.ticket);
-    renderTable(); return;
-  }
-  const to = +t.dataset.spot;
-  if (to !== d.src.spot && !S.table[to].length) { S.table[to] = S.table[d.src.spot]; S.table[d.src.spot] = []; renderTable(to); }
-});
-document.addEventListener('pointercancel', () => { if (!drag) return; drag.ghost?.remove(); drag = null; });
-
-// ───────── 진행: 단계를 깨면 멈추지 않고 바로 다음 단계 ─────────
-function patienceTick(dt) {
-  if (S.bulk) return;
-  for (let i = S.tickets.length - 1; i >= 0; i--) {
-    const tk = S.tickets[i];
-    if ((tk.t -= dt) > 0) continue;
-    floatText(document.querySelector(`[data-ticket="${i}"]`), '💢 떠남');
-    SFX.nope();
-    S.tickets.splice(i, 1);
-    S.missed++; S.done++;
-    S.combo = 0; S.comboT = 0;
-    if (!S.tickets.length) S.spawnT = 0;
-    renderRail();
-    if (S.done >= levelTarget(S.lv)) { levelClear(); return; }
-  }
-}
+// ───────── 진행 ─────────
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
   if (S.running && !S.paused) {
-    S.elapsed += dt;
-    if (S.comboT > 0 && !S.bulk && (S.comboT -= dt) <= 0) { S.comboT = 0; S.combo = 0; }
-    if (S.fever > 0) S.fever -= dt;
-    bulkTick(dt);
-    if (S.running) patienceTick(dt);
+    patienceTick(dt);
     if (S.running) spawnTick(dt);
-    renderHud();
+    updateBars();
+    if (!S.busy && (S.idle += dt) > 6 && !hintCells.length) showHint();
   }
   requestAnimationFrame(loop);
 }
 function startLevel() {
-  Object.assign(S, { running: true, paused: false, elapsed: 0, spawned: 0, done: 0, tickets: [], missed: 0, spawnT: 0,
-    bulk: null, bulkCD: 12 + Math.random() * 10, intro: S.lv === 1 ? ['transys', 'kai', 'stl'] : [] });
+  S.def = levelDef(S.lv);
+  Object.assign(S, { running: true, paused: false, busy: false, tickets: [], spawned: 0, done: 0, missed: 0, spawnT: 0, stock: {}, sel: null, idle: 0 });
   $('overlay').hidden = true;
-  renderRail(); renderTable(); renderDeck(); renderHud();
-  addTicket(); addTicket(); S.spawnT = levelGap(S.lv); renderRail();
+  clearBoardEls();
+  S.board = new Board(COLS, ROWS, S.def.tiles);
+  S.board.randomType = biasedType;
+  S.board.fillInitial();
+  layout(); renderBoard();
+  renderRail(); renderStock(); renderHud();
+  banner(`${S.lv}단계`);
+  const fresh = NEW_ROBOT_AT[S.lv];
+  if (fresh) banner(`NEW ${fresh.map(r => ROBOTS[r].icon + ' ' + ROBOTS[r].name).join('  ')}`, 1100);
 }
 function levelClear() {
   S.running = false;
-  const n = levelTarget(S.lv), served = n - S.missed;
-  const stars = S.missed === 0 ? 3 : served >= n * 0.7 ? 2 : 1;
+  const n = levelTarget(S.lv);
+  const stars = S.missed === 0 ? 3 : S.missed <= Math.ceil(n * 0.3) ? 2 : 1;
   const bonus = stars * 200;
-  S.score += bonus; S.bestScore = Math.max(S.bestScore, S.score); save();
+  S.score += bonus; S.best = Math.max(S.best, S.score); save();
   SFX.clear();
   banner(`CLEAR ${'⭐'.repeat(stars)} +${bonus}`);
-  const next = UNLOCKS[S.lv];
-  if (next) banner(`NEW ${next.map(w => ROBOTS[w].icon).join(' ')} ${next.map(w => ROBOTS[w].name).join(', ')}`, 1300);
   S.lv++;
-  setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, next ? 2700 : 1500);
+  setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, 2200);
   renderHud();
 }
 
 // ───────── 오버레이 ─────────
 const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
-const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${o.wants.map(w => ROBOTS[w].icon).join('')}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
-const mapHtml = () => {
-  const lit = litSectors();
-  return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`;
-};
+const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${ROBOTS[o.want].icon}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
+const mapHtml = () => { const lit = litSectors(); return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`; };
+const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon).join('')} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
 function openSheet(html, pause) {
   $('sheet').innerHTML = html;
   $('overlay').hidden = false;
@@ -707,37 +894,31 @@ function resume() {
 const HELP = `
   <h2>로봇 SI 납품소</h2>
   <div class="steps">
-    <div class="step">🛞 🧭 <span>부품 카드를 톡톡 누르면</span></div>
-    <div class="step">🛞🧭🦾🤏 = 🚜 <span>조립대 위에 차곡차곡 쌓이고</span></div>
-    <div class="step">🚜 ➜ 🧾 <span>완성되면 주문표로 날아가요</span></div>
+    <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면</span></div>
+    <div class="step">🛞 ➜ 🧾 <span>주문표로 날아가 채워지고</span></div>
+    <div class="step">🛞🧭 = 🚚 <span>다 모이면 로봇 납품!</span></div>
   </div>
-  <p>손님마다 성격이 달라요. 😤 급한 손님은 금방 떠나고 😌 느긋한 손님은 기다려줘요. 타임 바가 다 떨어지면 💢 돈을 못 받아요. 다 쳐내면 바로 다음 단계! 연달아 쳐내면 🔥, 5콤보면 FEVER ×2. 가끔 🚨 대량 수주가 터지면 미친 듯이 눌러요. 조립대를 누르면 부품이 덱으로 돌아가요.</p>
+  <p>4개를 맞추면 부품 2개, 5개는 3개. 😤 급한 손님은 금방 떠나고 😌 느긋한 손님은 기다려줘요. 타임 바가 다 떨어지면 💢 돈을 못 받아요. 남는 부품은 재고로 가요.</p>
+  ${recipesHtml()}
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
   const seen = [...new Set(S.runServed)].map(id => logItem(O[id])).join('');
   return `
     <h2>⏸ ${S.lv}단계</h2>
-    <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.bestScore}</b></span><span>🔥<b class="num">${S.best}</b></span></div>
+    <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
     <button class="primary" type="button" data-act="close">계속 ▶</button>
-    <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>
-    ${mapHtml()}
-    ${seen ? `<span class="lbl">이번 판에 다녀온 현장</span><div class="log">${seen}</div>` : ''}`;
+    <span class="lbl">조합표</span>${recipesHtml()}
+    <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>${mapHtml()}
+    <span class="lbl">현장 도감 ${S.dex.size}/${ORDERS.length}</span>
+    <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o) : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
+    <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21). 매치3 보드 로직은 Bosses of Our World에서 가져왔어요.</p>`;
 }
 $('sheet').addEventListener('click', e => {
   const act = e.target.closest('[data-act]')?.dataset.act;
   if (act === 'close') resume();
-  else if (act === 'begin') { $('overlay').hidden = true; startLevel(); }
+  else if (act === 'begin') startLevel();
 });
-$('btnDex').addEventListener('click', () => {
-  openSheet(`
-    <h2>현장 도감 ${S.dex.size}/${ORDERS.length}</h2>
-    ${mapHtml()}
-    <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o)
-      : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
-    <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21)</p>
-    <button class="primary" type="button" data-act="close">계속 ▶</button>`, true);
-});
-$('btnPause').addEventListener('click', () => { if (!$('overlay').hidden) return; openSheet(summaryHtml(), true); });
+$('btnPause').addEventListener('click', () => { if ($('overlay').hidden && S.running) openSheet(summaryHtml(), true); });
 const syncSound = () => { $('btnSound').textContent = S.sound ? '🔊' : '🔇'; };
 $('btnSound').addEventListener('click', () => {
   S.sound = !S.sound; syncSound();
@@ -745,7 +926,7 @@ $('btnSound').addEventListener('click', () => {
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S.running && !S.paused) $('btnPause').click(); });
 
-syncSound(); renderRail(); renderTable(); renderDeck(); renderHud();
+syncSound(); renderHud();
 openSheet(HELP);
 requestAnimationFrame(loop);
 </script>
