@@ -477,13 +477,13 @@ class Board {
 
 // ═════════ 여기부터 로봇 SI 납품소 (위 Board는 kimtaenim/bosses-of-our-world의 js/board.js 그대로) ═════════
 
-// 이모지에 없는 부품 그림: 회색 금속 SVG (로봇 집게·로봇 발·로봇 손)
+// 이모지에 없는 부품 그림: 회색 금속 SVG (로봇 집게·협동로봇 공기계)
 const MET = 'fill="#C9CFD5" stroke="#2F3A44" stroke-width="2.6" stroke-linejoin="round"';
 const MET2 = 'fill="#959FA9" stroke="#2F3A44" stroke-width="2.6" stroke-linejoin="round"';
 const SVGS = {
   grip: `<rect x="24" y="3" width="16" height="11" rx="2" ${MET2}/><rect x="10" y="14" width="44" height="12" rx="3" ${MET}/><circle cx="32" cy="20" r="3" fill="#2F3A44"/><path d="M13 26H24V40L31 50L26 57L13 43Z" ${MET}/><path d="M51 26H40V40L33 50L38 57L51 43Z" ${MET}/><path d="M16 30h5M43 30h5" stroke="#F4F6F8" stroke-width="2" stroke-linecap="round"/>`,
-  foot: `<rect x="22" y="3" width="16" height="24" rx="3" ${MET}/><path d="M26 8v14" stroke="#F4F6F8" stroke-width="2.5" stroke-linecap="round"/><circle cx="30" cy="31" r="7" ${MET2}/><path d="M13 37H40Q53 37 57 47V51H8V43Q8 37 13 37Z" ${MET}/><rect x="6" y="50" width="53" height="7" rx="2.5" ${MET2}/><path d="M44 42v8M50 44v6" stroke="#2F3A44" stroke-width="2"/>`,
-  hand: `<rect x="24" y="49" width="16" height="11" rx="2" ${MET2}/><rect x="16" y="27" width="31" height="25" rx="5" ${MET}/><rect x="16.5" y="9" width="7" height="21" rx="3.5" ${MET}/><rect x="25" y="4" width="7" height="26" rx="3.5" ${MET}/><rect x="33.5" y="5" width="7" height="25" rx="3.5" ${MET}/><rect x="42" y="11" width="6.5" height="19" rx="3.2" ${MET}/><path d="M17 18h6M25.5 16h6M34 16h6M42.5 20h5.5" stroke="#2F3A44" stroke-width="2"/><rect x="3" y="31" width="17" height="8" rx="4" transform="rotate(-38 18 36)" ${MET}/><circle cx="31.5" cy="40" r="3" fill="#2F3A44"/>`,
+  // 협동로봇 공기계: 받침 + 관절 셋 + 팔 둘, 끝은 빈 플랜지 (집게 없음)
+  cobot: `<g transform="translate(-2.7 -8.5) scale(1.12)"><rect x="6" y="53" width="28" height="7" rx="2" ${MET2}/><rect x="12" y="42" width="16" height="12" rx="2" ${MET}/><path d="M20 37L37 16M37 16L51 31" stroke="#2F3A44" stroke-width="14" stroke-linecap="round"/><path d="M20 37L37 16M37 16L51 31" stroke="#C9CFD5" stroke-width="9" stroke-linecap="round"/><path d="M24 30L33 19" stroke="#F4F6F8" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="38" r="7.5" ${MET2}/><circle cx="37" cy="16" r="6.5" ${MET2}/><circle cx="51" cy="31" r="5.5" ${MET2}/><circle cx="20" cy="38" r="2.5" fill="#2F3A44"/><circle cx="37" cy="16" r="2.2" fill="#2F3A44"/><rect x="47" y="36" width="9" height="6" rx="1.5" ${MET}/></g>`,
 };
 const svgIcon = k => `<svg class="sv" viewBox="0 0 64 64" aria-hidden="true">${SVGS[k]}</svg>`;
 // 캔버스 효과(부품×2 글자)에 쓸 그림
@@ -495,9 +495,9 @@ const TILES = {
   wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
   auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
-  arm:   { icon: svgIcon('hand'), img: svgImg('hand'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
+  arm:   { icon: svgIcon('cobot'), img: svgImg('cobot'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
   tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
-  legs:  { icon: svgIcon('foot'), img: svgImg('foot'), name: '다리',     color: 'var(--t-legs)', lite: true },
+  legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
