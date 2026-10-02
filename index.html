@@ -23,6 +23,7 @@
   --scrim: rgba(12, 20, 27, 0.55);
   --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
+  --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-display: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
@@ -82,10 +83,13 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .face { font-size: 58px; line-height: 1; margin-top: auto; padding-top: 12px; height: 58px; display: flex; align-items: center; justify-content: center; transition: transform .25s ease-out; }
 .who { font-size: 12.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .who small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
-.pat { width: 90%; height: 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; flex: none; }
-.pat i { display: block; height: 100%; background: var(--good); transform-origin: left; }
-.pat i.warn { background: var(--warn); }
-.pat i.crit { background: var(--bad); }
+.pat { width: 94%; height: 14px; border-radius: 8px; background: var(--surface); border: 2px solid var(--ink); overflow: hidden; flex: none; box-sizing: border-box; }
+/* 기다림 바: 세룰리안블루 → 노랑 → 다홍 → 버건디 (얼굴 구간과 같은 경계) */
+.pat i { display: block; height: 100%; background: var(--p-1); transform-origin: left; transition: background-color .3s; }
+.pat i.p2 { background: var(--p-2); }
+.pat i.p3 { background: var(--p-3); }
+.pat i.p4 { background: var(--p-4); animation: urgent .6s ease-in-out infinite; }
+@keyframes urgent { 50% { filter: brightness(1.45); } }
 .client.gone .bubble { border-color: var(--bad); background: var(--surface); }
 .client.gone .bubble .say { color: var(--bad); font-size: 13px; }
 .client.gone .face { animation: stomp .5s ease-in-out infinite; }
@@ -94,7 +98,6 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .client.done .bubble .say { color: var(--good); font-size: 13px; }
 .client.done .stars { display: block; font-size: 20px; letter-spacing: 1px; color: var(--accent); margin-top: 2px; animation: pop .45s ease-out; }
 @keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-.client.slow .pat i { background: var(--steel); }
 .client.enter { animation: drop .35s ease-out; }
 .client.bump .face { transform: scale(1.18); }
 @keyframes drop { from { transform: translateY(-18px); opacity: .2; } to { transform: none; opacity: 1; } }
@@ -156,7 +159,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .lbl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .client.enter, .client.gone .face, .float, .banner, .tile.hint { animation: none; }
+  .client.enter, .client.gone .face, .float, .banner, .tile.hint, .pat i.p4 { animation: none; }
   .flyer { transition: none; }
 }
 </style>
@@ -681,7 +684,7 @@ function updateBars() {
     if (!c) return;
     const f = Math.max(0, c.t / c.max);
     const el = document.querySelector(`[data-pat="${i}"] i`);
-    if (el) { el.style.transform = `scaleX(${c.state === 'wait' ? f : 0})`; el.className = c.slow ? '' : f < 0.25 ? 'crit' : f < 0.5 ? 'warn' : ''; }
+    if (el) { el.style.transform = `scaleX(${c.state === 'wait' ? f : 0})`; el.className = 'p' + (bandOf(c) + 1); }
     const face = document.querySelector(`[data-face="${i}"]`);
     const want = faceOf(c);
     if (face && face.textContent !== want) face.textContent = want;
