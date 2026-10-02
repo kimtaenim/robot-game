@@ -190,7 +190,11 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .leave { position: fixed; z-index: 40; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .leave .lstars { font-size: 64px; line-height: 1; letter-spacing: 2px; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .45)); white-space: nowrap; }
 .leave .lstars span { color: rgba(255, 255, 255, .55); }
-.leave .lskull { font-size: 120px; line-height: 1; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .45)); }
+.leave .lrobot { font-size: 88px; line-height: 1; display: flex; align-items: center; gap: 4px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .45)); }
+.leave .lrobot b { font-family: var(--font-display); font-weight: 400; font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); }
+/* 완성 못 한 로봇: 검은 실루엣 */
+.leave .lrobot.shadow { filter: brightness(0) drop-shadow(0 0 2px rgba(255, 255, 255, .55)) drop-shadow(0 8px 16px rgba(0, 0, 0, .45)); opacity: .9; }
+.leave .lsad { font-size: 50px; line-height: 1; letter-spacing: 2px; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .4)); white-space: nowrap; }
 .leave .lword { font-family: var(--font-display); font-size: 30px; color: var(--accent); text-shadow: 0 2px 0 var(--ink), 0 0 12px rgba(0, 0, 0, .5); white-space: nowrap; }
 .leave.angry .lword { color: #FF8A80; }
 .puff { position: fixed; z-index: 41; pointer-events: none; border-radius: 50%; transform: translate(-50%, -50%) scale(.3); background: radial-gradient(circle, rgba(225, 230, 234, .95) 0%, rgba(170, 178, 186, .7) 45%, rgba(150, 160, 170, 0) 70%); animation: puff .8s ease-out forwards; }
@@ -898,16 +902,17 @@ async function orderIntro(c, i) {
   c.intro = false;
   if (S.slots[i] === c) renderClients();
 }
-// 떠나는 연출 (2초): 만족 → 별이 크게 뜨며 빵빠레, 캐시 소리와 함께 돈이 우수수 / 중간에 떠남 → 우는 얼굴 + "아 오" + 피식 연기
+// 떠나는 연출 (2초): 만족 → 별이 크게 뜨며 빵빠레, 캐시 소리와 함께 돈이 우수수 / 중간에 떠남 → 로봇 실루엣 + 눈물 얼굴 셋 + "아 오" + 피식 연기
 async function leaveShow(c, i, happy) {
   const src = document.querySelector(`[data-slot="${i}"]`);
   if (!src || JUICE <= 0) { (happy ? SFX.cash : SFX.leave)(); return; }
   const [x0, y0] = centerOf(src);
   const el = document.createElement('div');
   el.className = 'leave' + (happy ? ' happy' : ' angry');
+  const rob = `<div class="lrobot">${ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
-    ? `<div class="lstars">${'⭐'.repeat(c.stars)}<span>${'☆'.repeat(3 - c.stars)}</span></div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]}</div>`
-    : `<div class="lskull">😭</div><div class="lword">계약 취소</div>`;
+    ? `${rob}<div class="lstars">${'⭐'.repeat(c.stars)}<span>${'☆'.repeat(3 - c.stars)}</span></div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]}</div>`
+    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">😢😢😢</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
@@ -1445,7 +1450,7 @@ const HELP = `
     <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 주문서로 날아가 붙어요</span></div>
     <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 휴머노이드도 🤏 SI를 붙여야 납품돼요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
   </div>
-  <p>주문서 아래 바가 다 떨어지면 😭 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
+  <p>주문서 아래 바가 다 떨어지면 😢 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
   ${recipesHtml()}
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
