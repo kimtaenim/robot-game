@@ -54,7 +54,37 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .mute b.on { background: #2E9E4F; }
 .mute b.off { background: #C62828; }
 .masthead { display: flex; align-items: center; justify-content: center; }
-.title { margin: 0; min-width: 0; text-align: center; font-family: var(--font-title); font-weight: 400; font-size: 42px; line-height: 1; color: var(--gold); white-space: nowrap; letter-spacing: .02em; -webkit-text-stroke: 1.2px var(--gold-deep); text-shadow: 0 3px 0 var(--gold-deep), 0 6px 14px rgba(0, 0, 0, .35); }
+.title { margin: 0; display: flex; justify-content: center; align-items: center; gap: 4px; font-family: var(--font-title); font-weight: 400; line-height: 1; white-space: nowrap; letter-spacing: .5px; }
+/* 금박 글자: Bosses of Our World #title .main 그대로 (세로 그라데이션 + 진한 갈색 외곽선 + 아래 그림자) */
+.title .main {
+  font-size: clamp(30px, 10vw, 42px);
+  background: linear-gradient(180deg, #fff6c8 0%, #ffd75a 38%, #e0a21f 55%, #ffe58a 72%, #b8770f 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-stroke: 1px #5a3104;
+  filter: drop-shadow(0 2px 0 #3b1f02) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+}
+/* 달러 기호: Bosses #title .usd 그대로 (굵은 세리프 + 돈다발 초록 + 금 테두리, 살짝 크고 기울어 반짝) */
+.title .usd {
+  margin: 0 -2px;
+  font-family: Georgia, 'Times New Roman', serif; font-weight: 900;
+  font-size: clamp(36px, 12vw, 50px); line-height: 1;
+  background: linear-gradient(180deg, #d8ffb0 0%, #5fe05a 40%, #12902e 70%, #7cf06a 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-text-stroke: 1.2px #ffd75a;
+  filter: drop-shadow(0 2px 0 #0b3d14) drop-shadow(0 0 6px rgba(120, 255, 120, 0.55));
+  transform: translateY(-1px) rotate(-6deg);
+  animation: usd-bling 2.4s ease-in-out infinite;
+}
+@keyframes usd-bling {
+  0%, 70%, 100% { filter: drop-shadow(0 2px 0 #0b3d14) drop-shadow(0 0 6px rgba(120, 255, 120, 0.55)); }
+  80% { filter: drop-shadow(0 2px 0 #0b3d14) drop-shadow(0 0 14px rgba(200, 255, 140, 0.95)); }
+}
+/* 양쪽 보안관 별 + 밧줄 같은 짧은 선 */
+.title .star { font-family: Georgia, serif; font-size: clamp(20px, 6vw, 26px); color: #ffd75a; -webkit-text-stroke: 1px #5a3104; filter: drop-shadow(0 2px 0 #3b1f02); animation: star-twinkle 3s ease-in-out infinite; }
+.title .star:last-child { animation-delay: 1.5s; }
+.title .rule { width: 14px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, transparent, #e0a21f); }
+.title .rule.r { background: linear-gradient(270deg, transparent, #e0a21f); }
+@keyframes star-twinkle { 0%, 80%, 100% { transform: rotate(0) scale(1); } 90% { transform: rotate(36deg) scale(1.15); } }
 .tools { display: flex; gap: 6px; }
 .tool { background: rgba(255, 255, 255, 0.12); border: 0; color: var(--hud-ink); border-radius: 12px; width: 30px; height: 24px; font-size: 13px; padding: 0; flex: none; }
 .hud { display: flex; align-items: center; gap: 7px; background: var(--bg-deep); border: 1px solid var(--hud-line); border-radius: 12px; padding: 6px 7px; font-size: 13px; position: relative; }
@@ -67,7 +97,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .hud .left { display: none; }
 
 /* 주문표 */
-.rail { flex: none; height: 296px; padding-bottom: 6px; border-bottom: 6px solid; border-image: repeating-linear-gradient(-45deg, var(--gold) 0 10px, var(--frame) 10px 20px) 6; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rail { flex: none; height: 262px; padding-bottom: 6px; border-bottom: 6px solid; border-image: repeating-linear-gradient(-45deg, var(--gold) 0 10px, var(--frame) 10px 20px) 6; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 /* 세 클라이언트의 윗선(말풍선 꼭대기)과 아랫선(얼굴·이름·바)을 맞추고, 말풍선 크기만 달라짐 */
 .client { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; min-height: 0; padding-top: 2px; }
 .client.empty .door { flex: 1; width: 100%; border: 2px dashed var(--hud-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--hud-muted); font-size: 12px; }
@@ -77,11 +107,11 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .bubble .robot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; font-size: 26px; line-height: 1; max-width: 100%; }
 .bubble .robot small { font-family: var(--font-display); font-size: 12px; color: var(--steel); margin-left: 2px; text-align: center; word-break: keep-all; line-height: 1.15; }
 .bubble .robot b { font-family: var(--font-display); font-weight: 400; font-size: 15px; color: var(--ink); }
-.bubble .needs { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; position: relative; z-index: 1; }
-.need { position: relative; width: 23px; height: 23px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 2px dashed var(--line); box-sizing: border-box; }
-.need.got { border: 2px solid var(--good); background: var(--surface-2); }
-.need.got::after { content: '✓'; position: absolute; right: -4px; bottom: -6px; font-size: 11px; font-weight: 700; color: var(--good); }
-.face { font-size: 54px; line-height: 1; margin-top: auto; padding-top: 12px; height: 58px; display: flex; align-items: center; justify-content: center; transition: transform .25s ease-out; }
+.client .needs { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; margin-top: 11px; }
+.need { position: relative; width: 19px; height: 19px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 1.5px dashed var(--hud-muted); background: rgba(0, 0, 0, .18); box-sizing: border-box; }
+.need.got { border: 1.5px solid #5fe05a; background: rgba(95, 224, 90, .25); }
+.need.got::after { content: '✓'; position: absolute; right: -4px; bottom: -5px; font-size: 9px; font-weight: 700; color: #5fe05a; }
+.face { font-size: 48px; line-height: 1; margin-top: auto; padding-top: 4px; height: 50px; display: flex; align-items: center; justify-content: center; transition: transform .25s ease-out; }
 .who { font-size: 12.5px; font-weight: 700; color: var(--hud-ink); text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .who small { display: block; font-size: 10.5px; color: var(--hud-muted); font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .pat { width: 94%; height: 14px; border-radius: 8px; background: rgba(0, 0, 0, .35); border: 2px solid var(--frame); overflow: hidden; flex: none; box-sizing: border-box; }
@@ -163,14 +193,14 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .lbl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .client.enter, .client.gone .face, .float, .banner, .tile.hint, .pat i.p4 { animation: none; }
+  .client.enter, .client.gone .face, .float, .banner, .tile.hint, .pat i.p4, .title .usd, .title .star { animation: none; }
   .flyer { transition: none; }
 }
 </style>
 
 <div class="app" id="app">
   <header class="masthead">
-    <h1 class="title">Robot Rush</h1>
+    <h1 class="title" aria-label="Robot Rush"><span class="star">★</span><span class="rule"></span><span class="main">ROBOT RU</span><span class="usd">$</span><span class="main">H</span><span class="rule r"></span><span class="star">★</span></h1>
   </header>
   <div class="hud">
     <button class="mute" id="btnSound" type="button" aria-label="소리 켜기/끄기">sound <b class="on">O</b></button>
@@ -811,7 +841,7 @@ function renderClients() {
     const needs = c.state === 'wait' ? `<span class="needs">${c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('')}</span>` : '';
     const robot = c.state === 'wait' ? `<span class="robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</span>` : '';
     return `<div class="client ${c.state}${c.fresh ? ' enter' : ''}${c.slow ? ' slow' : ''}" data-slot="${i}">
-      <div class="bubble"><span class="say">${sayOf(c)}</span>${robot}${needs}</div>
+      <div class="bubble"><span class="say">${sayOf(c)}</span>${robot}</div>${needs}
       <div class="face" data-face="${i}">${faceOf(c)}</div>
       <div class="who">${c.order.icon} ${c.order.who}<small>${c.order.sec}</small></div>
       <div class="pat" data-pat="${i}"><i></i></div>
@@ -940,7 +970,7 @@ function layout() {
   rail.style.height = '';
   const railH = rail.getBoundingClientRect().height;
   const spare = innerHeight - el.getBoundingClientRect().top - 14 - full * ROWS / COLS;
-  if (spare < 0) rail.style.height = Math.max(236, railH + spare) + 'px';
+  if (spare < 0) rail.style.height = Math.max(222, railH + spare) + 'px';
   const room = innerHeight - el.getBoundingClientRect().top - 14;
   el.style.width = Math.min(full, room * COLS / ROWS) + 'px';
   const W = el.clientWidth, H = el.clientHeight;
@@ -1307,7 +1337,7 @@ function resume() {
   if (S.pendingStart) { S.pendingStart = false; startLevel(); }
 }
 const HELP = `
-  <h2>Robot Rush</h2>
+  <h2>ROBOT RU$H</h2>
   <div class="steps">
     <div class="step">💬 <span>클라이언트가 말풍선으로 로봇을 주문해요</span></div>
     <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 말풍선으로 날아가 붙어요</span></div>
