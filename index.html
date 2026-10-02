@@ -66,20 +66,22 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* 주문표 */
 .rail { flex: 1 1 0; min-height: 200px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.client { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; padding-top: 2px; }
+/* 세 클라이언트의 윗선(말풍선 꼭대기)과 아랫선(얼굴·이름·바)을 맞추고, 말풍선 크기만 달라짐 */
+.client { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; min-height: 0; padding-top: 2px; }
 .client.empty .door { flex: 1; width: 100%; border: 2px dashed var(--line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 12px; }
 .bubble { position: relative; width: 100%; box-sizing: border-box; background: var(--surface); border: 2px solid var(--ink); border-radius: 14px; padding: 6px 4px 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; box-shadow: 0 2px 0 var(--line); }
 .bubble::after { content: ''; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: translateX(-50%) rotate(45deg); }
 .bubble .say { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.25; word-break: keep-all; }
-.bubble .robot { display: flex; align-items: center; gap: 2px; font-size: 26px; line-height: 1; }
-.bubble .robot small { font-family: var(--font-display); font-size: 12px; color: var(--steel); margin-left: 2px; }
+.bubble .robot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; font-size: 26px; line-height: 1; max-width: 100%; }
+.bubble .robot small { font-family: var(--font-display); font-size: 12px; color: var(--steel); margin-left: 2px; text-align: center; word-break: keep-all; line-height: 1.15; }
+.bubble .robot b { font-family: var(--font-display); font-weight: 400; font-size: 15px; color: var(--ink); }
 .bubble .needs { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; position: relative; z-index: 1; }
 .need { position: relative; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 17px; border: 2px dashed var(--line); box-sizing: border-box; }
 .need.got { border: 2px solid var(--good); background: var(--surface-2); }
 .need.got::after { content: '✓'; position: absolute; right: -4px; bottom: -6px; font-size: 11px; font-weight: 700; color: var(--good); }
-.face { font-size: 58px; line-height: 1; margin-top: 8px; transition: transform .25s ease-out; }
-.who { font-size: 12.5px; font-weight: 700; text-align: center; line-height: 1.2; word-break: keep-all; }
-.who small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; }
+.face { font-size: 58px; line-height: 1; margin-top: auto; padding-top: 12px; height: 58px; display: flex; align-items: center; justify-content: center; transition: transform .25s ease-out; }
+.who { font-size: 12.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.who small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .pat { width: 90%; height: 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; flex: none; }
 .pat i { display: block; height: 100%; background: var(--good); transform-origin: left; }
 .pat i.warn { background: var(--warn); }
@@ -663,7 +665,7 @@ function renderClients() {
     if (!c) return `<div class="client empty"><div class="door">${S.spawned < levelTarget(S.lv) ? '다음 손님…' : ''}</div></div>`;
     const r = ROBOTS[c.order.want];
     const needs = c.state === 'wait' ? `<span class="needs">${c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('')}</span>` : '';
-    const robot = c.state === 'wait' ? `<span class="robot">${r.icon.repeat(c.order.n)}<small>${r.name}</small></span>` : '';
+    const robot = c.state === 'wait' ? `<span class="robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}<small>${r.name}</small></span>` : '';
     return `<div class="client ${c.state}${c.fresh ? ' enter' : ''}${c.slow ? ' slow' : ''}" data-slot="${i}">
       <div class="bubble"><span class="say">${sayOf(c)}</span>${robot}${needs}</div>
       <div class="face" data-face="${i}">${faceOf(c)}</div>
