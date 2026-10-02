@@ -48,10 +48,16 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .app { box-sizing: border-box; height: 100%; max-width: 480px; margin: 0 auto; padding-inline: 16px; padding-block: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
 
 /* 상단: 금색 웨스턴 제목 + 계기판 */
-.masthead { display: flex; align-items: center; gap: 10px; }
-.title { margin: 0; flex: 1; min-width: 0; font-family: var(--font-title); font-weight: 400; font-size: 40px; line-height: 1; color: var(--gold); white-space: nowrap; letter-spacing: .02em; -webkit-text-stroke: 1.2px var(--gold-deep); text-shadow: 0 3px 0 var(--gold-deep), 0 6px 14px rgba(0, 0, 0, .35); }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: -6px; }
+/* 소리 버튼: Bosses of Our World와 같은 모양 (sound O 초록 / sound X 빨강) */
+.mute { border: 0; background: rgba(255, 255, 255, 0.12); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .3px; line-height: 1; padding: 5px 7px 5px 9px; border-radius: 12px; }
+.mute b { display: inline-block; min-width: 18px; margin-left: 3px; padding: 2px 0; border-radius: 6px; text-align: center; color: #fff; }
+.mute b.on { background: #2E9E4F; }
+.mute b.off { background: #C62828; }
+.masthead { display: flex; align-items: center; justify-content: center; }
+.title { margin: 0; min-width: 0; text-align: center; font-family: var(--font-title); font-weight: 400; font-size: 42px; line-height: 1; color: var(--gold); white-space: nowrap; letter-spacing: .02em; -webkit-text-stroke: 1.2px var(--gold-deep); text-shadow: 0 3px 0 var(--gold-deep), 0 6px 14px rgba(0, 0, 0, .35); }
 .tools { display: flex; gap: 6px; }
-.tool { background: var(--bg-deep); border: 1px solid var(--hud-line); color: var(--hud-ink); border-radius: 10px; width: 36px; height: 36px; font-size: 16px; padding: 0; }
+.tool { background: rgba(255, 255, 255, 0.12); border: 0; color: var(--hud-ink); border-radius: 12px; width: 36px; height: 24px; font-size: 14px; padding: 0; }
 .hud { display: flex; align-items: center; gap: 10px; background: var(--bg-deep); border: 1px solid var(--hud-line); border-radius: 12px; padding: 7px 10px; font-size: 14px; position: relative; }
 .lv { font-family: var(--font-display); font-size: 16px; color: var(--gold); white-space: nowrap; }
 .hud .stat { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
@@ -164,12 +170,12 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 </style>
 
 <div class="app" id="app">
+  <div class="topbar">
+    <button class="mute" id="btnSound" type="button" aria-label="소리 켜기/끄기">sound <b class="on">O</b></button>
+    <button class="tool" id="btnPause" type="button" aria-label="일시정지와 도감">⏸</button>
+  </div>
   <header class="masthead">
     <h1 class="title">Robot Rush</h1>
-    <span class="tools">
-      <button class="tool" id="btnSound" type="button" aria-label="소리 켜고 끄기">🔊</button>
-      <button class="tool" id="btnPause" type="button" aria-label="일시정지와 도감">⏸</button>
-    </span>
   </header>
   <div class="hud">
     <span class="lv" id="lv">1단계</span>
@@ -613,7 +619,7 @@ const SFX = {
     [523, 659, 784, 1047, 1319].forEach(f => brass(f, t + 0.75, 0.9, 0.04));
   },
 };
-// ───────── 공장 배경음: 낮은 기계 웅웅 + 주기적으로 프레스 쿵·공기 치익 ─────────
+// ───────── 공장 배경음: 낮은 기계 웅웅 + 프레스 쿵·공기 치익 + 시계 똑딱 (누가 폭발 직전이면 두 배 빠르게) ─────────
 let hum = null;
 function ambient(dt, on) {
   if (!on || !S.sound) { if (hum && ac) hum.g.gain.setTargetAtTime(0, ac.currentTime, 0.2); return; }
@@ -623,11 +629,18 @@ function ambient(dt, on) {
     lp.type = 'lowpass'; lp.frequency.value = 180; g.gain.value = 0;
     [55, 55.6, 110.3].forEach(f => { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(); });
     lp.connect(g).connect(master);
-    hum = { g, press: 1.2, hiss: 4 };
+    hum = { g, press: 1.2, hiss: 4, tick: 0.5, tock: false };
   }
   hum.g.gain.setTargetAtTime(0.018, ac.currentTime, 0.3);
   const t = ac.currentTime;
   if ((hum.press -= dt) <= 0) { hum.press = 2.4; osc('sine', 75, t, 0.28, 0.06, 38); nz(t, 0.12, 0.03, 'lowpass', 400); nz(t + 0.32, 0.05, 0.015, 'bandpass', 1800, 4); }
+  if ((hum.tick -= dt) <= 0) {
+    const urgent = S.slots.some(c => c && c.state === 'wait' && c.t / c.max < 0.15);
+    hum.tick = urgent ? 0.5 : 1;
+    hum.tock = !hum.tock;
+    nz(t, 0.025, 0.06, 'highpass', 5000);
+    osc('sine', hum.tock ? 1250 : 1800, t, 0.04, urgent ? 0.06 : 0.04);
+  }
   if ((hum.hiss -= dt) <= 0) { hum.hiss = 6 + Math.random() * 5; nz(t, 0.6, 0.015, 'highpass', 3000); }
 }
 // ───────── 클라이언트: 3자리, 말풍선으로 주문 ─────────
@@ -1315,7 +1328,7 @@ $('sheet').addEventListener('click', e => {
   else if (act === 'begin') startLevel();
 });
 $('btnPause').addEventListener('click', () => { if ($('overlay').hidden && S.running) openSheet(summaryHtml(), true); });
-const syncSound = () => { $('btnSound').textContent = S.sound ? '🔊' : '🔇'; };
+const syncSound = () => { $('btnSound').innerHTML = `sound <b class="${S.sound ? 'on' : 'off'}">${S.sound ? 'O' : 'X'}</b>`; $('btnSound').setAttribute('aria-pressed', S.sound ? 'true' : 'false'); };
 $('btnSound').addEventListener('click', () => {
   S.sound = !S.sound; syncSound();
   try { localStorage.setItem('robotsi.sound', S.sound ? '1' : '0'); } catch (e) {}
