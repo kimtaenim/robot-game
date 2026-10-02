@@ -112,7 +112,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
 .tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; pointer-events: none; transform-origin: 50% 50%; }
 .tile .ic { font-size: 28px; line-height: 1; }
-.tile .nm { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-top: 3px; text-align: center; line-height: 1.1; word-break: keep-all; padding-inline: 2px; }
+.tile .nm { font-size: 11.5px; font-weight: 700; color: var(--ink); margin-bottom: 3px; text-align: center; line-height: 1.1; word-break: keep-all; padding-inline: 2px; }
 .tile.hum { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
 .tile.sel { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
 .tile.hint { animation: hint 1s ease-in-out infinite; }
@@ -773,7 +773,7 @@ function tileEl(t) {
     e = document.createElement('div');
     e.className = 'tile' + (TILES[t.type].special ? ' hum' : '');
     e.style.background = TILES[t.type].color;
-    e.innerHTML = `<span class="ic">${TILES[t.type].icon}</span><span class="nm">${TILES[t.type].name}</span>`;
+    e.innerHTML = `<span class="nm">${TILES[t.type].name}</span><span class="ic">${TILES[t.type].icon}</span>`;
     sizeTile(e);
     t.flash = 0;
     $('clip').appendChild(e);
