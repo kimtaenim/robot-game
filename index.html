@@ -75,7 +75,18 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ticket .ask .icons span { font-size: 46px; line-height: 1.05; position: relative; }
 .ticket .ask .icons span.done { opacity: .28; }
 .ticket .ask .icons.two span { font-size: 32px; }
-.ticket .ask .rc { font-size: 17px; letter-spacing: 1px; margin-top: 3px; white-space: nowrap; }
+.ticket .ask .rc { font-size: 15px; margin-top: 3px; text-align: center; line-height: 1.25; padding-inline: 2px; }
+.ticket.bulk { grid-column: 1 / -1; background: var(--gold-soft); border: 2px solid var(--accent); flex-direction: row; justify-content: space-around; align-items: center; gap: 10px; padding: 10px 12px; }
+.ticket.bulk::before { background: var(--accent); }
+.bulk .siren { font-family: var(--font-display); font-size: 20px; color: var(--ink); text-align: center; line-height: 1.2; }
+.bulk .siren small { display: block; font-family: var(--font-body); font-size: 12px; color: var(--muted); font-weight: 700; margin-top: 4px; }
+.bulk .count { font-family: var(--font-display); font-size: 44px; color: var(--steel); line-height: 1; text-align: center; }
+.bulk .count small { display: block; font-size: 30px; }
+.bulk .left { font-family: var(--font-mono); font-size: 13px; color: var(--muted); text-align: center; }
+.bulk .fact { font-size: 12px; color: var(--muted); line-height: 1.45; max-width: 16em; }
+.app.fever { background: var(--gold-soft); }
+.fever-tag { display: none; font-family: var(--font-display); color: var(--accent); font-size: 16px; text-shadow: 0 1px 0 var(--ink); }
+.app.fever .fever-tag { display: inline; }
 .ticket .ask .t { font-size: 12px; font-weight: 700; color: var(--steel); text-align: center; line-height: 1.2; padding-inline: 2px; }
 .ticket .ask .q { font-family: var(--font-display); font-size: 26px; color: var(--steel); line-height: 1; }
 .ticket .qty { position: absolute; top: -7px; right: -5px; background: var(--ink); color: var(--bg); border-radius: 9px; font-size: 11px; font-weight: 700; padding: 1px 6px; }
@@ -96,6 +107,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 0; height: 60px; display: flex; flex-direction: column; overflow: hidden; touch-action: none; box-shadow: 0 3px 0 var(--line); transition: transform .12s; }
 .card .hd { background: var(--card-head); font-size: 9.5px; font-weight: 700; padding: 2px 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card .ic { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; }
+.card .ic.multi { font-size: 17px; flex-wrap: wrap; gap: 0 1px; padding-inline: 2px; }
 .card.robot { border-color: var(--steel); }
 .card.robot .hd { background: var(--steel); color: var(--surface); }
 .card.sel { transform: translateY(-6px) rotate(-2deg); box-shadow: 0 0 0 3px var(--accent), 0 8px 0 var(--line); }
@@ -106,9 +118,9 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 @keyframes pop { 0% { transform: scale(.5) rotate(-8deg); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
 
 /* 덱 */
-.deck { flex: 1 1 0; min-height: 150px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; }
+.deck { flex: 1 1 0; min-height: 150px; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); gap: 8px; }
 .pile { flex: 1; min-width: 0; position: relative; border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; touch-action: none; box-shadow: 0 2px 0 var(--line), 0 4px 0 var(--card-head), 0 5px 0 var(--line); }
-.pile .ic { font-size: 38px; line-height: 1.1; }
+.pile .ic { font-size: 32px; line-height: 1.1; }
 .pile .nm { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .pile.robot { border-color: var(--steel); }
 .pile:active { transform: translateY(2px); }
@@ -163,7 +175,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 }
 </style>
 
-<div class="app">
+<div class="app" id="app">
   <header class="top">
     <span class="lv" id="lv">1단계</span>
     <span class="stat" aria-label="걸린 시간">⏱<b class="num" id="clock">0:00</b></span>
@@ -175,7 +187,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
       <button class="tool" id="btnPause" type="button" aria-label="일시정지">⏸</button>
     </span>
   </header>
-  <div class="subbar"><span class="num" aria-label="점수">💰 <b id="score">0</b></span><span class="par" id="par"></span><span class="combo" id="combo">🔥0</span><span class="meter"><i id="flowBar"></i></span></div>
+  <div class="subbar"><span class="num" aria-label="점수">💰 <b id="score">0</b></span><span class="par" id="par"></span><span class="combo" id="combo">🔥0</span><span class="fever-tag">FEVER ×2</span><span class="meter"><i id="flowBar"></i></span></div>
 
   <section class="rail" id="rail" aria-label="주문표"></section>
   <section class="table" id="table" aria-label="카드 테이블"></section>
@@ -185,93 +197,105 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
 
 <script>
-// ───────── 카드 15종: 부품·도구 7 + 완제품 2 + 조립 로봇 6. 아이콘은 임시 이모지 ─────────
-const ITEMS = {
-  wheel:   { kind: 'part',  icon: '🛞', name: '바퀴' },
-  lidar:   { kind: 'part',  icon: '🧭', name: '자율주행' },
-  tape:    { kind: 'part',  icon: '🚧', name: '바닥 공사' },
-  arm:     { kind: 'part',  icon: '🦾', name: '협동로봇 팔' },
-  torch:   { kind: 'part',  icon: '🔥', name: '용접 토치' },
-  pan:     { kind: 'part',  icon: '🍳', name: '조리 도구' },
-  gripper: { kind: 'part',  icon: '🤏', name: '그리퍼' },
-  quad:    { kind: 'robot', icon: '🐕', name: '4족보행' },
-  hum:     { kind: 'robot', icon: '🚶', name: '휴머노이드' },
-  amr:     { kind: 'robot', icon: '🚚', name: 'AMR' },
-  agv:     { kind: 'robot', icon: '🛤️', name: 'AGV' },
-  weld:    { kind: 'robot', icon: '🧑‍🏭', name: '용접 협동로봇' },
-  cook:    { kind: 'robot', icon: '🧑‍🍳', name: '조리 협동로봇' },
-  pick:    { kind: 'robot', icon: '🤖', name: '피킹로봇' },
-  mm:      { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
+// ───────── 부품 카드 11종: 본체·이동부·SI(도구·손·센서). 아이콘은 임시 이모지 ─────────
+const PARTS = {
+  wheel:    { icon: '🛞', name: '바퀴' },
+  auto:     { icon: '🧭', name: '자율주행' },
+  floor:    { icon: '🚧', name: '바닥 공사' },
+  arm:      { icon: '🦾', name: '협동로봇 팔' },
+  quad:     { icon: '🐕', name: '4족 본체' },
+  humanoid: { icon: '🧍', name: '휴머노이드' },
+  torch:    { icon: '🔥', name: '용접 토치' },
+  pan:      { icon: '🍳', name: '조리 도구' },
+  gripper:  { icon: '🤏', name: '그리퍼' },
+  hand:     { icon: '🖐️', name: '로봇 손' },
+  sensor:   { icon: '📷', name: '점검 센서' },
 };
-const DECK = ['wheel', 'lidar', 'tape', 'arm', 'torch', 'pan', 'gripper', 'quad', 'hum'];
-// 납품하는 쪽 입장의 카드: 바퀴 + 자율주행(센서·SW) = AMR / 바퀴 + 바닥 공사(마그넷·QR 경로 시공) = AGV
-// 협동로봇 팔은 도구를 붙여야(SI) 일을 함: 용접(④ 조선), 조리(⑱ 급식), 그리퍼(집기)
-// AMR 위에 협동로봇을 얹은 모바일 매니퓰레이터(⑧ LG엔솔)
-const RECIPES = [
-  ['wheel', 'lidar', 'amr'], ['wheel', 'tape', 'agv'],
-  ['arm', 'torch', 'weld'], ['arm', 'pan', 'cook'], ['arm', 'gripper', 'pick'],
-  ['amr', 'pick', 'mm'],
-];
-const recipe = (a, b) => (RECIPES.find(([x, y]) => (x === a && y === b) || (x === b && y === a)) || [])[2] || null;
-const recipeOf = r => RECIPES.find(x => x[2] === r);
-const baseParts = r => { const x = recipeOf(r); return x ? [...baseParts(x[0]), ...baseParts(x[1])] : [r]; };
-const UNLOCKS = [['amr', 'agv'], ['weld', 'cook'], ['pick', 'mm'], ['quad'], ['hum']];
+const DECK = ['wheel', 'auto', 'floor', 'arm', 'quad', 'humanoid', 'torch', 'pan', 'gripper', 'hand', 'sensor'];
+
+// ───────── 납품 로봇 9종 = 부품을 쌓아 올린 것 (순서 상관없음) ─────────
+// 바퀴 + 자율주행(센서·SW) = AMR / 바퀴 + 바닥 공사(마그넷·QR 경로) = AGV
+// 협동로봇 팔은 도구를 붙여야 일함(SI) / AMR 위에 협동로봇 = 모바일 매니퓰레이터(⑧ LG엔솔)
+// 4족은 점검 센서를 얹어 순찰(⑦ 포스코, ㉖ 경찰) / 휴머노이드는 손을 붙여 작업 / AMR 하체 휴머노이드(② 티로보틱스)
+const ROBOTS = {
+  agv:  { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
+  amr:  { icon: '🚚', name: 'AMR',               parts: ['wheel', 'auto'] },
+  weld: { icon: '🧑‍🏭', name: '용접 협동로봇',      parts: ['arm', 'torch'] },
+  cook: { icon: '🧑‍🍳', name: '조리 협동로봇',      parts: ['arm', 'pan'] },
+  pick: { icon: '📥', name: '피킹로봇',           parts: ['arm', 'gripper'] },
+  mm:   { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'gripper'] },
+  quad: { icon: '🐕‍🦺', name: '점검 4족로봇',      parts: ['quad', 'sensor'] },
+  hum:  { icon: '🚶', name: '휴머노이드',         parts: ['humanoid', 'hand'] },
+  humw: { icon: '🤖', name: '바퀴형 휴머노이드',   parts: ['wheel', 'auto', 'humanoid', 'hand'] },
+};
+const sameSet = (a, b) => a.length === b.length && a.every(x => b.includes(x));
+const robotOf = stack => Object.keys(ROBOTS).find(r => sameSet(ROBOTS[r].parts, stack)) || null;
+const UNLOCKS = [['amr', 'agv'], ['weld', 'cook', 'pick'], ['mm'], ['quad'], ['hum', 'humw']];
 const unlockedAt = lv => UNLOCKS.slice(0, Math.max(0, Math.min(lv, UNLOCKS.length))).flat();
 
 // ───────── 현장: 자료가 로봇 종류를 직접 밝힌 곳만 (로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
 const ORDERS = [
-  { id: 'port',     wants: ['agv', 'agv'], icon: '⚓', who: '부산항',      sec: '⑮ 항만',        fact: '국내 첫 완전 자동화 부두에서 AGV가 시스템 지시대로 컨테이너를 옮겨요.' },
-  { id: 'kai',      wants: ['agv'],        icon: '🛩️', who: 'KAI',         sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
-  { id: 'stl',      wants: ['amr', 'amr'], icon: '📦', who: '에스티엘',    sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
-  { id: 'transys',  wants: ['amr'],        icon: '🏭', who: '현대트랜시스', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요. AGV는 바닥 경로가 필요해요.' },
-  { id: 'ford',     wants: ['amr'],        icon: '🔌', who: '포드',        sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
-  { id: 'ecopro',   wants: ['amr'],        icon: '🧪', who: '에코프로',    sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
-  { id: 'lg',       wants: ['mm'],         icon: '🔋', who: 'LG엔솔',      sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
-  { id: 'mipo',     wants: ['weld', 'weld'], icon: '🚢', who: 'HD현대미포', sec: '④ 조선',     fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
-  { id: 'gwangjin', wants: ['pick'],       icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
-  { id: 'polytech', wants: ['pick'],       icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
-  { id: 'busanEdu', wants: ['cook'],       icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
-  { id: 'posco',    wants: ['quad'],       icon: '🌋', who: '포스코',      sec: '⑦ 철강',        fact: '계단·배관이 많은 고로에서 스팟이 하루 12번 가스 누설을 점검해요.' },
-  { id: 'police',   wants: ['quad', 'quad'], icon: '🚓', who: '경찰청',    sec: '㉖ 소방·경찰',   fact: '사족보행 로봇 6대가 폭발물 현장에 먼저 들어가 영상을 보내요.' },
-  { id: 'army',     wants: ['quad'],       icon: '🎖️', who: '방사청',      sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
-  { id: 'fire',     wants: ['quad'],       icon: '🚒', who: '소방청',      sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
-  { id: 'hyundai',  wants: ['hum'],        icon: '🚙', who: '현대차',      sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
-  { id: 'bmw',      wants: ['hum', 'hum'], icon: '🇺🇸', who: 'BMW',        sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
-  { id: 'cj',       wants: ['hum', 'hum'], icon: '🧴', who: 'CJ대한통운',  sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
-  { id: 'catl',     wants: ['hum'],        icon: '⚡', who: 'CATL',        sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
-  { id: 'samsung',  wants: ['amr', 'hum'], icon: '💾', who: '삼성전자',    sec: '⑥ 반도체 공장', fact: '디지털 트윈 시나리오에서 AMR이 공구를 나르고 휴머노이드가 설비를 점검해요.' },
-  { id: 'lotte',    wants: ['amr', 'hum'], icon: '🚛', who: '롯데글로벌로지스', sec: '⑫ 물류센터', fact: '2022년 AMR에서 시작해 2026년 휴머노이드까지 자동화를 넓혔어요.' },
+  { id: 'port',     wants: ['agv', 'agv'],   icon: '⚓', who: '부산항',      sec: '⑮ 항만',        fact: '국내 첫 완전 자동화 부두에서 AGV가 시스템 지시대로 컨테이너를 옮겨요.' },
+  { id: 'kai',      wants: ['agv'],          icon: '🛩️', who: 'KAI',         sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
+  { id: 'stl',      wants: ['amr', 'amr'],   icon: '💄', who: '에스티엘',    sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
+  { id: 'transys',  wants: ['amr'],          icon: '🏭', who: '현대트랜시스', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요. AGV는 바닥 경로가 필요해요.' },
+  { id: 'ford',     wants: ['amr'],          icon: '🔌', who: '포드',        sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
+  { id: 'ecopro',   wants: ['amr'],          icon: '🧪', who: '에코프로',    sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
+  { id: 'mipo',     wants: ['weld', 'weld'], icon: '🚢', who: 'HD현대미포',  sec: '④ 조선',        fact: '레인보우 협동로봇이 누적 55대예요. 용접공을 구하지 못해 일을 못 받는 현장이에요.' },
+  { id: 'busanEdu', wants: ['cook'],         icon: '🍱', who: '부산교육청',  sec: '⑱ 학교 급식',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
+  { id: 'gwangjin', wants: ['pick'],         icon: '⚙️', who: '광진',        sec: '③ 제조 SI',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
+  { id: 'polytech', wants: ['pick'],         icon: '🎓', who: '폴리텍',      sec: '① 교육용 로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
+  { id: 'lg',       wants: ['mm'],           icon: '🔋', who: 'LG엔솔',      sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
+  { id: 'posco',    wants: ['quad'],         icon: '🌋', who: '포스코',      sec: '⑦ 철강',        fact: '스팟이 고로를 순찰하며 누수·발열 징후를 감지하고, 하루 12번 배관 누설을 점검해요.' },
+  { id: 'police',   wants: ['quad', 'quad'], icon: '🚓', who: '경찰청',      sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
+  { id: 'army',     wants: ['quad'],         icon: '🎖️', who: '방사청',      sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
+  { id: 'fire',     wants: ['quad'],         icon: '🚒', who: '소방청',      sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
+  { id: 'hyundai',  wants: ['hum'],          icon: '🚙', who: '현대차',      sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
+  { id: 'bmw',      wants: ['hum', 'hum'],   icon: '🇺🇸', who: 'BMW',        sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
+  { id: 'cj',       wants: ['hum', 'hum'],   icon: '🧴', who: 'CJ대한통운',  sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
+  { id: 'catl',     wants: ['hum'],          icon: '⚡', who: 'CATL',        sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
+  { id: 'tro',      wants: ['humw'],         icon: '🛠️', who: 'TR-Works',    sec: '② AMR',         fact: '티로보틱스가 AMR을 하체로 쓴 산업용 휴머노이드 TR-Works를 공개해 제조라인 투입을 겨냥해요.' },
+  { id: 'samsung',  wants: ['amr', 'hum'],   icon: '💾', who: '삼성전자',    sec: '⑥ 반도체 공장', fact: '디지털 트윈 시나리오에서 AMR이 공구를 나르고 휴머노이드가 설비를 점검해요.' },
 ];
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
+// 대량 수주: 자료 속 실제 대수
+const BULKS = [
+  { who: '에스티엘', icon: '💄', robot: 'amr',  n: 12, sec: 18, minLv: 2, fact: '오더피킹 AMR 12대를 먼저 넣어 검증했어요 (②)' },
+  { who: '부산교육청', icon: '🍱', robot: 'cook', n: 5,  sec: 14, minLv: 2, fact: '5개교에 조리로봇 설치 (⑱)' },
+  { who: '경찰청',   icon: '🚓', robot: 'quad', n: 6,  sec: 15, minLv: 4, fact: '사족보행 로봇 6대 도입 방침 (㉖)' },
+  { who: '인천공항', icon: '✈️', robot: 'amr',  n: 10, sec: 16, minLv: 3, fact: '1·2터미널에 셀프체크인 로봇을 5대씩, 10대 배치 (⑯)' },
+];
 const secKey = o => o.sec.split(' ')[0];
 const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
 // ───────── 템포 ─────────
-const COMBO_SEC = 5, SPOTS = 4, RAIL = 4, FAST_SEC = 7;
-const levelTarget = lv => Math.min(16, 6 + lv);                 // 이 단계에서 쳐낼 주문 수
-const levelGap = lv => Math.max(1.4, 3.2 - (lv - 1) * 0.22);   // 주문이 떨어지는 간격
-const levelPar = lv => { const n = levelTarget(lv); return [n * 4.2, n * 6.5]; }; // ⭐⭐⭐ / ⭐⭐ 기준 초
+const COMBO_SEC = 5, SPOTS = 4, RAIL = 4, FAST_SEC = 8, FEVER_AT = 5, FEVER_SEC = 8;
+const levelTarget = lv => Math.min(16, 6 + lv);
+const levelGap = lv => Math.max(1.6, 3.4 - (lv - 1) * 0.22);
+const levelPar = lv => { const n = levelTarget(lv); return [n * 5, n * 7.5]; };
 
 // ───────── 상태 ─────────
 const S = {
   lv: 1, running: false, paused: false, score: 0, combo: 0, comboT: 0, best: 0, bestScore: 0,
-  table: Array(SPOTS).fill(null), sel: null, tickets: [], spawned: 0, done: 0, spawnT: 0,
-  elapsed: 0, clock: 0, served: [], runServed: [], dex: new Set(), last: 0, sound: true, intro: [],
+  table: Array.from({ length: SPOTS }, () => []), tickets: [], spawned: 0, done: 0, spawnT: 0,
+  elapsed: 0, clock: 0, runServed: [], dex: new Set(), last: 0, sound: true, intro: [],
+  fever: 0, bulk: null, bulkCD: 25,
 };
 try {
-  JSON.parse(localStorage.getItem('robotsi.dex5') || '[]').forEach(id => O[id] && S.dex.add(id));
+  JSON.parse(localStorage.getItem('robotsi.dex6') || '[]').forEach(id => O[id] && S.dex.add(id));
   S.sound = localStorage.getItem('robotsi.sound') !== '0';
   S.bestScore = +localStorage.getItem('robotsi.best') || 0;
 } catch (e) {}
 const save = () => { try {
-  localStorage.setItem('robotsi.dex5', JSON.stringify([...S.dex]));
+  localStorage.setItem('robotsi.dex6', JSON.stringify([...S.dex]));
   localStorage.setItem('robotsi.best', String(S.bestScore));
 } catch (e) {} };
 const $ = id => document.getElementById(id);
 const nudge = el => { if (!el) return; el.classList.remove('nope', 'shake'); void el.offsetWidth; el.classList.add(el.classList.contains('ticket') ? 'shake' : 'nope'); };
 const fmt = s => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const partsIcons = r => ROBOTS[r].parts.map(p => PARTS[p].icon).join('');
 
 // ───────── 효과음 ─────────
 let ac = null;
@@ -287,13 +311,14 @@ function tone(freq, dur, type, delay, vol) {
   } catch (e) {}
 }
 const SFX = {
-  card:  () => tone(700, 0.05, 'triangle', 0, 0.08),
-  pick:  () => tone(520, 0.05, 'triangle', 0, 0.07),
-  merge: () => { tone(523, 0.07, 'square', 0, 0.06); tone(784, 0.12, 'square', 0.06, 0.06); },
+  card:  n => tone(560 + n * 110, 0.06, 'triangle', 0, 0.08),
+  built: () => { tone(523, 0.07, 'square', 0, 0.06); tone(784, 0.12, 'square', 0.06, 0.06); },
   half:  () => tone(880, 0.1, 'triangle', 0, 0.1),
   done:  n => [523, 659, 784, 1047, 1319].slice(0, 2 + Math.min(3, n)).forEach((f, i) => tone(f * (1 + Math.min(n, 10) * 0.03), 0.13, 'triangle', i * 0.05, 0.12)),
   nope:  () => tone(150, 0.14, 'sawtooth', 0, 0.06),
+  back:  () => tone(400, 0.06, 'sine', 0, 0.06),
   ticket: () => tone(1200, 0.04, 'sine', 0, 0.05),
+  siren: () => [880, 660, 880, 660].forEach((f, i) => tone(f, 0.12, 'square', i * 0.13, 0.05)),
   clear: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.18, 'triangle', i * 0.07, 0.11)),
 };
 
@@ -316,51 +341,93 @@ function addTicket() {
   SFX.ticket();
 }
 function spawnTick(dt) {
-  if (S.spawned >= levelTarget(S.lv) || S.tickets.length >= RAIL) return;
-  S.spawnT -= dt;
+  if (S.bulk || S.spawned >= levelTarget(S.lv) || S.tickets.length >= RAIL) return;
+  S.spawnT -= dt * (S.fever > 0 ? 1.6 : 1);
   if (S.spawnT <= 0 || !S.tickets.length) {
     addTicket(); renderRail();
     S.spawnT = levelGap(S.lv) * (0.8 + Math.random() * 0.4);
   }
 }
+// 지금 만들어야 하는 로봇들 (대량 수주 중이면 그 로봇만)
+const wantedRobots = () => S.bulk ? [S.bulk.robot] : [...new Set(S.tickets.flatMap(t => t.left))];
+
+// ───────── 대량 수주 이벤트 ─────────
+function bulkTick(dt) {
+  if (S.bulk) {
+    S.bulk.t -= dt;
+    if (S.bulk.t <= 0) endBulk();
+    return;
+  }
+  if (S.lv < 2 || S.done >= levelTarget(S.lv) - 1) return;
+  if ((S.bulkCD -= dt) > 0) return;
+  const ok = new Set(unlocked());
+  const pool = BULKS.filter(b => b.minLv <= S.lv && ok.has(b.robot));
+  if (!pool.length) return;
+  const b = pool[Math.floor(Math.random() * pool.length)];
+  S.bulk = { ...b, got: 0, t: b.sec };
+  SFX.siren();
+  banner(`🚨 대량 수주! ${b.who} ${ROBOTS[b.robot].name} ${b.n}대`);
+  renderRail();
+}
+function endBulk() {
+  const b = S.bulk;
+  S.bulk = null;
+  S.bulkCD = 30 + Math.random() * 15;
+  const full = b.got >= b.n;
+  const bonus = b.got * 120 + (full ? 600 : 0);
+  S.score += bonus;
+  if (full) { SFX.clear(); banner(`🎉 ${b.who} ${b.n}대 완납! +${bonus}`); }
+  else if (b.got) banner(`${b.who} ${b.got}/${b.n}대 +${bonus}`);
+  S.spawnT = 0;
+  renderRail(); renderHud();
+}
 
 // ───────── 렌더링 ─────────
-const selRobot = () => S.sel !== null && S.table[S.sel] && ITEMS[S.table[S.sel]].kind === 'robot';
-// 주문표: 완성 로봇 그림 + 이름 + 필요한 카드(오버쿡 주문표처럼 한눈에)
-function askHtml(t) {
+function ticketHtml(t, i) {
   const o = t.order, kinds = [...new Set(o.wants)];
   const left = t.left.slice();
-  const icons = o.wants.map(w => { const k = left.indexOf(w); if (k >= 0) { left.splice(k, 1); return `<span>${ITEMS[w].icon}</span>`; } return `<span class="done">${ITEMS[w].icon}</span>`; }).join('');
-  const recipes = kinds.map(w => { const r = recipeOf(w); return r ? `${ITEMS[r[0]].icon}+${ITEMS[r[1]].icon}` : ''; }).filter(Boolean).join(' ');
-  return `<span class="icons${o.wants.length > 1 ? ' two' : ''}">${icons}</span><span class="t">${kinds.map(w => ITEMS[w].name).join(' + ')}</span>${recipes ? `<span class="rc">${recipes}</span>` : ''}`;
+  const icons = o.wants.map(w => { const k = left.indexOf(w); if (k >= 0) { left.splice(k, 1); return `<span>${ROBOTS[w].icon}</span>`; } return `<span class="done">${ROBOTS[w].icon}</span>`; }).join('');
+  const qty = o.wants.length > 1 ? `<span class="qty">${o.wants.length - t.left.length}/${o.wants.length}</span>` : '';
+  return `<button class="ticket${t.fresh ? ' enter' : ''}" type="button" data-ticket="${i}" aria-label="${o.who} 주문">
+    ${qty}<span class="site">${o.icon}</span><span class="who">${o.who}</span>
+    <span class="ask"><span class="icons${o.wants.length > 1 ? ' two' : ''}">${icons}</span>
+      <span class="t">${kinds.map(w => ROBOTS[w].name).join(' + ')}</span>
+      <span class="rc">${kinds.map(partsIcons).join(' ')}</span></span>
+    <span class="fast" data-fast="${i}"></span>`;
 }
 function renderRail() {
+  if (S.bulk) {
+    const b = S.bulk, r = ROBOTS[b.robot];
+    $('rail').innerHTML = `<div class="ticket bulk enter" data-ticket="bulk">
+      <div class="siren">🚨 대량 수주<br>${b.icon} ${b.who}<small>${b.fact}</small></div>
+      <div class="count">${r.icon}<small>${b.got}/${b.n}</small></div>
+      <div><div class="rc" style="font-size:22px;text-align:center">${partsIcons(b.robot)}</div><div class="left" id="bulkLeft">${Math.ceil(b.t)}초</div></div>
+    </div>`;
+    return;
+  }
   const rest = levelTarget(S.lv) - S.spawned;
   $('rail').innerHTML = Array.from({ length: RAIL }, (_, i) => {
     const t = S.tickets[i];
     const more = i === RAIL - 1 && rest > 0 ? `<span class="more">+${rest}</span>` : '';
     if (!t) return `<div class="ticket slot">${more}</div>`;
-    const qty = t.order.wants.length > 1 ? `<span class="qty">${t.order.wants.length - t.left.length}/${t.order.wants.length}</span>` : '';
-    return `<button class="ticket${t.fresh ? ' enter' : ''}${selRobot() ? ' target' : ''}" type="button" data-ticket="${i}" aria-label="${t.order.who} 주문">
-      ${qty}<span class="site">${t.order.icon}</span><span class="who">${t.order.who}</span>
-      <span class="ask">${askHtml(t)}</span><span class="fast" data-fast="${i}"></span>${more}</button>`;
+    return ticketHtml(t, i) + more + '</button>';
   }).join('');
   S.tickets.forEach(t => (t.fresh = false));
 }
 function renderTable(popAt) {
-  $('table').innerHTML = S.table.map((id, i) => {
-    if (!id) return `<button class="spot" type="button" data-spot="${i}" aria-label="빈 자리"></button>`;
-    const it = ITEMS[id];
-    return `<button class="card ${it.kind}${S.sel === i ? ' sel' : ''}${popAt === i ? ' pop' : ''}" type="button" data-spot="${i}" aria-label="${it.name}"><span class="hd">${it.name}</span><span class="ic">${it.icon}</span></button>`;
+  $('table').innerHTML = S.table.map((st, i) => {
+    if (!st.length) return `<button class="spot" type="button" data-spot="${i}" aria-label="빈 조립대"></button>`;
+    const r = robotOf(st);
+    const body = r ? `<span class="ic">${ROBOTS[r].icon}</span>` : `<span class="ic multi">${st.map(p => PARTS[p].icon).join('')}</span>`;
+    return `<button class="card${r ? ' robot' : ''}${popAt === i ? ' pop' : ''}" type="button" data-spot="${i}" aria-label="${r ? ROBOTS[r].name : '조립 중'}"><span class="hd">${r ? ROBOTS[r].name : '조립 중'}</span>${body}</button>`;
   }).join('');
-  document.querySelectorAll('.ticket[data-ticket]').forEach(el => el.classList.toggle('target', selRobot()));
 }
 function renderDeck() {
-  const ok = new Set(unlocked().flatMap(baseParts));
-  const before = new Set(unlockedAt(S.lv - 1).flatMap(baseParts));
+  const ok = new Set(unlocked().flatMap(r => ROBOTS[r].parts));
+  const before = new Set(unlockedAt(S.lv - 1).flatMap(r => ROBOTS[r].parts));
   $('deck').innerHTML = DECK.map(id => `
-    <button class="pile ${ITEMS[id].kind}${ok.has(id) ? '' : ' lock'}${S.lv > 1 && ok.has(id) && !before.has(id) ? ' fresh' : ''}" type="button" data-pile="${id}" aria-label="${ITEMS[id].name} 카드 뽑기">
-      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span></button>`).join('');
+    <button class="pile${ok.has(id) ? '' : ' lock'}${S.lv > 1 && ok.has(id) && !before.has(id) ? ' fresh' : ''}" type="button" data-pile="${id}" aria-label="${PARTS[id].name}">
+      <span class="ic">${PARTS[id].icon}</span><span class="nm">${PARTS[id].name}</span></button>`).join('');
 }
 function renderHud() {
   const n = levelTarget(S.lv), [p3, p2] = levelPar(S.lv);
@@ -373,7 +440,9 @@ function renderHud() {
   $('lv').textContent = `${S.lv}단계`;
   $('combo').textContent = `🔥${S.combo}`;
   $('combo').classList.toggle('hot', S.combo >= 3);
-  $('flowBar').style.width = (S.combo ? S.comboT / COMBO_SEC * 100 : 0).toFixed(1) + '%';
+  $('flowBar').style.width = (S.fever > 0 ? S.fever / FEVER_SEC * 100 : S.combo ? S.comboT / COMBO_SEC * 100 : 0).toFixed(1) + '%';
+  $('app').classList.toggle('fever', S.fever > 0);
+  if (S.bulk) { const el = $('bulkLeft'); if (el) el.textContent = `${Math.ceil(S.bulk.t)}초`; }
   S.tickets.forEach((tk, i) => {
     const el = document.querySelector(`[data-fast="${i}"]`);
     if (el) el.style.transform = `scaleX(${Math.max(0, 1 - (S.clock - tk.born) / FAST_SEC)})`;
@@ -408,115 +477,81 @@ function banner(text, delay) {
   }, delay || 0);
 }
 
-// ───────── 카드 동작 ─────────
-const firstEmpty = () => S.table.findIndex(x => !x);
-// 주문에 필요한 로봇과, 그 로봇을 만드는 중간 단계까지
-const neededRobots = () => {
-  const need = new Set();
-  const add = r => { need.add(r); const rc = recipeOf(r); if (rc) { add(rc[0]); add(rc[1]); } };
-  S.tickets.forEach(t => t.left.forEach(add));
-  return need;
-};
-const ticketFor = id => S.tickets.findIndex(t => t.left.includes(id));
-
+// ───────── 조립: 부품 카드를 조립대 위에 쌓기 ─────────
+// 이 스택에 이 부품을 얹으면 아직 누군가 원하는 로봇이 될 수 있나
+const fitsWanted = (stack, p) => !stack.includes(p) && wantedRobots().some(r => [...stack, p].every(x => ROBOTS[r].parts.includes(x)));
+function addPart(p, at) {
+  let i = at;
+  if (i === undefined) {
+    // 가장 많이 쌓인(완성에 가까운) 맞는 스택 → 빈 조립대
+    let bestLen = -1;
+    S.table.forEach((st, k) => { if (st.length && fitsWanted(st, p) && st.length > bestLen) { bestLen = st.length; i = k; } });
+    if (i === undefined) i = S.table.findIndex(st => !st.length);
+    if (i < 0) { SFX.nope(); nudge($('table')); return; }
+  } else if (S.table[i].includes(p)) { SFX.nope(); nudge(document.querySelector(`[data-spot="${i}"]`)); return; }
+  fly(document.querySelector(`[data-pile="${p}"]`), document.querySelector(`[data-spot="${i}"]`), PARTS[p].icon);
+  S.table[i] = [...S.table[i], p];
+  const r = robotOf(S.table[i]);
+  if (r) SFX.built(); else SFX.card(S.table[i].length);
+  renderTable(i);
+  if (r) tryShip(i);
+  else if (!wantedRobots().some(w => S.table[i].every(x => ROBOTS[w].parts.includes(x)))) document.querySelector(`[data-spot="${i}"]`)?.classList.add('idle');
+}
 // 완성된 로봇은 찾는 주문표로 저절로 날아감
-function autoShip(spot) {
-  const id = S.table[spot];
-  if (!id || ITEMS[id].kind !== 'robot') return false;
-  const ti = ticketFor(id);
-  if (ti < 0) return false;
-  fly(document.querySelector(`[data-spot="${spot}"]`), document.querySelector(`[data-ticket="${ti}"]`), ITEMS[id].icon);
-  deliver({ spot }, ti);
-  return true;
-}
-function mergeInto(target, incoming, from) {
-  const r = recipe(S.table[target], incoming);
+function tryShip(i) {
+  const r = robotOf(S.table[i]);
   if (!r) return false;
-  if (from !== undefined) S.table[from] = null;
-  S.table[target] = r; S.sel = null;
-  SFX.merge(); renderTable(target);
-  if (autoShip(target)) return true;
-  const need = neededRobots();
-  // 다음 조합 짝이 테이블에 있으면 이어서 조립 (예: 피킹로봇 → AMR 위로)
-  const k = S.table.findIndex((x, j) => x && j !== target && need.has(recipe(x, r)));
-  if (k >= 0) setTimeout(() => { if (S.table[target] === r && S.table[k]) mergeInto(k, r, target); }, 200);
-  else if (!need.has(r)) document.querySelector(`[data-spot="${target}"]`)?.classList.add('idle');
+  if (S.bulk) {
+    if (S.bulk.robot !== r) return false;
+    fly(document.querySelector(`[data-spot="${i}"]`), document.querySelector('[data-ticket="bulk"]'), ROBOTS[r].icon);
+    S.table[i] = [];
+    S.bulk.got++;
+    S.score += Math.round(60 * (S.fever > 0 ? 2 : 1));
+    SFX.done(Math.min(4, S.bulk.got));
+    renderTable(); renderRail();
+    floatText(document.querySelector('[data-ticket="bulk"]'), `${S.bulk.got}/${S.bulk.n}`, true);
+    if (S.bulk.got >= S.bulk.n) endBulk();
+    renderHud();
+    return true;
+  }
+  const ti = S.tickets.findIndex(t => t.left.includes(r));
+  if (ti < 0) return false;
+  fly(document.querySelector(`[data-spot="${i}"]`), document.querySelector(`[data-ticket="${ti}"]`), ROBOTS[r].icon);
+  deliver(i, ti);
   return true;
 }
-function place(id, at) {
-  const i = at ?? firstEmpty();
-  if (i < 0 || S.table[i]) { SFX.nope(); nudge($('table')); return false; }
-  S.table[i] = id; S.sel = null; SFX.card(); renderTable(i);
-  return true;
-}
-// 덱 누르기: 고른 카드와 조합 → 필요한 완제품이면 바로 납품 → 필요한 로봇이 되는 짝과 조합 → 빈 자리
-function drawCard(id, at) {
-  if (at !== undefined) {
-    if (!S.table[at]) { place(id, at); autoShip(at); return; }
-    if (!mergeInto(at, id)) { SFX.nope(); nudge(document.querySelector(`[data-spot="${at}"]`)); }
-    return;
-  }
-  if (S.sel !== null && S.table[S.sel] && mergeInto(S.sel, id)) return;
-  const need = neededRobots();
-  if (ITEMS[id].kind === 'robot' && need.has(id)) {
-    const ti = ticketFor(id);
-    fly(document.querySelector(`[data-pile="${id}"]`), document.querySelector(`[data-ticket="${ti}"]`), ITEMS[id].icon);
-    deliver({ pile: id }, ti);
-    return;
-  }
-  const k = S.table.findIndex(x => x && need.has(recipe(x, id)));
-  if (k >= 0 && mergeInto(k, id)) return;
-  place(id);
-}
-function moveCard(from, to) {
-  if (from === to) return;
-  if (!S.table[to]) { S.table[to] = S.table[from]; S.table[from] = null; S.sel = null; renderTable(); return; }
-  if (mergeInto(to, S.table[from], from)) return;
-  S.sel = null; renderTable(); SFX.nope();
-  nudge(document.querySelector(`[data-spot="${to}"]`));
-}
-// 조립대 카드 누르기: 찾는 주문이 있으면 납품, 없으면 덱으로 되돌리기
+// 조립대 누르기: 완성품이면 납품, 아니면 부품을 덱으로 되돌리기
 function tapSpot(i) {
-  if (!S.table[i]) return;
-  if (autoShip(i)) return;
-  toDeck(i);
+  if (!S.table[i].length) return;
+  if (tryShip(i)) return;
+  const el = document.querySelector(`[data-spot="${i}"]`);
+  fly(el, document.querySelector(`[data-pile="${S.table[i][0]}"]`), S.table[i].map(p => PARTS[p].icon).join(''));
+  S.table[i] = []; SFX.back(); renderTable();
 }
-function toDeck(i) {
-  const id = S.table[i];
-  if (!id) return;
-  const pile = baseParts(id).find(x => DECK.includes(x));
-  fly(document.querySelector(`[data-spot="${i}"]`), document.querySelector(`[data-pile="${pile}"]`), ITEMS[id].icon);
-  S.table[i] = null; S.sel = null; SFX.pick(); renderTable();
-}
-// src: { spot } 또는 { pile }
-function deliver(src, ti) {
+function deliver(spot, ti) {
   const t = S.tickets[ti];
-  const id = src.pile || S.table[src.spot];
+  const r = robotOf(S.table[spot]);
   const el = document.querySelector(`[data-ticket="${ti}"]`);
-  if (!t || !id) return;
-  const k = t.left.indexOf(id);
-  if (k < 0) {
-    SFX.nope(); nudge(el);
-    S.combo = 0; S.comboT = 0;
-    setTimeout(renderRail, 380);
-    return;
-  }
+  if (!t || !r) return;
+  const k = t.left.indexOf(r);
+  if (k < 0) { SFX.nope(); nudge(el); S.combo = 0; S.comboT = 0; return; }
   t.left.splice(k, 1);
-  if (src.spot !== undefined) S.table[src.spot] = null;
-  S.sel = null;
+  S.table[spot] = [];
   if (t.left.length) { SFX.half(); floatText(el, '✓'); renderRail(); renderTable(); document.querySelector(`[data-ticket="${ti}"]`)?.classList.add('bump'); return; }
   S.combo = S.comboT > 0 ? S.combo + 1 : 1;
   S.comboT = COMBO_SEC;
   S.best = Math.max(S.best, S.combo);
+  if (S.combo === FEVER_AT && S.fever <= 0) { S.fever = FEVER_SEC; banner('🔥 FEVER ×2'); }
   const fast = S.clock - t.born < FAST_SEC;
-  const gain = Math.round(100 * t.order.wants.length * Math.min(3, 1 + 0.2 * (S.combo - 1)) + (fast ? 50 : 0));
+  const size = t.order.wants.reduce((s, w) => s + ROBOTS[w].parts.length, 0);
+  const gain = Math.round((50 * size * Math.min(3, 1 + 0.2 * (S.combo - 1)) + (fast ? 50 : 0)) * (S.fever > 0 ? 2 : 1));
   S.score += gain;
   floatText(el, `+${gain}`, S.combo >= 3);
   SFX.done(S.combo);
-  if (S.combo >= 3 && S.combo % 4 === 0) banner(`🔥 ${S.combo} 콤보!`);
+  if (S.combo >= 3 && S.combo % 4 === 0 && S.combo !== FEVER_AT) banner(`🔥 ${S.combo} 콤보!`);
   S.done++;
-  S.served.push(t.order.id); S.runServed.push(t.order.id);
-  const lit = S.dex.has(t.order.id) || [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
+  S.runServed.push(t.order.id);
+  const lit = [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
   S.dex.add(t.order.id);
   if (!lit) banner(`${secKey(t.order)}${t.order.icon} 점등!`, 150);
   S.bestScore = Math.max(S.bestScore, S.score);
@@ -527,7 +562,7 @@ function deliver(src, ti) {
   if (S.done >= levelTarget(S.lv)) levelClear();
 }
 
-// ───────── 끌기 + 누르기 ─────────
+// ───────── 입력: 누르기 + 끌기(덱 카드를 원하는 조립대로, 완성품을 주문표로) ─────────
 let drag = null;
 document.addEventListener('pointerdown', e => {
   if (!S.running || S.paused) return;
@@ -539,13 +574,12 @@ document.addEventListener('pointermove', e => {
   if (!drag) return;
   if (!drag.started) {
     if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10) return;
-    const id = drag.src.pile || S.table[drag.src.spot];
-    if (!id) { drag = null; return; }
+    const st = drag.src.spot !== undefined ? S.table[drag.src.spot] : null;
+    if (st && !st.length) { drag = null; return; }
+    const r = st && robotOf(st);
     drag.started = true;
-    drag.ghost = Object.assign(document.createElement('div'), { className: 'ghost', textContent: ITEMS[id].icon });
+    drag.ghost = Object.assign(document.createElement('div'), { className: 'ghost', textContent: drag.src.pile ? PARTS[drag.src.pile].icon : r ? ROBOTS[r].icon : st.map(p => PARTS[p].icon).join('') });
     document.body.appendChild(drag.ghost);
-    if (drag.src.spot !== undefined) document.querySelector(`[data-spot="${drag.src.spot}"]`)?.classList.add('dim');
-    SFX.pick();
   }
   e.preventDefault();
   drag.ghost.style.left = e.clientX + 'px';
@@ -559,38 +593,40 @@ document.addEventListener('pointerup', e => {
   if (!drag) return;
   const d = drag; drag = null;
   if (!S.running) { d.ghost?.remove(); return; }
-  if (!d.started) { if (d.src.pile) drawCard(d.src.pile); else tapSpot(d.src.spot); return; }
+  if (!d.started) { if (d.src.pile) addPart(d.src.pile); else tapSpot(d.src.spot); return; }
   d.ghost.remove();
   d.over?.classList.remove('drop', 'over');
   const t = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-spot],[data-ticket],#deck');
-  if (!t) { renderTable(); return; }
-  if (t.id === 'deck') { if (d.src.spot !== undefined) toDeck(d.src.spot); else renderTable(); return; }
-  if (t.dataset.ticket !== undefined) { deliver(d.src, +t.dataset.ticket); renderTable(); return; }
+  if (!t) return;
+  if (d.src.pile) { if (t.dataset.spot !== undefined) addPart(d.src.pile, +t.dataset.spot); return; }
+  if (t.id === 'deck') { S.table[d.src.spot] = []; SFX.back(); renderTable(); return; }
+  if (t.dataset.ticket !== undefined) {
+    if (t.dataset.ticket === 'bulk') tryShip(d.src.spot); else deliver(d.src.spot, +t.dataset.ticket);
+    renderTable(); return;
+  }
   const to = +t.dataset.spot;
-  if (d.src.pile) drawCard(d.src.pile, to); else moveCard(d.src.spot, to);
+  if (to !== d.src.spot && !S.table[to].length) { S.table[to] = S.table[d.src.spot]; S.table[d.src.spot] = []; renderTable(to); }
 });
-document.addEventListener('pointercancel', () => { if (!drag) return; drag.ghost?.remove(); drag = null; renderTable(); });
-$('rail').addEventListener('click', e => {
-  const b = e.target.closest('[data-ticket]');
-  if (!b || !S.running || S.paused || S.sel === null) return;
-  deliver({ spot: S.sel }, +b.dataset.ticket);
-});
+document.addEventListener('pointercancel', () => { if (!drag) return; drag.ghost?.remove(); drag = null; });
 
 // ───────── 진행: 단계를 깨면 멈추지 않고 바로 다음 단계 ─────────
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
   if (S.running && !S.paused) {
-    S.elapsed += dt; S.clock += dt;
-    if (S.comboT > 0 && (S.comboT -= dt) <= 0) { S.comboT = 0; S.combo = 0; }
+    S.elapsed += dt;
+    if (!S.bulk) S.clock += dt;
+    if (S.comboT > 0 && !S.bulk && (S.comboT -= dt) <= 0) { S.comboT = 0; S.combo = 0; }
+    if (S.fever > 0) S.fever -= dt;
+    bulkTick(dt);
     spawnTick(dt);
     renderHud();
   }
   requestAnimationFrame(loop);
 }
 function startLevel() {
-  Object.assign(S, { running: true, paused: false, elapsed: 0, spawned: 0, done: 0, tickets: [], spawnT: 0, served: [],
-    intro: S.lv === 1 ? ['transys', 'kai', 'stl'] : [] });
+  Object.assign(S, { running: true, paused: false, elapsed: 0, spawned: 0, done: 0, tickets: [], spawnT: 0,
+    bulk: null, bulkCD: 12 + Math.random() * 10, intro: S.lv === 1 ? ['transys', 'kai', 'stl'] : [] });
   $('overlay').hidden = true;
   renderRail(); renderTable(); renderDeck(); renderHud();
   addTicket(); addTicket(); S.spawnT = levelGap(S.lv); renderRail();
@@ -604,16 +640,15 @@ function levelClear() {
   SFX.clear();
   banner(`CLEAR ${'⭐'.repeat(stars)} +${bonus}`);
   const next = UNLOCKS[S.lv];
-  if (next) banner(`NEW ${next.map(w => ITEMS[w].icon + ' ' + ITEMS[w].name).join(' ')}`, 1300);
+  if (next) banner(`NEW ${next.map(w => ROBOTS[w].icon).join(' ')} ${next.map(w => ROBOTS[w].name).join(', ')}`, 1300);
   S.lv++;
   setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, next ? 2700 : 1500);
   renderHud();
 }
 
 // ───────── 오버레이 ─────────
-let litBefore = new Set();
 const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
-const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${o.wants.map(w => ITEMS[w].icon).join('')}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
+const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${o.wants.map(w => ROBOTS[w].icon).join('')}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
 const mapHtml = () => {
   const lit = litSectors();
   return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`;
@@ -632,12 +667,11 @@ function resume() {
 const HELP = `
   <h2>로봇 SI 납품소</h2>
   <div class="steps">
-    <div class="step">🛞 🧭 <span>덱을 톡톡 누르면</span></div>
-    <div class="step">🦾 + 🔥 = 🧑‍🏭 <span>협동로봇은 도구를 붙여야 일해요</span></div>
-    <div class="step">🛞 + 🧭 = 🚚 <span>카드가 겹쳐 조립되고</span></div>
-    <div class="step">🚚 ➜ 🧾 <span>찾는 주문표로 저절로 날아가요</span></div>
+    <div class="step">🛞 🧭 <span>부품 카드를 톡톡 누르면</span></div>
+    <div class="step">🛞🧭🦾🤏 = 🚜 <span>조립대 위에 차곡차곡 쌓이고</span></div>
+    <div class="step">🚜 ➜ 🧾 <span>완성되면 주문표로 날아가요</span></div>
   </div>
-  <p>주문이 쏟아져요. 단계마다 주문을 다 쳐내면 바로 다음 단계! 빨리 깰수록 ⭐, 연달아 쳐내면 🔥.</p>
+  <p>주문을 다 쳐내면 바로 다음 단계! 연달아 쳐내면 🔥, 5콤보면 FEVER ×2. 가끔 🚨 대량 수주가 터지면 미친 듯이 눌러요. 조립대를 누르면 부품이 덱으로 돌아가요.</p>
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
   const seen = [...new Set(S.runServed)].map(id => logItem(O[id])).join('');
