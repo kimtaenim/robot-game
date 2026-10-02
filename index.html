@@ -200,7 +200,7 @@ const ITEMS = {
   agv:     { kind: 'robot', icon: '🛤️', name: 'AGV' },
   weld:    { kind: 'robot', icon: '🧑‍🏭', name: '용접 협동로봇' },
   cook:    { kind: 'robot', icon: '🧑‍🍳', name: '조리 협동로봇' },
-  pick:    { kind: 'robot', icon: '🤖', name: '피킹 협동로봇' },
+  pick:    { kind: 'robot', icon: '🤖', name: '피킹로봇' },
   mm:      { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
 };
 const DECK = ['wheel', 'lidar', 'tape', 'arm', 'torch', 'pan', 'gripper', 'quad', 'hum'];
@@ -437,7 +437,7 @@ function mergeInto(target, incoming, from) {
   SFX.merge(); renderTable(target);
   if (autoShip(target)) return true;
   const need = neededRobots();
-  // 다음 조합 짝이 테이블에 있으면 이어서 조립 (예: 피킹 협동로봇 → AMR 위로)
+  // 다음 조합 짝이 테이블에 있으면 이어서 조립 (예: 피킹로봇 → AMR 위로)
   const k = S.table.findIndex((x, j) => x && j !== target && need.has(recipe(x, r)));
   if (k >= 0) setTimeout(() => { if (S.table[target] === r && S.table[k]) mergeInto(k, r, target); }, 200);
   else if (!need.has(r)) document.querySelector(`[data-spot="${target}"]`)?.classList.add('idle');
