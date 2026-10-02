@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 위에서 아래로 손님 줄 → 조립대(작업대 안전 줄무늬) → 현장 소식 → 스토리지 선반. 한 화면 안에서 끝나는 작업장 */
+/* 레이아웃: 손님 줄 → 현장 소식 → 작업대(머지 보드, 안전 줄무늬) → 스토리지 선반. 한 화면 안에서 계속 흘러가는 작업장 */
 :root {
   --bg: #E7ECEF;
   --surface: #FFFFFF;
@@ -13,8 +13,8 @@
   --line: #CBD5DC;
   --accent: #F0B400;
   --steel: #1C5A86;
+  --steel-soft: #DCE8F1;
   --good: #24804D;
-  --warn: #C77F00;
   --bad: #C03A2A;
   --on-color: #FFFFFF;
   --scrim: rgba(12, 20, 27, 0.55);
@@ -25,104 +25,102 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0F151A; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0; --muted: #91A2AF;
-    --line: #2E3B47; --accent: #F5C12B; --steel: #72AEDC; --good: #3FA86C; --warn: #E0A030;
+    --line: #2E3B47; --accent: #F5C12B; --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C;
     --bad: #E0594A; --on-color: #0F151A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0F151A; --surface: #18212A; --surface-2: #202B35; --ink: #E4EBF0; --muted: #91A2AF;
-  --line: #2E3B47; --accent: #F5C12B; --steel: #72AEDC; --good: #3FA86C; --warn: #E0A030;
+  --line: #2E3B47; --accent: #F5C12B; --steel: #72AEDC; --steel-soft: #1D3346; --good: #3FA86C;
   --bad: #E0594A; --on-color: #0F151A; --scrim: rgba(0, 0, 0, 0.65); color-scheme: dark;
 }
 html, body { height: 100%; }
-body { background: var(--bg); color: var(--ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 11px; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
 
 .app { box-sizing: border-box; height: 100%; max-width: 780px; margin: 0 auto; padding-inline: 16px; padding-block: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
 
 /* 상단 바 */
 .top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.brand { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.01em; }
-.brand small { font-family: var(--font-body); font-size: 11px; color: var(--muted); margin-left: 4px; font-weight: 500; }
+.brand { font-family: var(--font-display); font-size: 20px; }
 .stats { display: flex; gap: 12px; margin-left: auto; font-size: 13px; align-items: baseline; }
-.stats b { font-weight: 600; }
 .stats .lbl { color: var(--muted); font-size: 11px; margin-right: 3px; }
 .tools { display: flex; gap: 6px; }
 .tool { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 9px; font-size: 12px; }
 
-.label { font-size: 11px; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
+/* 콤보 */
+.flow { display: flex; align-items: center; gap: 8px; }
+.flow .meter { flex: 1; height: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.flow .meter i { display: block; height: 100%; width: 0; background: var(--accent); }
+.flow b { font-family: var(--font-display); font-weight: 400; font-size: 16px; min-width: 64px; text-align: right; color: var(--muted); }
+.flow b.hot { color: var(--steel); }
 
 /* 손님 줄 */
-.clients { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-height: 178px; }
-.card { position: relative; text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 8px 12px; display: flex; flex-direction: column; gap: 4px; overflow: hidden; min-width: 0; }
+.clients-head { display: flex; justify-content: space-between; align-items: baseline; }
+.backlog { font-size: 11px; color: var(--muted); }
+.clients { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; min-height: 128px; }
+.card { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .card.empty { align-items: center; justify-content: center; color: var(--muted); font-size: 12px; border-style: dashed; background: transparent; cursor: default; }
 .card .c-top { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
 .card .c-icon { font-size: 22px; line-height: 1; }
 .card .c-sec { font-size: 10px; color: var(--steel); font-weight: 700; text-align: right; }
 .card .c-who { font-weight: 700; font-size: 13px; line-height: 1.25; }
-.card .c-ask { font-size: 11.5px; line-height: 1.4; color: var(--ink); opacity: 0.85; }
-.card .c-tags { display: flex; flex-wrap: wrap; gap: 3px; }
-.tag { font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
-.card .c-foot { margin-top: auto; display: flex; justify-content: space-between; gap: 4px; font-size: 10.5px; color: var(--muted); align-items: baseline; flex-wrap: wrap; }
-.card .c-budget { color: var(--ink); font-weight: 600; font-size: 12px; }
-.bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--surface-2); }
-.bar i { display: block; height: 100%; width: 100%; background: var(--good); transition: background-color .3s; }
-.bar i.warn { background: var(--warn); }
-.bar i.crit { background: var(--bad); }
+.card .c-ask { font-size: 11.5px; line-height: 1.4; opacity: 0.85; }
+.card.target { border-color: var(--steel); box-shadow: 0 0 0 2px var(--steel); }
 .card.enter { animation: enter .35s ease-out; }
-.card.shake { animation: shake .4s; border-color: var(--bad); }
-.card.ready { border-color: var(--steel); box-shadow: 0 0 0 1px var(--steel); }
+.card.shake { animation: shake .4s; }
 @keyframes enter { from { transform: translateY(-12px); opacity: .2; } to { transform: none; opacity: 1; } }
-@keyframes shake { 0%,100% { transform: none; } 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+@keyframes shake { 0%,100% { transform: none; } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
 
-/* 조립대 */
+/* 현장 소식 */
+.ticker { font-size: 12px; line-height: 1.5; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-height: 2.6em; }
+.ticker b { color: var(--steel); }
+
+/* 작업대 */
 .bench { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .stripe { height: 7px; background: repeating-linear-gradient(-45deg, var(--accent) 0 10px, var(--ink) 10px 20px); }
 .bench-in { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
-.bench-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.robot-name { font-family: var(--font-display); font-size: 19px; color: var(--steel); min-width: 0; flex: 1; }
-.robot-name.idle { color: var(--muted); }
-.cost { font-size: 12px; color: var(--muted); }
-.cost b { color: var(--ink); }
-.slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.slot { height: 62px; border: 2px dashed var(--line); border-radius: 10px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }
-.slot.filled { border-style: solid; border-color: var(--steel); background: var(--surface-2); color: var(--ink); }
-.slot .ic { font-size: 24px; line-height: 1; }
-.hint { font-size: 11.5px; color: var(--muted); }
-
-/* 현장 소식 */
-.ticker { font-size: 12px; line-height: 1.5; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-height: 2.6em; }
-.ticker b { color: var(--steel); }
+.bench-head { display: flex; align-items: center; gap: 8px; }
+.bench-head .hint { font-size: 11.5px; color: var(--muted); flex: 1; min-width: 0; }
+.trash { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font-size: 12px; }
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cell { height: 70px; border: 2px dashed var(--line); border-radius: 10px; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 700; touch-action: none; padding: 0; }
+.cell.part { border-style: solid; background: var(--surface-2); }
+.cell.robot { border-style: solid; border-color: var(--steel); background: var(--steel-soft); color: var(--ink); }
+.cell .ic { font-size: 28px; line-height: 1; }
+.cell.sel { outline: 3px solid var(--accent); outline-offset: 1px; transform: translateY(-2px); }
+.cell.drop { border-color: var(--accent); }
+.cell.dim { opacity: .35; }
+.cell.pop { animation: pop .35s ease-out; }
+@keyframes pop { 0% { transform: scale(.6); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.recipes { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--muted); }
+.recipes span b { color: var(--ink); font-weight: 700; }
 
 /* 스토리지 */
 .storage { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
-.parts { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
-@media (max-width: 560px) { .parts { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
-.part { position: relative; background: var(--surface); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 10px; padding: 6px 2px 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 0; }
-.part:active { transform: translateY(1px); }
-.part .ic { font-size: 22px; line-height: 1.1; }
-.part .nm { font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.part .pc { font-size: 10px; color: var(--muted); }
-.part .badge { position: absolute; top: 3px; right: 3px; font-size: 8.5px; font-weight: 700; padding: 1px 3px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); font-family: var(--font-mono); }
-.part.on { border-color: var(--steel); background: var(--surface-2); }
+.parts { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.part-btn { background: var(--surface); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 10px; padding: 6px 1px 5px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; touch-action: none; }
+.part-btn .ic { font-size: 24px; line-height: 1.1; }
+.part-btn .nm { font-size: 10.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.ghost { position: fixed; z-index: 40; pointer-events: none; font-size: 34px; transform: translate(-50%, -60%); filter: drop-shadow(0 6px 10px rgba(0,0,0,.3)); }
 
 /* 알림 */
-.toast { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); max-width: min(90vw, 460px); padding: 11px 15px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; font-weight: 500; color: var(--on-color); background: var(--ink); box-shadow: 0 8px 24px rgba(0,0,0,.25); pointer-events: none; opacity: 0; transition: opacity .2s; z-index: 20; }
+.toast { position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%); max-width: min(90vw, 460px); padding: 11px 15px; border-radius: 10px; font-size: 13.5px; line-height: 1.45; font-weight: 500; color: var(--on-color); background: var(--ink); box-shadow: 0 8px 24px rgba(0,0,0,.25); pointer-events: none; opacity: 0; transition: opacity .2s; z-index: 20; }
 .toast.show { opacity: 1; }
 .toast.good { background: var(--good); }
 .toast.bad { background: var(--bad); }
 
 /* 오버레이 */
 .overlay { position: fixed; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 30; }
-.sheet { background: var(--surface); color: var(--ink); border-radius: 14px; width: 100%; max-width: 540px; max-height: 86%; overflow: auto; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; }
+.sheet { background: var(--surface); color: var(--ink); border-radius: 14px; width: 100%; max-width: 540px; max-height: 86%; overflow: auto; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; user-select: text; -webkit-user-select: text; }
 .sheet h2 { font-family: var(--font-display); font-weight: 400; font-size: 26px; margin: 0; text-wrap: balance; }
 .sheet h3 { font-size: 13px; margin: 6px 0 0; color: var(--muted); letter-spacing: .06em; }
 .sheet p { margin: 0; font-size: 14px; line-height: 1.6; }
 .sheet ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.65; }
-.rules { display: grid; gap: 6px; font-size: 13px; }
-.rules div { display: flex; gap: 8px; align-items: baseline; }
 .big-stats { display: flex; gap: 18px; flex-wrap: wrap; }
 .big-stats div { display: flex; flex-direction: column; }
 .big-stats span { font-size: 11px; color: var(--muted); }
@@ -133,54 +131,54 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .log-item .hd b { font-size: 14px; }
 .log-item .hd small { color: var(--steel); font-weight: 700; font-size: 11px; }
 .log-item .hd em { font-style: normal; color: var(--muted); font-size: 11px; margin-left: auto; }
-.log-item.miss { border-style: dashed; background: transparent; }
 .log-item.locked { color: var(--muted); border-style: dashed; background: transparent; }
-.answer { color: var(--bad); font-weight: 700; }
 .primary { align-self: flex-start; background: var(--accent); color: #1A1400; border: 0; border-radius: 10px; padding: 11px 20px; font-weight: 700; font-size: 15px; }
-.row { display: flex; gap: 8px; flex-wrap: wrap; }
-.ghost { background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; font-size: 14px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .card.enter, .card.shake { animation: none; }
-  .toast, .bar i { transition: none; }
+  .card.enter, .card.shake, .cell.pop { animation: none; }
+  .toast { transition: none; }
 }
 </style>
 
 <div class="app">
   <header class="top">
-    <div class="brand">로봇 SI 납품소<small>산업별 로봇 도입 지도</small></div>
+    <div class="brand">로봇 SI 납품소</div>
     <div class="stats">
-      <span><span class="lbl">영업</span><b id="dayLabel">1일차</b></span>
-      <span><span class="lbl">손님</span><b class="num" id="progress">0/0</b></span>
-      <span><span class="lbl">이익</span><b class="num" id="money">0</b></span>
+      <span><span class="lbl">근무</span><b class="num" id="clock">3:00</b></span>
+      <span><span class="lbl">납품</span><b class="num" id="count">0</b></span>
+      <span><span class="lbl">매출</span><b class="num" id="score">0</b></span>
     </div>
     <div class="tools">
-      <button class="tool" id="btnDex" type="button">도감 0/0</button>
+      <button class="tool" id="btnDex" type="button">도감</button>
       <button class="tool" id="btnHelp" type="button" aria-label="게임 방법">?</button>
       <button class="tool" id="btnPause" type="button" aria-label="일시정지">⏸</button>
     </div>
   </header>
 
-  <section class="clients" id="clients" aria-label="기다리는 고객"></section>
+  <div class="flow" aria-label="콤보"><span class="label">흐름</span><div class="meter"><i id="flowBar"></i></div><b id="combo">콤보 0</b></div>
 
-  <section class="bench" aria-label="조립대">
-    <div class="stripe"></div>
-    <div class="bench-in">
-      <div class="bench-head">
-        <span class="label">조립대</span>
-        <span class="robot-name idle" id="robotName">비어 있음</span>
-        <span class="cost">원가 <b class="num" id="cost">0</b></span>
-        <button class="tool" id="btnClear" type="button">비우기</button>
-      </div>
-      <div class="slots" id="slots"></div>
-      <div class="hint" id="hint"></div>
-    </div>
+  <section aria-label="기다리는 고객">
+    <div class="clients-head"><span class="label">손님</span><span class="backlog" id="backlog"></span></div>
+    <div class="clients" id="clients"></div>
   </section>
 
   <div class="ticker" id="ticker" aria-live="polite">납품하면 그 현장의 실제 이야기가 여기에 떠요.</div>
 
+  <section class="bench" aria-label="작업대">
+    <div class="stripe"></div>
+    <div class="bench-in">
+      <div class="bench-head">
+        <span class="label">작업대</span>
+        <span class="hint" id="hint">부품을 끌어다 겹치면 조립돼요</span>
+        <button class="trash" id="btnTrash" type="button" data-trash="1">🗑 버리기</button>
+      </div>
+      <div class="board" id="board"></div>
+      <div class="recipes" id="recipes"></div>
+    </div>
+  </section>
+
   <section class="storage" aria-label="스토리지">
-    <span class="label">스토리지 · 눌러서 조립대에 올리기</span>
+    <span class="label">스토리지 · 누르거나 끌어서 꺼내기</span>
     <div class="parts" id="parts"></div>
   </section>
 </div>
@@ -189,224 +187,248 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
 
 <script>
-// ───────── 데이터: 부품 ─────────
-const PARTS = [
-  { id: 'amr',    icon: '🛞', short: 'AMR',    name: 'AMR 하체',          solo: 'AMR',        cost: 3 },
-  { id: 'agv',    icon: '🧲', short: 'AGV',    name: 'AGV 하체',          solo: 'AGV',        cost: 2 },
-  { id: 'legs',   icon: '🦿', short: '다리',   name: '보행 다리',          solo: '보행 로봇',   cost: 8 },
-  { id: 'arm',    icon: '🦾', short: '협동팔', name: '협동로봇 팔',        solo: '협동로봇',    cost: 4 },
-  { id: 'torso',  icon: '🤖', short: '상체',   name: '휴머노이드 상체',     solo: '휴머노이드 상체', cost: 10 },
-  { id: 'visKR',  icon: '📷', short: '비전',   name: '비전 센서(국산)',     solo: '비전 센서',   cost: 3, badge: 'KR' },
-  { id: 'visCN',  icon: '📷', short: '비전',   name: '비전 센서(중국산)',   solo: '비전 센서',   cost: 1, badge: 'CN', cn: true },
-  { id: 'torch',  icon: '🔥', short: '토치',   name: '용접 토치',          solo: '용접 토치',   cost: 1 },
-  { id: 'fryer',  icon: '🍗', short: '튀김',   name: '튀김 바스켓',        solo: '튀김 바스켓', cost: 1 },
-  { id: 'tray',   icon: '🍽️', short: '트레이', name: '서빙 트레이',        solo: '서빙 트레이', cost: 1 },
-  { id: 'lift',   icon: '⏫', short: '리프트', name: '차량 리프트',        solo: '리프트',      cost: 2 },
-  { id: 'nozzle', icon: '🚿', short: '노즐',   name: '방수 노즐',          solo: '방수 노즐',   cost: 2 },
-  { id: 'voice',  icon: '💬', short: '음성AI', name: '음성 AI',            solo: '음성 AI',     cost: 2 },
-  { id: 'deal',   icon: '🤝', short: '합의서', name: '노사 합의서',        solo: '합의서',      cost: 0 },
-];
-const P = Object.fromEntries(PARTS.map(p => [p.id, p]));
-
-// 조립 결과 이름 (비전 센서는 국산·중국산 구분 없이 'vision')
+// ───────── 그래픽 목록: 부품 7 + 로봇 6 = 13종. 아이콘은 임시 이모지, 나중에 이미지로 교체 ─────────
+const ITEMS = {
+  wheel: { kind: 'part',  icon: '🛞', name: '바퀴' },
+  legs:  { kind: 'part',  icon: '🦿', name: '다리' },
+  lidar: { kind: 'part',  icon: '👁️', name: '라이다' },
+  tape:  { kind: 'part',  icon: '🧲', name: '마그넷 테이프' },
+  arm:   { kind: 'part',  icon: '🦾', name: '로봇팔' },
+  tool:  { kind: 'part',  icon: '🔧', name: '툴' },
+  torso: { kind: 'part',  icon: '🤖', name: '상체' },
+  agv:   { kind: 'robot', icon: '🛤️', name: 'AGV' },
+  amr:   { kind: 'robot', icon: '🚚', name: 'AMR' },
+  cobot: { kind: 'robot', icon: '🏗️', name: '협동로봇' },
+  mm:    { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
+  quad:  { kind: 'robot', icon: '🐕', name: '4족보행' },
+  hum:   { kind: 'robot', icon: '🚶', name: '휴머노이드' },
+};
+const PART_IDS = ['wheel', 'lidar', 'tape', 'arm', 'tool', 'legs', 'torso'];
 const RECIPES = [
-  { set: ['legs', 'torso'], name: '휴머노이드' },
-  { set: ['amr', 'torso'],  name: '바퀴형 휴머노이드' },
-  { set: ['amr', 'arm'],    name: '모바일 매니퓰레이터' },
-  { set: ['legs', 'vision'],name: '4족 점검로봇' },
-  { set: ['arm', 'torch'],  name: '용접 협동로봇' },
-  { set: ['arm', 'fryer'],  name: '조리로봇' },
-  { set: ['amr', 'tray'],   name: '서빙로봇' },
-  { set: ['amr', 'lift'],   name: '주차로봇' },
-  { set: ['amr', 'nozzle'], name: '무인소방로봇' },
-  { set: ['amr', 'voice'],  name: '안내로봇' },
-  { set: ['amr', 'vision'], name: '자율주행 AMR' },
-  { set: ['agv', 'vision'], name: '비전 AGV' },
+  ['wheel', 'tape', 'agv'],
+  ['wheel', 'lidar', 'amr'],
+  ['arm', 'tool', 'cobot'],
+  ['amr', 'cobot', 'mm'],
+  ['legs', 'lidar', 'quad'],
+  ['legs', 'torso', 'hum'],
 ];
+const recipe = (a, b) => (RECIPES.find(([x, y]) => (x === a && y === b) || (x === b && y === a)) || [])[2] || null;
 
-// ───────── 데이터: 고객 주문 (출처: 로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
-// tags: us = 미국 공장(FCC), brown = 바닥 공사 불가, union = 노조 합의 필요
+// ───────── 고객 주문 (출처: 로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
+// want = 원하는 로봇, why = 틀렸을 때 보여주는 설명
 const ORDERS = [
-  { id: 'mipo', icon: '🚢', who: 'HD현대미포', sec: '④ 조선', when: '2025.12', payer: '조선사', budget: 9, tags: [],
-    ask: '고열·분진 속에서 용접선을 따라 용접할 로봇',
-    needs: [{ any: ['arm'], why: '용접선을 따라 움직일 협동로봇 팔이 필요해요' }, { any: ['torch'], why: '용접 토치가 빠졌어요' }],
-    fact: '레인보우로보틱스 협동로봇 27대를 추가해 누적 55대. 숙련 용접공 부족과 고령화로 "사람을 구하지 못해 일을 못 받는다"는 현장이라 도입 명분이 뚜렷해요.' },
-  { id: 'serve', icon: '🍽️', who: '식당 점주', sec: '⑲ 외식', when: '2024.05', payer: '점주 (보조금 최대 70%)', budget: 6, tags: [],
-    ask: '홀에서 음식을 나를 로봇. 싸게요',
-    needs: [{ any: ['amr'], why: '홀을 돌아다닐 이동 하체가 필요해요' }, { any: ['tray'], why: '음식을 올릴 트레이가 없어요' }],
-    fact: '국내 서빙로봇은 약 70%가 중국산 수입품이에요. 정부 보조금은 생산지와 관계없이 구매가의 최대 70%까지 지원해서, FT는 중국은 생산자를, 한국은 구매자를 지원한다고 대비했어요.' },
-  { id: 'lg', icon: '🔋', who: 'LG에너지솔루션 오창', sec: '⑧ 배터리 공장', when: '2026.09', payer: '배터리 회사', budget: 11, tags: [],
-    ask: '라인을 돌며 불량 셀을 빼내고 설비 문을 열어 부품 공급',
-    needs: [{ any: ['amr'], why: '라인을 돌아다녀야 해요. 이동하는 하체가 필요해요' }, { any: ['arm'], why: '셀을 집고 문을 열 팔이 필요해요' }],
-    fact: '오창 파일럿 라인의 로봇은 AMR 위에 협동로봇 팔을 얹은 결합형(모바일 매니퓰레이터)이에요. 스팟·아틀라스에도 LG엔솔 배터리가 들어간 것으로 알려져, 로봇의 사용자이면서 부품 공급자예요.' },
-  { id: 'busanEdu', icon: '🍱', who: '부산시교육청', sec: '⑱ 학교 급식', when: '2026.09', payer: '교육청 (국비+시비)', budget: 9, tags: [],
-    ask: '급식실에서 튀김·볶음을 맡을 조리로봇',
-    needs: [{ any: ['arm'], why: '조리 도구를 다룰 협동로봇 팔이 필요해요' }, { any: ['fryer'], why: '튀김 바스켓이 빠졌어요' }],
-    fact: '국비 4억 포함 8억원으로 창신초 등 5개교에 공정별 특화 로봇을 설치해요. 전년도 3개교 실증에서 근력 투입 작업 72%, 고위험 작업시간 69% 감소를 보고했어요.' },
-  { id: 'posco', icon: '🏭', who: '포스코 포항제철소', sec: '⑦ 철강', when: '2026.06', payer: '철강사', budget: 14, tags: [],
-    ask: '2고로 배관을 돌며 가스 누설 점검. 계단·배관이 많아요',
-    needs: [{ any: ['legs'], why: '계단과 배관이 많아 바퀴로는 못 다녀요. 보행 다리가 필요해요' }, { any: ['vision'], why: '누설 징후를 볼 비전 센서가 필요해요' }],
-    fact: '포항 2고로에서 보스턴다이내믹스 스팟이 하루 12번 배관 누설을 점검해요. 고온 설비·복잡한 배관·계단 때문에 바퀴형이 어려워, 국산 4족 로봇(에이딘로보틱스)도 4분기 투입을 목표로 해요.' },
-  { id: 'transys', icon: '🚚', who: '현대트랜시스 앨라배마', sec: '② AMR 이송로봇', when: '2024.07', payer: '부품사', budget: 7, tags: ['us', 'brown'],
-    ask: '미국 공장에서 300kg 부품 운반. 기존 공장이라 바닥 공사는 못 해요',
-    needs: [{ any: ['amr'], why: '스스로 길을 찾는 이동 하체가 필요해요' }],
-    fact: '현대트랜시스는 바닥 개조에 큰돈을 쓰지 않고 기존 공장(브라운필드)에 넣을 수 있는 300kg급 AMR을 도입했어요. 미 FCC의 중국산 카메라·센서 장비 인증 차단으로 미국 공장의 AMR도 영향권이에요.' },
-  { id: 'stl', icon: '📦', who: '에스티엘 파주 물류센터', sec: '② AMR 이송로봇', when: '2026.01', payer: '물류사', budget: 9, tags: [],
+  // AGV
+  { id: 'port', want: 'agv', icon: '⚓', who: '부산항 신항', sec: '⑮ 항만', when: '2026.05',
+    ask: '자동화 부두에서 시스템 지시대로 컨테이너 이송',
+    why: '새로 짓는 자동화 부두는 바닥 경로를 깔 수 있어요. 정해진 길을 다니는 AGV면 돼요',
+    fact: '국내 첫 완전 자동화 부두에서 터미널운영시스템 지시에 따라 AGV가 컨테이너 크레인과 야드 크레인 사이를 오가요. 2018년 노조가 대량 실직을 우려하자 해수부는 노사정 협의체를 꾸리고 진행했어요.' },
+  { id: 'kai', want: 'agv', icon: '🛩️', who: 'KAI 사천공장', sec: '⑨ 항공기 제조', when: '2019.07',
+    ask: '날개 천공 공정 사이로 자재를 정해진 길로 운반',
+    why: '공정 사이를 정해진 경로로 오가는 일이라 AGV가 맞아요',
+    fact: '로봇드릴링시스템으로 T-50 날개를 천공하고 AGV로 자재를 옮겨, 립 가장자리 다듬기를 8시간에서 40분으로 줄였어요. 2021년엔 스마트팩토리에 5년간 985억원 투자를 발표했어요.' },
+  // AMR
+  { id: 'transys', want: 'amr', icon: '🚚', who: '현대트랜시스 앨라배마', sec: '② AMR', when: '2024.07',
+    ask: '가동 중인 기존 공장에서 300kg 부품 운반. 바닥 공사는 못 해요',
+    why: '기존 공장(브라운필드)은 바닥 공사가 어려워요. 바닥 경로가 필요한 AGV 말고, 스스로 길을 찾는 AMR이에요',
+    fact: '바닥 개조에 큰돈을 쓰지 않고 기존 공장에 넣을 수 있다는 점을 내세운 300kg급 AMR이에요. 미 FCC가 중국산 카메라·센서 장비 인증을 막으면서 미국 공장의 AMR도 영향권에 들어갔어요.' },
+  { id: 'stl', want: 'amr', icon: '📦', who: '에스티엘 파주 물류센터', sec: '② AMR', when: '2026.01',
     ask: '코스메틱 물류 오더피킹. 스스로 길을 찾아 다녀야 해요',
-    needs: [{ any: ['amr'], why: '스스로 길을 찾는 AMR 하체가 필요해요' }, { any: ['vision'], why: '주변을 읽을 비전 센서가 필요해요' }],
+    why: '센터 안을 스스로 길을 찾아 다니는 AMR이 필요해요',
     fact: '트위니는 300여 코스메틱 브랜드 물류를 맡는 에스티엘에 오더피킹 AMR 12대를 먼저 넣어 개념증명을 마친 뒤 공급 협약을 맺었어요. "먼저 넣어 검증하고 본계약"이 국내 AMR 회사의 진입 경로예요.' },
-  { id: 'ford', icon: '🔌', who: '포드 ESS 공장 (미국)', sec: '② AMR 이송로봇', when: '2026.08', payer: '완성차 회사', budget: 10, tags: ['us'],
-    ask: '미국 공장에서 주변을 인식하며 자재 운반',
-    needs: [{ any: ['amr'], why: '자재를 싣고 다닐 AMR 하체가 필요해요' }, { any: ['vision'], why: '주변을 인식할 비전 센서가 필요해요' }],
-    fact: '반도체·디스플레이 진공로봇 회사 티로보틱스가 포드 ESS 공장에 AMR 공급 레퍼런스를 확보했어요. 3월에는 AMR을 하체로 쓴 산업용 휴머노이드 TR-Works도 공개했어요.' },
-  { id: 'icn', icon: '✈️', who: '인천국제공항공사', sec: '⑯ 공항', when: '2026.05', payer: '공기업', budget: 10, tags: [],
-    ask: '승객과 4개 국어로 대화하며 길 안내',
-    needs: [{ any: ['amr'], why: '터미널을 돌아다닐 AMR 하체가 필요해요' }, { any: ['voice'], why: '승객과 대화할 음성 AI가 필요해요' }],
-    fact: '자율주행 로봇 3종 31대를 도입했어요. 셀프체크인 로봇은 대당 1억3600만원이고, 안내·순찰 로봇은 생성형 AI로 한·영·중·일 대화를 해요. 대당 1억원 넘는 로봇이 10대 단위로 들어가는 곳은 예산을 가진 공기업이에요.' },
-  { id: 'police', icon: '🚓', who: '경찰청', sec: '㉖ 소방·경찰', when: '2026.01', payer: '경찰청 예산', budget: 14, tags: [],
+  { id: 'icn', want: 'amr', icon: '✈️', who: '인천국제공항공사', sec: '⑯ 공항', when: '2026.05',
+    ask: '혼잡한 터미널을 돌아다니며 승객 안내',
+    why: '사람 많은 터미널을 피해 다니려면 스스로 길을 찾는 AMR이에요',
+    fact: '자율주행 로봇 3종 31대를 도입했어요. 셀프체크인 로봇은 대당 1억3600만원이고, 안내·순찰 로봇은 생성형 AI로 4개 국어 대화를 해요. 1억원 넘는 로봇이 10대 단위로 들어가는 곳은 예산을 가진 공기업이에요.' },
+  { id: 'serve', want: 'amr', icon: '🍽️', who: '식당 점주', sec: '⑲ 외식', when: '2024.05',
+    ask: '손님 사이로 음식을 나를 서빙로봇',
+    why: '테이블 배치가 바뀌는 홀은 스스로 길을 찾는 AMR이 맞아요',
+    fact: '국내 서빙로봇은 약 70%가 중국산이에요. 정부 보조금은 생산지와 관계없이 구매가의 최대 70%를 지원해서, FT는 중국은 생산자를, 한국은 구매자를 지원한다고 대비했어요.' },
+  { id: 'delivery', want: 'amr', icon: '🛵', who: '뉴빌리티', sec: '⑬ 배달', when: '2024.12',
+    ask: '송도 인도를 달려 음식 배달',
+    why: '인도를 스스로 달리는 실외 이동로봇, 곧 AMR이에요',
+    fact: '2023년 11월 지능형로봇법 시행 후 1년간 운행안전인증을 받은 업체는 6곳이에요. 인증 항목이 16개이고, 부품을 바꾸면 다시 인증을 받아야 해요.' },
+  { id: 'parking', want: 'amr', icon: '🚗', who: '현대위아', sec: '⑭ 주차', when: '2026.08',
+    ask: '차 밑으로 들어가 최대 3.4t SUV를 옮기는 주차로봇',
+    why: '라이다로 바퀴를 찾아 스스로 움직이는 납작한 AMR이에요',
+    fact: '두께 110mm 로봇 2대가 한 세트로 차 밑에 들어가 라이다로 바퀴를 인식해 옮겨요. 2026년 7월 규제 합리화로 주차로봇의 법적 지위가 명확해졌어요.' },
+  { id: 'naver', want: 'amr', icon: '🏢', who: '네이버 1784', sec: '⑰ 빌딩 실내배송', when: '2026.02',
+    ask: '로봇 전용 엘리베이터를 타고 층마다 택배 배달',
+    why: '건물 안을 스스로 다니는 배송 AMR이에요',
+    fact: '1784는 로봇 전용 엘리베이터와 정밀지도·측위 인프라를 설계에 넣어 세계 첫 로봇 친화형 건축물 인증을 받았어요. 로봇 단품이 아니라 건물·엘리베이터·관제를 묶어 사우디와 일본에 팔아요.' },
+  { id: 'clean', want: 'amr', icon: '🧹', who: '마로솔 (인천공항)', sec: '㉚ 상업용 청소', when: '2024.09',
+    ask: '넓은 공항 바닥을 스스로 돌며 청소',
+    why: '청소로봇도 공간을 스스로 돌아다니는 AMR이에요',
+    fact: '2025년 세계 청소로봇 출하는 5만대를 넘었고 푸두·가우시움·키논 중국 3사가 63%예요. 마로솔은 가우시움 제품에 자체 관제 솔링크를 붙여 인천공항에 넣었어요.' },
+  { id: 'patrol', want: 'amr', icon: '🚓', who: '광주 광산경찰서', sec: '㉖ 소방·경찰', when: '2026.09',
+    ask: '첨단지구 공원을 순찰하는 로봇',
+    why: '공원길을 스스로 다니는 순찰 AMR이에요',
+    fact: '순찰로봇 패트로버 2대를 첨단·황룡에 배치했어요. 보도를 다니려면 운행안전인증을 받아야 해서, 신형 패트로빈은 인증을 거쳐 공원에서 실증해요.' },
+  { id: 'farm', want: 'amr', icon: '🌾', who: '농촌진흥청', sec: '㉑ 농업', when: '2025.04',
+    ask: '스마트팜에서 300kg까지 싣고 작업자 따라다니기',
+    why: '작업자를 따라 스스로 움직이는 운반 AMR이에요',
+    fact: '방제로봇은 작업시간 40%를 줄였고, 300kg까지 나르는 운반로봇은 23대를 추가 보급해요. 농업 로봇은 농가가 사기보다 관이 개발하고 임대·실증으로 푸는 구조예요.' },
+  { id: 'build', want: 'amr', icon: '🏗️', who: '현대건설 청라 현장', sec: '㉙ 건설', when: '2026.07',
+    ask: '건설 현장에서 자재를 스스로 운반',
+    why: '현장을 스스로 다니며 자재를 나르는 AMR이에요',
+    fact: '현대건설과 삼성물산이 2023년 MOU로 함께 개발한 자재 운반 로봇이 청라 현장 실증을 마쳤어요. 여러 대를 원격 관제로 묶어 관리해요.' },
+  { id: 'samsung', want: 'amr', icon: '💾', who: '삼성전자', sec: '⑥ 반도체 공장', when: '2026.03',
+    ask: 'AI 자율 공장에서 자재를 나를 물류봇',
+    why: '공장 안을 스스로 다니며 자재를 나르는 AMR이에요',
+    fact: '2030년까지 국내 공장을 AI 자율 공장으로 바꾸며 오퍼레이팅봇·물류봇·조립봇을 단계 투입해요. 디지털 트윈에서는 AMR이 공구를 나르고 휴머노이드가 설비를 점검하는 시나리오를 보였어요.' },
+  // 협동로봇
+  { id: 'mipo', want: 'cobot', icon: '🚢', who: 'HD현대미포', sec: '④ 조선', when: '2025.12',
+    ask: '고열·분진 속에서 용접선을 따라 용접',
+    why: '사람 옆에서 용접하는 협동로봇이에요',
+    fact: '레인보우로보틱스 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공 부족과 고령화로 "사람을 구하지 못해 일을 못 받는다"는 현장이에요.' },
+  { id: 'busanEdu', want: 'cobot', icon: '🍱', who: '부산시교육청', sec: '⑱ 학교 급식', when: '2026.09',
+    ask: '급식실에서 볶음·국·튀김을 맡을 조리로봇',
+    why: '조리 공정에 붙는 협동로봇이에요',
+    fact: '국비 4억 포함 8억원으로 창신초 등 5개교에 공정별 특화 로봇을 설치해요. 전년도 실증에서 근력 투입 작업 72%, 고위험 작업시간 69%가 줄었어요.' },
+  { id: 'bhc', want: 'cobot', icon: '🍗', who: '치킨 가맹점주', sec: '⑲ 외식', when: '2026.02',
+    ask: '튀김 바스켓을 흔들 로봇',
+    why: '튀김기 옆에 붙는 협동로봇이에요',
+    fact: 'bhc 튀봇은 40개 매장, 교촌 로봇은 24개 매장에 들어갔어요. 교촌은 구매가 가맹점 선택이라 1,378개 매장 중 1.7%만 도입했어요.' },
+  { id: 'lounge', want: 'cobot', icon: '☕', who: '라운지엑스', sec: '⑳ 카페', when: '2026.08',
+    ask: '음료를 만드는 로봇 바리스타',
+    why: '바 안에서 음료를 만드는 협동로봇이에요',
+    fact: '직영 12곳에서 한 달 주문 6만2770건, 평균 제조 1분 48초예요. 인건비 최대 70% 절감은 직영점 내부 집계라는 단서가 붙어요.' },
+  { id: 'polytech', want: 'cobot', icon: '🎓', who: '한국폴리텍대학', sec: '① 교육용 로봇', when: '2026.02',
+    ask: '실습실에서 학생들이 다룰 로봇',
+    why: '교육 현장 실습 장비는 협동로봇이에요',
+    fact: '두산로보틱스가 협동로봇 4대를 기증했어요. 직업계고 재구조화로 117개 학과가 2028학년도부터 개편돼, 교육 장비 시장이 열리는 시점이에요.' },
+  { id: 'gwangjin', want: 'cobot', icon: '🏭', who: '광진', sec: '③ 제조 SI', when: '2026.07',
+    ask: '가동 중인 양산 라인에 넣을 로봇. A/S가 중요해요',
+    why: '라인 옆에 붙이는 협동로봇이에요',
+    fact: '약 13억원을 들여 4~6개월에 걸쳐 협동로봇을 적용했어요. 중국산도 비교했지만 국내 사후관리 인프라가 부족해 국산을 택했어요.' },
+  // 모바일 매니퓰레이터
+  { id: 'lg', want: 'mm', icon: '🔋', who: 'LG에너지솔루션 오창', sec: '⑧ 배터리 공장', when: '2026.09',
+    ask: '라인을 돌며 불량 셀을 빼내고 설비 문을 열어 부품 공급',
+    why: '돌아다니면서(AMR) 집어야(협동로봇) 해요. 둘을 합친 모바일 매니퓰레이터예요',
+    fact: '오창 파일럿 라인의 로봇은 AMR 위에 협동로봇 팔을 얹은 결합형이에요. 스팟·아틀라스에도 LG엔솔 배터리가 들어간 것으로 알려져, 로봇의 사용자이면서 부품 공급자예요.' },
+  // 4족보행
+  { id: 'posco', want: 'quad', icon: '🔥', who: '포스코 포항제철소', sec: '⑦ 철강', when: '2026.06',
+    ask: '고로 배관을 돌며 가스 누설 점검. 계단·배관이 많아요',
+    why: '계단과 배관이 많아 바퀴로는 못 가요. 4족보행 로봇이에요',
+    fact: '포항 2고로에서 스팟이 하루 12번 배관 누설을 점검해요. 바퀴형이 어려운 제철소에 맞춰 국산 4족 로봇(에이딘로보틱스)도 4분기 투입을 목표로 해요.' },
+  { id: 'police', want: 'quad', icon: '💣', who: '경찰청', sec: '㉖ 소방·경찰', when: '2026.01',
     ask: '폭발물·화학 시료 현장에 먼저 들어가 영상 전송',
-    needs: [{ any: ['legs'], why: '잔해와 계단을 넘어야 해요. 보행 다리가 필요해요' }, { any: ['vision'], why: '360도·열화상 영상을 보낼 비전 센서가 필요해요' }],
-    fact: '사족보행 로봇 6대 도입 방침이에요. 운용 순서는 로봇 투입 → 지휘소 작전 수립 → 경찰 진입이에요. 순찰 로봇이 보도를 다니려면 운행안전인증을 따로 받아야 해요.' },
-  { id: 'bhc', icon: '🍗', who: '치킨 가맹점주', sec: '⑲ 외식', when: '2026.02', payer: '가맹점주', budget: 7, tags: [],
-    ask: '튀김을 맡길 로봇. 예산이 빠듯해요',
-    needs: [{ any: ['arm'], why: '바스켓을 흔들 협동로봇 팔이 필요해요' }, { any: ['fryer'], why: '튀김 바스켓이 빠졌어요' }],
-    fact: 'bhc 튀봇은 40개 매장, 교촌 로봇은 24개 매장에 32대예요. 교촌은 구매가 가맹점 선택이라 1,378개 매장 중 24곳(1.7%)만 도입했어요. "로봇 한 대 값이면 작은 매장 하나를 낸다"는 말이 나와요.' },
-  { id: 'parking', icon: '🚗', who: '현대위아', sec: '⑭ 주차', when: '2026.08', payer: '현대위아', budget: 9, tags: [],
-    ask: '차 밑으로 들어가 최대 3.4t SUV를 들어 옮기기',
-    needs: [{ any: ['amr'], why: '차 밑으로 파고들 납작한 AMR 하체가 필요해요' }, { any: ['lift'], why: '차를 들어 올릴 리프트가 필요해요' }],
-    fact: '두께 110mm 로봇 2대가 한 세트로 차 밑에 들어가 라이다로 바퀴를 인식해 옮겨요. 2026년 7월 규제 합리화로 주차로봇의 법적 지위가 명확해지자 HL로보틱스도 같은 달 서비스를 발표했어요.' },
-  { id: 'cj', icon: '🧴', who: 'CJ대한통운 올리브영 센터', sec: '⑫ 물류센터', when: '2026.09', payer: '물류사', budget: 18, tags: [],
+    why: '잔해와 계단을 넘어 먼저 들어가는 4족보행 로봇이에요',
+    fact: '사족보행 로봇 6대를 도입해요. 운용 순서는 로봇 투입 → 지휘소 작전 수립 → 경찰 진입이에요. 현장의 AI 이해도가 낮은 것이 극복 과제로 꼽혀요.' },
+  { id: 'army', want: 'quad', icon: '🎖️', who: '방위사업청', sec: '㉗ 국방', when: '2024.08',
+    ask: '산악 지형에서 정찰. 20cm 계단도 넘어야 해요',
+    why: '산악과 계단을 넘는 다족보행 로봇이에요',
+    fact: '현대로템·레인보우로보틱스의 대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요. 2022년엔 요구 성능이 상용품보다 낮게 설정됐다는 지적이 있었어요.' },
+  { id: 'fire', want: 'quad', icon: '🚒', who: '소방청', sec: '㉖ 소방·경찰', when: '2026.09',
+    ask: '무너진 현장 안으로 들어가 탐색',
+    why: '무너진 현장을 걸어 들어가는 4족보행 로봇이에요',
+    fact: '내년 예산에 무인소방로봇 9대 108억원, 4족보행로봇 40대 160억원을 편성했어요. 아직 "원격 방수" 수준이라 탐색·구조까지 가야 한다는 평가예요.' },
+  // 휴머노이드
+  { id: 'hyundai', want: 'hum', icon: '🚙', who: '현대차·기아', sec: '⑤ 자동차 공장', when: '2026.05',
+    ask: '사람이 일하던 라인에 그대로 들어갈 로봇',
+    why: '사람 자리에 그대로 들어가는 휴머노이드(아틀라스)예요',
+    fact: '아틀라스 2만5000대 이상 투입과 2028년 연 3만대 생산 체제를 발표했어요. 금속노조 현대차지부는 "노사 합의 없이 단 1대도 못 들어온다"고 밝혔어요.' },
+  { id: 'cj', want: 'hum', icon: '🧴', who: 'CJ대한통운 올리브영 센터', sec: '⑫ 물류센터', when: '2026.09',
     ask: '포장 라인에서 양팔로 완충재 넣기',
-    needs: [{ any: ['torso'], why: '양팔로 일할 휴머노이드 상체가 필요해요' }, { any: ['amr', 'legs'], why: '상체를 받칠 하체(바퀴든 다리든)가 필요해요' }],
-    fact: '용인 양지 올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대를 투입했어요. 2025년 군포 실증에서 실제 고객 물량 처리로 넘어간 첫 사례예요.' },
-  { id: 'fire', icon: '🚒', who: '소방청', sec: '㉖ 소방·경찰', when: '2026.09', payer: '국가 예산', budget: 13, tags: [],
-    ask: '화재 현장에 들어가 원격으로 물 뿌리기',
-    needs: [{ any: ['amr'], why: '현장으로 들어갈 이동 하체가 필요해요' }, { any: ['nozzle'], why: '물을 뿌릴 방수 노즐이 없어요' }],
-    fact: '내년 예산에 무인소방로봇 9대 108억원(대당 약 12억원)을 편성했어요. 전문가들은 아직 "원격 방수" 수준이라 탐색·구조·진압까지 가야 한다고 지적해요.' },
-  { id: 'port', icon: '⚓', who: '부산항 신항', sec: '⑮ 항만·선박', when: '2026.05', payer: '항만공사', budget: 8, tags: ['union'],
-    ask: '완전 자동화 부두에서 컨테이너 이송',
-    needs: [{ any: ['agv', 'amr'], why: '컨테이너를 옮길 하체가 필요해요' }, { any: ['deal'], why: '부산항운노조: 일자리 대책 없이는 안 돼요. 노사 합의서가 필요해요' }],
-    fact: '2018년 무인 자동화 구축안에 부산항운노조가 대량 실직을 우려하자, 해수부는 노사정 협의체를 꾸리고 진행했어요. 새로 짓는 완전 자동화 부두에서는 터미널운영시스템 지시에 따라 AGV가 컨테이너를 옮겨요.' },
-  { id: 'hyundai', icon: '🚙', who: '현대차 공장', sec: '⑤ 자동차 공장', when: '2026.05', payer: '현대차', budget: 24, tags: ['union'],
-    ask: '생산 라인에 두 발로 걷는 휴머노이드 투입',
-    needs: [{ any: ['torso'], why: '휴머노이드 상체가 필요해요' }, { any: ['legs'], why: '아틀라스는 두 다리로 걸어요. 보행 다리가 필요해요' }, { any: ['deal'], why: '금속노조 현대차지부: "노사 합의 없이 단 1대도 못 들어온다"' }],
-    fact: '현대차·기아는 아틀라스 2만5000대 이상 투입과 2028년 연 3만대 생산 체제를 발표했어요. 노조는 연봉 1억 기준 24시간 3명 인건비 연 3억원과, 업계가 예상하는 휴머노이드 연 유지비 약 1400만원을 비교하며 반발해요.' },
+    why: '양팔로 사람처럼 일하는 휴머노이드예요',
+    fact: '용인 양지 올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대를 넣었어요. 2025년 군포 실증 이후 실제 고객 물량을 처리한 첫 사례예요.' },
+  { id: 'bmw', want: 'hum', icon: '🇺🇸', who: 'BMW 스파턴버그', sec: '⑤ 자동차 공장', when: '2026.05',
+    ask: '차체 조립 라인에서 주 5일 10시간 교대 근무',
+    why: '사람 교대조처럼 일하는 휴머노이드(Figure 02)예요',
+    fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요. 토요타 캐나다는 Digit 7대 이상을 RaaS 계약으로 RAV4 물류에 넣었어요. 해외 사례는 아직 대수가 작아요.' },
+  { id: 'catl', want: 'hum', icon: '🔋', who: 'CATL', sec: '⑧ 배터리 공장', when: '2026.06',
+    ask: '자사 배터리로 움직이는 로봇을 생산라인에',
+    why: '생산라인에 실전 배치한 중하중 휴머노이드예요',
+    fact: '세계 최대 배터리 회사 CATL이 자사 배터리로 움직이는 중하중 휴머노이드를 생산라인에 실전 배치했어요. 배터리 회사가 로봇의 사용자이면서 부품 공급자인 구도예요.' },
 ];
 const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
-const TAGS = {
-  us:    { label: '🇺🇸 미국 공장', rule: '중국산 카메라·센서 금지 (미 FCC 인증 차단)' },
-  brown: { label: '🏗️ 바닥 공사 불가', rule: '기존 공장이라 바닥 경로가 필요한 AGV는 못 써요' },
-  union: { label: '✊ 노조 합의', rule: '노사 합의서를 함께 납품해야 해요' },
-};
-const DAY_PLANS = [
-  ['mipo', 'serve', 'lg', 'busanEdu', 'posco', 'transys'],
-  ['stl', 'ford', 'icn', 'bhc', 'police', 'parking', 'port', 'cj'],
-];
+const BY_ROBOT = {};
+ORDERS.forEach(o => (BY_ROBOT[o.want] = BY_ROBOT[o.want] || []).push(o.id));
+const ROBOT_WEIGHT = { agv: 1, amr: 2, cobot: 1.5, mm: 0.8, quad: 1.2, hum: 1.2 };
+const TUTORIAL = ['serve', 'mipo', 'port', 'transys', 'posco', 'lg', 'hyundai'];
+
+const SHIFT_SEC = 180, COMBO_SEC = 15, CELLS = 8, MAX_WAIT = 5;
 
 // ───────── 상태 ─────────
 const S = {
-  day: 1, money: 0, dayEarn: 0, running: false, paused: false,
-  queue: [], total: 0, slots: [null, null, null], bench: [], spawnT: 0,
-  served: [], missed: [], dex: new Set(), cfg: null, last: 0,
+  shift: 1, running: false, paused: false, time: SHIFT_SEC, score: 0,
+  combo: 0, comboT: 0, best: 0, board: Array(CELLS).fill(null), sel: null,
+  clients: [], backlog: [], spawnT: 0, intro: [], served: [], dex: new Set(), last: 0,
 };
-try { JSON.parse(localStorage.getItem('robotsi.dex') || '[]').forEach(id => O[id] && S.dex.add(id)); } catch (e) {}
-const saveDex = () => { try { localStorage.setItem('robotsi.dex', JSON.stringify([...S.dex])); } catch (e) {} };
+try { JSON.parse(localStorage.getItem('robotsi.dex2') || '[]').forEach(id => O[id] && S.dex.add(id)); } catch (e) {}
+const saveDex = () => { try { localStorage.setItem('robotsi.dex2', JSON.stringify([...S.dex])); } catch (e) {} };
 
 const $ = id => document.getElementById(id);
-const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-const costOf = b => b.reduce((s, id) => s + P[id].cost, 0);
-const hasNeed = (bench, id) => id === 'vision' ? bench.includes('visKR') || bench.includes('visCN') : bench.includes(id);
-const needLabel = id => id === 'vision' ? '📷 비전 센서' : `${P[id].icon} ${P[id].name}`;
+const label = id => `${ITEMS[id].icon} ${ITEMS[id].name}`;
 
-function robotName(bench) {
-  if (!bench.length) return '';
-  let rest = bench.map(id => ({ id, k: id.startsWith('vis') ? 'vision' : id }));
-  const names = [];
-  for (const r of RECIPES) {
-    if (r.set.every(k => rest.some(x => x.k === k))) {
-      names.push(r.name);
-      r.set.forEach(k => { const i = rest.findIndex(x => x.k === k); rest.splice(i, 1); });
-    }
-  }
-  rest.forEach(x => names.push(P[x.id].solo));
-  return names.join(' + ');
+// ───────── 손님 흐름: 떠나지 않고, 대기가 차면 잠시 멈춤 ─────────
+function pickOrder() {
+  if (S.intro.length) return S.intro.shift();
+  const waiting = new Set([...S.clients, ...S.backlog].map(c => c.order.id));
+  const total = Object.values(ROBOT_WEIGHT).reduce((a, b) => a + b, 0);
+  let r = Math.random() * total, robot = 'amr';
+  for (const [k, w] of Object.entries(ROBOT_WEIGHT)) { if ((r -= w) <= 0) { robot = k; break; } }
+  const pool = BY_ROBOT[robot].filter(id => !waiting.has(id));
+  const ids = pool.length ? pool : ORDERS.map(o => o.id).filter(id => !waiting.has(id));
+  return ids[Math.floor(Math.random() * ids.length)];
 }
-
-function check(order, bench) {
-  if (order.tags.includes('us') && bench.some(id => P[id].cn))
-    return '미 FCC 인증 차단: 중국산 카메라·센서를 단 장비는 미국 공장에 못 들어가요';
-  if (order.tags.includes('brown') && bench.includes('agv'))
-    return '기존 공장이라 바닥 공사를 못 해요. AGV는 바닥에 마그넷·QR 경로를 깔아야 해요';
-  for (const n of order.needs) {
-    if (!n.any.some(id => hasNeed(bench, id))) {
-      if (n.any.includes('amr') && !n.any.includes('agv') && bench.includes('agv'))
-        return 'AGV는 바닥에 깐 경로만 따라가요. 스스로 길을 찾는 AMR이 필요해요';
-      return n.why;
-    }
-  }
-  const cost = costOf(bench);
-  if (cost > order.budget) return `예산 초과: ${order.payer} 예산은 ${order.budget}인데 원가가 ${cost}예요. 필요 없는 부품을 빼 보세요`;
-  return null;
+function spawnGap() {
+  const progress = 1 - S.time / SHIFT_SEC;
+  const base = Math.max(4.5, 10 - (S.shift - 1) * 1.2);
+  return base - progress * 2.5;
+}
+function spawn() {
+  const c = { order: O[pickOrder()], born: SHIFT_SEC - S.time, fresh: true };
+  if (S.clients.length < 3) S.clients.push(c); else S.backlog.push(c);
+  renderClients();
 }
 
 // ───────── 렌더링 ─────────
 function renderParts() {
-  $('parts').innerHTML = PARTS.map(p => `
-    <button class="part${S.bench.includes(p.id) ? ' on' : ''}" type="button" data-part="${p.id}" aria-label="${p.name}, 원가 ${p.cost}">
-      ${p.badge ? `<span class="badge">${p.badge}</span>` : ''}
-      <span class="ic">${p.icon}</span><span class="nm">${p.short}</span><span class="pc num">${p.cost}</span>
+  $('parts').innerHTML = PART_IDS.map(id => `
+    <button class="part-btn" type="button" data-part="${id}" aria-label="${ITEMS[id].name} 꺼내기">
+      <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span>
     </button>`).join('');
+  $('recipes').innerHTML = RECIPES.map(([a, b, r]) =>
+    `<span>${ITEMS[a].icon}+${ITEMS[b].icon} <b>${ITEMS[r].name}</b></span>`).join('');
 }
-function renderBench() {
-  const slots = [];
-  for (let i = 0; i < 4; i++) {
-    const id = S.bench[i];
-    slots.push(id
-      ? `<button class="slot filled" type="button" data-bench="${i}" aria-label="${P[id].name} 빼기"><span class="ic">${P[id].icon}</span>${P[id].short}${P[id].badge ? ' ' + P[id].badge : ''}</button>`
-      : `<div class="slot">빈 칸</div>`);
-  }
-  $('slots').innerHTML = slots.join('');
-  const name = robotName(S.bench);
-  $('robotName').textContent = name || '비어 있음';
-  $('robotName').classList.toggle('idle', !name);
-  $('cost').textContent = costOf(S.bench);
-  $('hint').textContent = S.bench.length
-    ? '손님 카드를 누르면 납품해요. 조립대의 부품을 누르면 다시 빠져요'
-    : '스토리지에서 부품을 눌러 올리세요. 최대 4개';
-  renderParts();
-  document.querySelectorAll('.card[data-slot]').forEach(el => el.classList.toggle('ready', S.bench.length > 0));
+function renderBoard(popAt) {
+  $('board').innerHTML = S.board.map((id, i) => {
+    if (!id) return `<button class="cell" type="button" data-cell="${i}" aria-label="빈 칸"></button>`;
+    const it = ITEMS[id];
+    return `<button class="cell ${it.kind}${S.sel === i ? ' sel' : ''}${popAt === i ? ' pop' : ''}" type="button" data-cell="${i}" aria-label="${it.name}">
+      <span class="ic">${it.icon}</span>${it.name}</button>`;
+  }).join('');
+  const selItem = S.sel !== null && S.board[S.sel];
+  $('hint').textContent = !selItem ? '부품을 끌어다 겹치면 조립돼요'
+    : ITEMS[selItem].kind === 'robot' ? `${ITEMS[selItem].name} 선택됨 · 손님을 누르면 납품`
+    : `${ITEMS[selItem].name} 선택됨 · 합칠 부품을 누르세요`;
+  document.querySelectorAll('.card[data-client]').forEach(el =>
+    el.classList.toggle('target', !!selItem && ITEMS[selItem].kind === 'robot'));
 }
 function renderClients() {
-  $('clients').innerHTML = S.slots.map((s, i) => {
-    if (!s) return `<div class="card empty">${S.queue.length ? '다음 손님 오는 중…' : '빈 자리'}</div>`;
-    const o = s.order;
-    const tags = o.tags.map(t => `<span class="tag">${TAGS[t].label}</span>`).join('');
-    return `<button class="card${s.fresh ? ' enter' : ''}${S.bench.length ? ' ready' : ''}" type="button" data-slot="${i}">
+  const cards = [0, 1, 2].map(i => {
+    const c = S.clients[i];
+    if (!c) return `<div class="card empty">${S.running ? '다음 손님 오는 중…' : '영업 전'}</div>`;
+    const o = c.order;
+    const robotSel = S.sel !== null && S.board[S.sel] && ITEMS[S.board[S.sel]].kind === 'robot';
+    return `<button class="card${c.fresh ? ' enter' : ''}${robotSel ? ' target' : ''}" type="button" data-client="${i}">
       <div class="c-top"><span class="c-icon">${o.icon}</span><span class="c-sec">${o.sec}</span></div>
       <div class="c-who">${o.who}</div>
       <div class="c-ask">${o.ask}</div>
-      ${tags ? `<div class="c-tags">${tags}</div>` : ''}
-      <div class="c-foot"><span>지불: ${o.payer}</span><span class="c-budget num">예산 ${o.budget}</span></div>
-      <div class="bar"><i></i></div>
     </button>`;
-  }).join('');
-  S.slots.forEach(s => s && (s.fresh = false));
-  updateBars();
-}
-function updateBars() {
-  S.slots.forEach((s, i) => {
-    if (!s) return;
-    const el = document.querySelector(`.card[data-slot="${i}"] .bar i`);
-    if (!el) return;
-    const f = Math.max(0, s.t / s.max);
-    el.style.width = (f * 100).toFixed(1) + '%';
-    el.className = f < 0.25 ? 'crit' : f < 0.5 ? 'warn' : '';
   });
+  $('clients').innerHTML = cards.join('');
+  S.clients.forEach(c => (c.fresh = false));
+  $('backlog').textContent = S.backlog.length ? `대기 중 +${S.backlog.length}팀` : '';
 }
 function renderHud() {
-  $('dayLabel').textContent = `${S.day}일차`;
-  $('money').textContent = S.money;
-  $('progress').textContent = `${S.served.length + S.missed.length}/${S.total}`;
+  const t = Math.max(0, Math.ceil(S.time));
+  $('clock').textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+  $('count').textContent = S.served.length;
+  $('score').textContent = S.score;
+  $('combo').textContent = `콤보 ${S.combo}`;
+  $('combo').classList.toggle('hot', S.combo >= 2);
+  $('flowBar').style.width = (S.combo ? Math.max(0, S.comboT / COMBO_SEC) * 100 : 0).toFixed(1) + '%';
   $('btnDex').textContent = `도감 ${S.dex.size}/${ORDERS.length}`;
 }
 
@@ -416,91 +438,184 @@ function toast(msg, kind) {
   el.textContent = msg;
   el.className = `toast show ${kind || ''}`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = 'toast'; }, kind === 'bad' ? 3200 : 2400);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, kind === 'bad' ? 3000 : 1800);
 }
 
-// ───────── 게임 진행 ─────────
-function dayConfig(d) {
-  return { patience: Math.max(40, 80 - (d - 1) * 12), gap: Math.max(4, 9 - (d - 1) * 1.5) };
+// ───────── 작업대 동작 ─────────
+const firstEmpty = () => S.board.findIndex(x => !x);
+function placePart(part, at) {
+  const i = at ?? firstEmpty();
+  if (i < 0) { toast('작업대가 꽉 찼어요. 🗑에 끌어다 버리세요'); return; }
+  S.board[i] = part; renderBoard(i);
 }
-function buildQueue(d) {
-  if (d <= DAY_PLANS.length) return DAY_PLANS[d - 1].slice();
-  if (d === 3) return shuffle(['fire', 'hyundai', ...shuffle(ORDERS.map(o => o.id).filter(id => id !== 'fire' && id !== 'hyundai')).slice(0, 6)]);
-  return shuffle(ORDERS.map(o => o.id)).slice(0, Math.min(ORDERS.length, 8 + (d - 4)));
+function mergeInto(target, incoming, fromCell) {
+  const r = recipe(S.board[target], incoming);
+  if (!r) return false;
+  if (fromCell !== undefined) S.board[fromCell] = null;
+  S.board[target] = r; S.sel = null;
+  renderBoard(target);
+  return true;
 }
-function startDay() {
-  S.cfg = dayConfig(S.day);
-  S.queue = buildQueue(S.day);
-  S.total = S.queue.length;
-  S.slots = [null, null, null];
-  S.bench = []; S.served = []; S.missed = []; S.dayEarn = 0; S.spawnT = 0.4;
-  S.running = true; S.paused = false;
-  renderClients(); renderBench(); renderHud();
+function cellToCell(from, to) {
+  if (from === to) return;
+  if (!S.board[to]) { S.board[to] = S.board[from]; S.board[from] = null; S.sel = null; renderBoard(); return; }
+  if (mergeInto(to, S.board[from], from)) return;
+  toast(`${label(S.board[from])} + ${label(S.board[to])}: 조립표에 없는 조합이에요`);
+  [S.board[from], S.board[to]] = [S.board[to], S.board[from]];
+  S.sel = null; renderBoard();
 }
-function spawn() {
-  const i = S.slots.findIndex(s => !s);
-  if (i < 0 || !S.queue.length) return;
-  const order = O[S.queue.shift()];
-  S.slots[i] = { order, t: S.cfg.patience, max: S.cfg.patience, fresh: true };
-  renderClients();
+function tapCell(i) {
+  if (S.sel === null) { if (S.board[i]) { S.sel = i; renderBoard(); } return; }
+  if (S.sel === i) { S.sel = null; renderBoard(); return; }
+  if (!S.board[i]) { cellToCell(S.sel, i); return; }
+  if (mergeInto(i, S.board[S.sel], S.sel)) return;
+  S.sel = i; renderBoard();
 }
-function deliver(i) {
-  const s = S.slots[i];
-  if (!s || !S.running || S.paused) return;
-  if (!S.bench.length) { toast('조립대가 비어 있어요. 스토리지에서 부품을 먼저 올리세요', 'bad'); return; }
-  const why = check(s.order, S.bench);
-  const card = document.querySelector(`.card[data-slot="${i}"]`);
-  if (why) {
-    s.t = Math.max(1, s.t - s.max * 0.15);
-    toast(`❌ ${s.order.who}: ${why}`, 'bad');
+function tapPart(part) {
+  if (S.sel !== null && S.board[S.sel] && mergeInto(S.sel, part)) return;
+  placePart(part);
+}
+function trash(i) {
+  if (i === null || !S.board[i]) { toast('버릴 것을 먼저 고르거나 🗑에 끌어다 놓으세요'); return; }
+  S.board[i] = null; S.sel = null; renderBoard();
+}
+function deliver(cell, ci) {
+  const c = S.clients[ci];
+  const id = S.board[cell];
+  if (!c || !id) return;
+  if (ITEMS[id].kind === 'part') { toast('부품은 납품할 수 없어요. 조립해서 로봇으로 만들어 주세요'); return; }
+  const o = c.order;
+  if (id !== o.want) {
+    toast(`${o.icon} ${o.who}: ${o.why}`, 'bad');
+    const card = document.querySelector(`.card[data-client="${ci}"]`);
     if (card) { card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); }
-    updateBars();
     return;
   }
-  const name = robotName(S.bench);
-  const cost = costOf(S.bench);
-  const tip = Math.round(3 * s.t / s.max);
-  const gain = s.order.budget - cost + tip;
-  S.money += gain; S.dayEarn += gain;
-  S.served.push({ id: s.order.id, name, gain });
-  S.dex.add(s.order.id); saveDex();
-  $('ticker').innerHTML = `<b>${s.order.icon} ${s.order.who}</b> · ${s.order.fact}`;
-  S.slots[i] = null; S.bench = [];
-  S.spawnT = Math.max(S.spawnT, 1.2);
-  toast(`✅ ${name} 납품! 이익 +${gain} (팁 ${tip})`, 'good');
-  renderClients(); renderBench(); renderHud();
-}
-function addPart(id) {
-  if (!S.running || S.paused) return;
-  if (S.bench.includes(id)) { toast(`${P[id].name}은(는) 이미 올라가 있어요`); return; }
-  if (S.bench.length >= 4) { toast('조립대가 꽉 찼어요. 부품을 눌러 빼세요', 'bad'); return; }
-  S.bench.push(id);
-  renderBench();
+  S.combo = S.comboT > 0 ? S.combo + 1 : 1;
+  S.comboT = COMBO_SEC;
+  S.best = Math.max(S.best, S.combo);
+  const waited = (SHIFT_SEC - S.time) - c.born;
+  const mult = Math.min(3, 1 + 0.25 * (S.combo - 1));
+  const gain = Math.round(100 * mult) + (waited < 10 ? 50 : 0);
+  S.score += gain;
+  S.served.push(o.id);
+  S.dex.add(o.id); saveDex();
+  S.board[cell] = null; S.sel = null;
+  S.clients.splice(ci, 1);
+  if (S.backlog.length) S.clients.push(S.backlog.shift());
+  if (!S.clients.length) S.spawnT = Math.min(S.spawnT, 0.8);
+  $('ticker').innerHTML = `<b>${o.icon} ${o.who}</b> · ${o.fact}`;
+  toast(`✅ ${ITEMS[id].name} 납품 +${gain}${S.combo >= 2 ? ` · 콤보 ${S.combo}` : ''}`, 'good');
+  renderClients(); renderBoard(); renderHud();
 }
 
+// ───────── 끌기 + 누르기 입력 ─────────
+let drag = null;
+function onDown(e) {
+  if (!S.running || S.paused) return;
+  const cell = e.target.closest('[data-cell]');
+  const part = e.target.closest('[data-part]');
+  if (!cell && !part) return;
+  const src = cell ? { cell: +cell.dataset.cell } : { part: part.dataset.part };
+  drag = { src, x: e.clientX, y: e.clientY, started: false, ghost: null, over: null };
+}
+function onMove(e) {
+  if (!drag) return;
+  if (!drag.started) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+    const id = drag.src.part || S.board[drag.src.cell];
+    if (!id) { drag = null; return; }
+    drag.started = true;
+    drag.ghost = document.createElement('div');
+    drag.ghost.className = 'ghost';
+    drag.ghost.textContent = ITEMS[id].icon;
+    document.body.appendChild(drag.ghost);
+    if (drag.src.cell !== undefined) document.querySelector(`[data-cell="${drag.src.cell}"]`)?.classList.add('dim');
+  }
+  e.preventDefault();
+  drag.ghost.style.left = e.clientX + 'px';
+  drag.ghost.style.top = e.clientY + 'px';
+  const over = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-cell],[data-client]');
+  if (drag.over && drag.over !== over) drag.over.classList.remove('drop');
+  if (over && over.dataset.cell !== undefined) over.classList.add('drop');
+  drag.over = over;
+}
+function onUp(e) {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.started) {
+    if (d.src.part) tapPart(d.src.part); else tapCell(d.src.cell);
+    return;
+  }
+  d.ghost.remove();
+  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-cell],[data-client],[data-trash]');
+  if (!target) { renderBoard(); return; }
+  if (target.dataset.trash) { if (d.src.cell !== undefined) trash(d.src.cell); else renderBoard(); return; }
+  if (target.dataset.client !== undefined) {
+    if (d.src.part) { toast('부품은 납품할 수 없어요. 조립해서 로봇으로 만들어 주세요'); renderBoard(); return; }
+    deliver(d.src.cell, +target.dataset.client); renderBoard(); return;
+  }
+  const to = +target.dataset.cell;
+  if (d.src.part) {
+    if (!S.board[to]) placePart(d.src.part, to);
+    else if (!mergeInto(to, d.src.part)) { toast(`${label(d.src.part)} + ${label(S.board[to])}: 조립표에 없는 조합이에요`); renderBoard(); }
+  } else cellToCell(d.src.cell, to);
+}
+document.addEventListener('pointerdown', onDown);
+document.addEventListener('pointermove', onMove, { passive: false });
+document.addEventListener('pointerup', onUp);
+document.addEventListener('pointercancel', () => { if (drag?.ghost) drag.ghost.remove(); drag = null; renderBoard(); });
+
+$('clients').addEventListener('click', e => {
+  const b = e.target.closest('[data-client]');
+  if (!b || !S.running || S.paused) return;
+  const ci = +b.dataset.client;
+  if (S.sel === null || !S.board[S.sel]) { toast('작업대에서 로봇을 고른 뒤 손님을 누르세요 (끌어다 놓아도 돼요)'); return; }
+  deliver(S.sel, ci);
+});
+$('btnTrash').addEventListener('click', () => { if (S.running && !S.paused) trash(S.sel); });
+
+// ───────── 근무 루프 ─────────
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
   if (S.running && !S.paused) {
-    if (S.queue.length && S.slots.some(s => !s)) {
+    S.time -= dt;
+    if (S.comboT > 0) { S.comboT -= dt; if (S.comboT <= 0) { S.comboT = 0; S.combo = 0; } }
+    if (S.clients.length + S.backlog.length < MAX_WAIT) {
       S.spawnT -= dt;
-      if (S.spawnT <= 0) { spawn(); S.spawnT = S.cfg.gap; }
+      if (S.spawnT <= 0) { spawn(); S.spawnT = spawnGap(); }
     }
-    let changed = false;
-    S.slots.forEach((s, i) => {
-      if (!s) return;
-      s.t -= dt;
-      if (s.t <= 0) {
-        S.missed.push(s.order.id);
-        S.slots[i] = null; changed = true;
-        S.spawnT = Math.max(S.spawnT, 1.2);
-        toast(`${s.order.icon} ${s.order.who} 고객이 기다리다 떠났어요`, 'bad');
-      }
-    });
-    if (changed) { renderClients(); renderHud(); } else updateBars();
-    if (!S.queue.length && S.slots.every(s => !s)) endDay();
+    renderHud();
+    if (S.time <= 0) endShift();
   }
   requestAnimationFrame(loop);
+}
+function startShift() {
+  S.running = true; S.paused = false; S.time = SHIFT_SEC; S.score = 0;
+  S.combo = 0; S.comboT = 0; S.best = 0; S.served = [];
+  S.board = Array(CELLS).fill(null); S.sel = null;
+  S.clients = []; S.backlog = []; S.spawnT = 0.3;
+  S.intro = S.shift === 1 ? TUTORIAL.slice() : [];
+  renderClients(); renderBoard(); renderHud();
+}
+function endShift() {
+  S.running = false;
+  const seen = [...new Set(S.served)];
+  const log = seen.map(id => {
+    const o = O[id];
+    return `<div class="log-item"><div class="hd"><b>${o.icon} ${o.who}</b><small>${o.sec}</small><em>${o.when} · ${label(o.want)}</em></div>${o.fact}</div>`;
+  }).join('');
+  openSheet(`
+    <h2>${S.shift}번째 근무 끝</h2>
+    <div class="big-stats">
+      <div><span>납품</span><b class="num">${S.served.length}</b></div>
+      <div><span>매출</span><b class="num">${S.score}</b></div>
+      <div><span>최고 콤보</span><b class="num">${S.best}</b></div>
+      <div><span>도감</span><b class="num">${S.dex.size}/${ORDERS.length}</b></div>
+    </div>
+    ${log ? `<h3>오늘 다녀온 현장</h3><div class="log">${log}</div>` : '<p>오늘은 납품이 없었어요. 다음 근무에서 다시 해봐요.</p>'}
+    <button class="primary" type="button" data-act="next">다음 근무 시작</button>`);
 }
 
 // ───────── 오버레이 ─────────
@@ -508,105 +623,47 @@ function openSheet(html, pause) {
   $('sheet').innerHTML = html;
   $('overlay').hidden = false;
   if (pause && S.running) S.paused = true;
-  const btn = $('sheet').querySelector('button');
-  if (btn) btn.focus();
+  $('sheet').querySelector('button')?.focus();
 }
-function closeSheet() {
-  $('overlay').hidden = true;
-  if (S.running) S.paused = false;
-}
-const answerOf = o => o.needs.map(n => n.any.map(needLabel).join(' 또는 ')).join(' + ')
-  + o.tags.map(t => ` · ${TAGS[t].rule}`).join('');
-
+function closeSheet() { $('overlay').hidden = true; if (S.running) S.paused = false; }
 function helpHtml(first) {
   return `
     <h2>로봇 SI 납품소</h2>
-    <p>당신은 로봇 SI 회사 사장이에요. 산업 현장에서 고객이 찾아오면, 요청에 맞는 로봇을 조립해 납품하세요.</p>
+    <p>산업 현장에서 손님이 끊임없이 찾아와요. 부품을 조립해 맞는 로봇을 납품하세요.</p>
     <ol>
-      <li>손님 카드에서 <b>요청·조건·예산</b>을 읽어요</li>
-      <li>스토리지에서 부품을 눌러 <b>조립대</b>에 올려요 (최대 4개)</li>
-      <li><b>손님 카드를 누르면 납품</b>. 틀리면 이유를 알려주고 손님 인내심이 줄어요</li>
+      <li>스토리지에서 부품을 꺼내 작업대에 놓아요</li>
+      <li>부품끼리 <b>끌어다 겹치면</b> 조립돼요 (하나 누르고 다른 하나를 눌러도 돼요)</li>
+      <li>완성된 로봇을 <b>손님 카드에 끌어다 놓으면</b> 납품이에요</li>
     </ol>
-    <h3>조건 표시</h3>
-    <div class="rules">
-      ${Object.values(TAGS).map(t => `<div><span class="tag">${t.label}</span><span>${t.rule}</span></div>`).join('')}
-    </div>
-    <p>이익 = 예산 − 부품 원가 + 빨리 납품한 팁. 싼 중국산 센서와 AGV를 쓸 수 있는 곳에선 써서 이익을 남기세요.</p>
-    <div class="row"><button class="primary" type="button" data-act="${first ? 'begin' : 'close'}">${first ? '1일차 시작' : '계속하기'}</button></div>`;
-}
-function dayStartHtml() {
-  const c = dayConfig(S.day);
-  const n = S.day <= DAY_PLANS.length ? DAY_PLANS[S.day - 1].length : buildQueue(S.day).length;
-  return `
-    <h2>${S.day}일차 영업</h2>
-    <p>오늘 손님 ${n}팀이 와요. 손님 한 팀은 약 ${c.patience}초 기다려요.${S.day >= 3 ? ' 오늘부터는 손님이 무작위로 섞여 와요.' : ''}</p>
-    <div class="row"><button class="primary" type="button" data-act="begin">영업 시작</button></div>`;
-}
-function endDay() {
-  S.running = false;
-  const served = S.served.map(x => {
-    const o = O[x.id];
-    return `<div class="log-item"><div class="hd"><b>${o.icon} ${o.who}</b><small>${o.sec}</small><em>${o.when} · ${x.name} · +${x.gain}</em></div>${o.fact}</div>`;
-  }).join('');
-  const missed = S.missed.map(id => {
-    const o = O[id];
-    return `<div class="log-item miss"><div class="hd"><b>${o.icon} ${o.who}</b><small>${o.sec}</small></div>정답: <span class="answer">${answerOf(o)}</span></div>`;
-  }).join('');
-  openSheet(`
-    <h2>${S.day}일차 마감</h2>
-    <div class="big-stats">
-      <div><span>납품</span><b class="num">${S.served.length}/${S.total}</b></div>
-      <div><span>오늘 이익</span><b class="num">${S.dayEarn}</b></div>
-      <div><span>누적 이익</span><b class="num">${S.money}</b></div>
-      <div><span>도감</span><b class="num">${S.dex.size}/${ORDERS.length}</b></div>
-    </div>
-    ${served ? `<h3>오늘의 납품 일지</h3><div class="log">${served}</div>` : ''}
-    ${missed ? `<h3>놓친 손님</h3><div class="log">${missed}</div>` : ''}
-    <div class="row"><button class="primary" type="button" data-act="next">${S.day + 1}일차로</button></div>`);
+    <p>손님은 떠나지 않고, 틀려도 감점이 없어요. 대신 왜 그 로봇이 맞는지 알려줘요. 15초 안에 연달아 납품하면 콤보가 쌓여요. 근무는 3분이에요.</p>
+    <button class="primary" type="button" data-act="${first ? 'begin' : 'close'}">${first ? '근무 시작' : '계속하기'}</button>`;
 }
 function dexHtml() {
   const items = ORDERS.map(o => S.dex.has(o.id)
-    ? `<div class="log-item"><div class="hd"><b>${o.icon} ${o.who}</b><small>${o.sec}</small><em>${o.when} · 지불: ${o.payer}</em></div>${o.fact}</div>`
+    ? `<div class="log-item"><div class="hd"><b>${o.icon} ${o.who}</b><small>${o.sec}</small><em>${o.when} · ${label(o.want)}</em></div>${o.fact}</div>`
     : `<div class="log-item locked"><div class="hd"><b>${o.icon} ???</b><small>${o.sec}</small></div>아직 납품 전이에요.</div>`).join('');
   return `
     <h2>현장 도감 ${S.dex.size}/${ORDERS.length}</h2>
-    <p>납품에 성공한 현장의 실제 이야기가 모여요. 출처는 로봇 스터디 2차 발제 자료(2026.09.21)예요.</p>
+    <p>납품한 현장의 실제 이야기가 모여요. 출처는 로봇 스터디 2차 발제 자료(2026.09.21)예요.</p>
     <div class="log">${items}</div>
-    <div class="row"><button class="primary" type="button" data-act="close">닫기</button></div>`;
+    <button class="primary" type="button" data-act="close">닫기</button>`;
 }
-
-// ───────── 입력 ─────────
-$('parts').addEventListener('click', e => { const b = e.target.closest('[data-part]'); if (b) addPart(b.dataset.part); });
-$('slots').addEventListener('click', e => {
-  const b = e.target.closest('[data-bench]');
-  if (!b || S.paused) return;
-  S.bench.splice(+b.dataset.bench, 1); renderBench();
+$('sheet').addEventListener('click', e => {
+  const act = e.target.closest('[data-act]')?.dataset.act;
+  if (act === 'close') closeSheet();
+  else if (act === 'begin') { $('overlay').hidden = true; startShift(); }
+  else if (act === 'next') { S.shift++; $('overlay').hidden = true; startShift(); }
 });
-$('clients').addEventListener('click', e => { const b = e.target.closest('[data-slot]'); if (b) deliver(+b.dataset.slot); });
-$('btnClear').addEventListener('click', () => { if (S.paused) return; S.bench = []; renderBench(); });
 $('btnHelp').addEventListener('click', () => openSheet(helpHtml(false), true));
 $('btnDex').addEventListener('click', () => openSheet(dexHtml(), true));
 $('btnPause').addEventListener('click', () => {
   if (!S.running) return;
-  openSheet(`<h2>일시정지</h2><p>손님들이 기다려 주고 있어요.</p><div class="row"><button class="primary" type="button" data-act="close">계속하기</button></div>`, true);
+  openSheet(`<h2>잠깐 쉬는 중</h2><p>손님들은 기다려 줘요.</p><button class="primary" type="button" data-act="close">계속하기</button>`, true);
 });
-$('sheet').addEventListener('click', e => {
-  const b = e.target.closest('[data-act]');
-  if (!b) return;
-  const act = b.dataset.act;
-  if (act === 'close') closeSheet();
-  else if (act === 'begin') { $('overlay').hidden = true; startDay(); }
-  else if (act === 'next') { S.day++; renderHud(); openSheet(dayStartHtml()); }
-});
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && S.running && !S.paused) $('btnPause').click();
-});
+document.addEventListener('visibilitychange', () => { if (document.hidden && S.running && !S.paused) $('btnPause').click(); });
 
 // ───────── 시작 ─────────
-let seen = false;
-try { seen = localStorage.getItem('robotsi.seen') === '1'; localStorage.setItem('robotsi.seen', '1'); } catch (e) {}
-renderBench(); renderHud();
-S.slots = [null, null, null]; S.queue = DAY_PLANS[0].slice(); renderClients(); S.queue = [];
-openSheet(seen ? dayStartHtml() : helpHtml(true));
+renderParts(); renderBoard(); renderClients(); renderHud();
+openSheet(helpHtml(true));
 requestAnimationFrame(loop);
 </script>
