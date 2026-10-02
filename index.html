@@ -656,6 +656,13 @@ const SFX = {
     [2093, 2637, 3136, 4186].forEach((f, i) => osc('sine', f, t + 0.06 + i * 0.012, 0.5, 0.05));
   },
   part: () => {},
+  cash: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    nz(t, 0.06, 0.16, 'bandpass', 3800, 2); osc('square', 160, t, 0.06, 0.05);
+    [2093, 2637, 3136, 4186].forEach((f, i) => osc('sine', f, t + 0.07 + i * 0.015, 0.6, 0.06));
+    for (let k = 0; k < 14; k++) { const d = 0.25 + k * 0.045 + Math.random() * 0.03; osc('sine', 2600 + Math.random() * 2400, t + d, 0.12, 0.035); nz(t + d, 0.03, 0.03, 'highpass', 6000); }
+  },
   // 납품 성공: 빵빠레
   done: () => {
     if (!audio()) return;
@@ -732,7 +739,7 @@ function addClient(i) {
   S.spawned++;
   SFX.ticket();
   renderClients();
-  orderIntro(c, i);
+  onStage(() => orderIntro(c, i));
 }
 function clientTick(dt) {
   S.slots.forEach((c, i) => {
@@ -747,10 +754,11 @@ function clientTick(dt) {
       S.dead += c.needs.filter(nd => nd.got).length;
       S.missed++;
       renderClients(); renderStock(); renderHud();
-      leaveShow(c, i, false);
+      c.showing = true;
+      onStage(() => leaveShow(c, i, false)).then(() => { c.showing = false; });
       return;
     }
-    if ((c.until -= dt) <= 0) {
+    if ((c.until -= dt) <= 0 && !c.showing) {
       S.slots[i] = null;
       S.spawnT = Math.min(S.spawnT, 0.6);
       renderClients();
@@ -760,6 +768,7 @@ function clientTick(dt) {
 }
 function spawnTick(dt) {
   if (S.done + waiting().length >= levelTarget(S.lv)) return;
+  if (!stageIdle()) return;
   const free = S.slots.findIndex(c => !c);
   if (free < 0) return;
   if ((S.spawnT -= dt) <= 0 || !waiting().length) {
@@ -796,7 +805,8 @@ function complete(i) {
   SFX.star(c.stars);
   S.done++;
   renderClients(); renderHud();
-  leaveShow(c, i, true);
+  c.showing = true;
+  onStage(() => leaveShow(c, i, true)).then(() => { c.showing = false; });
 }
 // 주문 카드 내용: 로봇 + 필요한 부품
 const orderCardHtml = (c, big) => {
@@ -805,15 +815,25 @@ const orderCardHtml = (c, big) => {
     (big ? `<span class="oc-needs">${c.needs.map(nd => `<i>${TILES[nd.p].icon}</i>`).join('')}</span>` : '');
 };
 const centerX = () => innerWidth / 2;
-let introStack = 0;
+// 가운데 무대: 등장 주문서·떠나는 연출을 겹치지 않게 한 번에 하나씩 순서대로 보여 줌
+const stage = { q: [], busy: false };
+function onStage(fn) {
+  return new Promise(done => { stage.q.push(async () => { try { await fn(); } catch (e) {} done(); }); runStage(); });
+}
+async function runStage() {
+  if (stage.busy) return;
+  stage.busy = true;
+  while (stage.q.length) await stage.q.shift()();
+  stage.busy = false;
+}
+const stageIdle = () => !stage.busy && !stage.q.length;
 // 손님 등장: 주문서가 화면 가운데에 크게 4초 떠 있다가 작아지며 그 손님 말풍선 자리로 들어감
 async function orderIntro(c, i) {
   if (JUICE <= 0) { c.intro = false; renderClients(); return; }
   const el = document.createElement('div');
   el.className = 'order-card';
   el.innerHTML = `<span class="oc-ind">${c.order.icon} ${c.order.ind}</span>${c.order.who ? `<span class="oc-who">${c.order.who}</span>` : ''}<span class="oc-say">${c.order.task}</span>${orderCardHtml(c, true)}<span class="oc-face">${BANDS[0].face}</span>`;
-  const k = introStack++;
-  const mx = centerX(), my = innerHeight * (0.42 + 0.06 * (k % 3));
+  const mx = centerX(), my = innerHeight * 0.44;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(mx, my, 0.3, 0);
   document.body.appendChild(el);
@@ -824,15 +844,14 @@ async function orderIntro(c, i) {
   const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width : 0.4;
   await tween(320, q => set(mx + (tx - mx) * q, my + (ty - my) * q, 1 + (s1 - 1) * q, 1 - 0.3 * q), EASE.inQuad);
   el.remove();
-  introStack = Math.max(0, introStack - 1);
   c.intro = false;
   if (S.slots[i] === c) renderClients();
 }
 // 손님이 떠날 때: 얼굴이 바라던 물건 말풍선을 들고 화면 가운데에 몇 초 떠 있다가
-//   만족 → 펑! 돈이 쏟아지며 사라짐 + 빵빠레 / 화남 → 피식 연기와 함께 사라짐 + "아 오"
+//   만족 → 나타나며 빵빠레, 몇 초 뒤 캐시 소리와 함께 펑! 돈이 쏟아지며 사라짐 / 화남 → 피식 연기와 함께 사라짐 + "아 오"
 async function leaveShow(c, i, happy) {
   const src = document.querySelector(`[data-face="${i}"]`);
-  if (!src || JUICE <= 0) { (happy ? SFX.done : SFX.leave)(); return; }
+  if (!src || JUICE <= 0) { (happy ? SFX.cash : SFX.leave)(); return; }
   const [x0, y0] = centerOf(src);
   const el = document.createElement('div');
   el.className = 'leave' + (happy ? ' happy' : ' angry');
@@ -841,13 +860,14 @@ async function leaveShow(c, i, happy) {
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
   const mx = centerX(), my = innerHeight * 0.45;
+  if (happy) SFX.done();  // 등장하며 빵빠레
   await tween(380, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
   // 몇 초 떠 있음 (살짝 둥실)
   await tween(1800, q => set(mx, my - 6 * Math.sin(q * Math.PI * 3), 1, 1));
   const r = el.getBoundingClientRect();
   if (happy) {
-    // 펑! 하고 돈이 쏟아짐
-    SFX.done();
+    // 캐시 소리와 함께 펑! 돈이 쏟아짐
+    SFX.cash();
     const b = $('board').getBoundingClientRect();
     fxBurst(mx - b.left, my - b.top, '#F0B400', 46, 1.6);
     fxRing(mx - b.left, my - b.top, 20, r.width * 0.8, 260, 5, '255,215,90');
