@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 위 주문표(손님·현장) → 받은 부품 재고 → 아래 5×5 매치3 보드. 공장 작업장 톤 */
+/* 레이아웃: 위 주문표(손님·현장) → 받은 부품 재고 → 아래 5×4 매치3 보드. 공장 작업장 톤 */
 :root {
   --bg: #DDE4E8;
   --board: #C3CED5;
@@ -100,13 +100,14 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* 매치3 보드 */
 .boardwrap { flex: none; display: flex; justify-content: center; }
-.board { position: relative; width: min(100%, 400px); aspect-ratio: 1; background: var(--board); border-radius: 14px; touch-action: none; overflow: hidden; }
+.board { position: relative; width: min(100%, 420px); aspect-ratio: 5 / 4; background: var(--board); border-radius: 14px; touch-action: none; overflow: visible; }
+.clip { position: absolute; inset: 0; overflow: hidden; border-radius: 14px; }
+.fxc { position: absolute; left: -40px; top: -40px; pointer-events: none; z-index: 5; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
-.tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; transition: transform .16s ease-out; pointer-events: none; }
+.tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; pointer-events: none; transform-origin: 50% 50%; }
 .tile .ic { font-size: 30px; line-height: 1; }
 .tile .nm { font-size: 9.5px; font-weight: 700; color: var(--ink); opacity: .75; margin-top: 2px; }
 .tile.sel { box-shadow: inset 0 -4px 0 rgba(0,0,0,.12), 0 0 0 3px var(--accent); }
-.tile.pop { transition: transform .2s ease-in, opacity .2s ease-in; opacity: 0; }
 .tile.hint { animation: hint 1s ease-in-out infinite; }
 @keyframes hint { 50% { filter: brightness(1.25); } }
 
@@ -144,7 +145,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   .ticket.enter, .ticket.bump, .float, .banner, .tile.hint { animation: none; }
-  .tile, .flyer { transition: none; }
+  .flyer { transition: none; }
 }
 </style>
 
@@ -162,7 +163,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
   <section class="rail" id="rail" aria-label="주문표"></section>
   <div class="stock" id="stock" aria-label="남은 부품"></div>
-  <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"></div></div>
+  <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"><div class="clip" id="clip"></div><canvas class="fxc" id="fxc"></canvas></div></div>
 </div>
 
 <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
@@ -443,30 +444,33 @@ const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
-// ───────── 단계: 그 단계의 로봇 → 보드 타일 4~5종 ─────────
+// ───────── 단계: 그 단계의 로봇 → 보드 타일 4종 ─────────
+// 5×4 보드는 타일 4종이면 막힘(셔플) 0.6%·연쇄 39%, 5종이면 막힘 4.7%라 4종으로 맞춤
 const LEVELS = [
-  { robots: ['amr', 'agv'],          tiles: ['wheel', 'auto', 'floor', 'arm'] },
-  { robots: ['amr', 'cobot'],        tiles: ['wheel', 'auto', 'arm', 'tool'] },
-  { robots: ['agv', 'cobot', 'mm'],  tiles: ['wheel', 'auto', 'floor', 'arm', 'tool'] },
-  { robots: ['quad', 'amr'],         tiles: ['legs', 'auto', 'wheel', 'arm'] },
+  { robots: ['amr', 'agv'],           tiles: ['wheel', 'auto', 'floor', 'arm'] },
+  { robots: ['amr', 'cobot'],         tiles: ['wheel', 'auto', 'arm', 'tool'] },
+  { robots: ['mm', 'cobot', 'amr'],   tiles: ['wheel', 'auto', 'arm', 'tool'] },
+  { robots: ['quad', 'amr'],          tiles: ['legs', 'auto', 'wheel', 'arm'] },
   { robots: ['hum', 'quad', 'cobot'], tiles: ['legs', 'arm', 'tool', 'auto'] },
 ];
 function levelDef(lv) {
   if (lv <= LEVELS.length) return LEVELS[lv - 1];
   const all = Object.keys(ROBOTS);
-  for (let k = 0; k < 50; k++) {
-    const robots = all.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+  for (let k = 0; k < 100; k++) {
+    const robots = all.slice().sort(() => Math.random() - 0.5).slice(0, 2 + (Math.random() < 0.5 ? 1 : 0));
     const tiles = [...new Set(robots.flatMap(r => ROBOTS[r].parts))];
-    if (tiles.length <= 5) {
-      while (tiles.length < 4) { const f = Object.keys(TILES).find(t => !tiles.includes(t)); tiles.push(f); }
-      return { robots, tiles };
-    }
+    if (tiles.length > 4) continue;
+    while (tiles.length < 4) tiles.push(Object.keys(TILES).find(t => !tiles.includes(t)));
+    return { robots, tiles };
   }
   return LEVELS[2];
 }
 const NEW_ROBOT_AT = { 1: ['amr', 'agv'], 2: ['cobot'], 3: ['mm'], 4: ['quad'], 5: ['hum'] };
 const levelTarget = lv => Math.min(12, 5 + lv);
-const RAIL = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3;
+const RAIL = 3, COLS = 5, ROWS = 4, STOCK_MAX = 3;
+// 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
+const JUICE = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2.0;
+const FALL_GRAVITY = 140; // 칸/초²
 
 // ───────── 상태 ─────────
 const S = {
@@ -580,7 +584,7 @@ function complete(i) {
   const gain = 60 * t.needs.length + tip;
   S.score += gain; S.best = Math.max(S.best, S.score);
   floatText(el, `+${gain}`, 'big');
-  SFX.done();
+  SFX.done(); vibrate([30, 50, 30]); fxShake(3);
   const lit = [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
   S.dex.add(t.order.id); S.runServed.push(t.order.id); save();
   if (!lit) banner(`${secKey(t.order)}${t.order.icon} 점등!`, 200);
@@ -633,26 +637,110 @@ function renderHud() {
   $('score').textContent = S.score;
 }
 
-// ───────── 렌더링: 보드 (DOM 타일, 위치는 transform) ─────────
+// ───────── 연출 엔진: 트윈 + 파티클 캔버스 + 화면 흔들림 (Bosses of Our World의 fx/tween 방식을 따라함) ─────────
+const tweens = [];
+function tween(ms, fn, ease = p => p, delay = 0) {
+  return new Promise(res => tweens.push({ t: -delay, ms: Math.max(1, ms), fn, ease, res }));
+}
+const EASE = { outQuad: p => 1 - (1 - p) * (1 - p), inQuad: p => p * p };
+function updateTweens(dms) {
+  for (const tw of tweens.slice()) {
+    tw.t += dms;
+    if (tw.t < 0) continue;
+    const p = Math.min(1, tw.t / tw.ms);
+    tw.fn(tw.ease(p));
+    if (p >= 1) { tweens.splice(tweens.indexOf(tw), 1); tw.res(); }
+  }
+}
+const rand = (a, b) => a + Math.random() * (b - a);
+const FX = { parts: [], rings: [], texts: [], amp: 0, sx: 0, sy: 0, M: 40 };
+function fxBurst(x, y, color, count, speed = 1) {
+  if (JUICE <= 0) return;
+  const n = Math.round(count * Math.min(JUICE, 2));
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, Math.PI * 2), v = rand(140, 380) * speed * Math.sqrt(JUICE);
+    FX.parts.push({ x: x + rand(-8, 8), y: y + rand(-8, 8), vx: Math.cos(a) * v, vy: Math.sin(a) * v - rand(80, 220) * speed, g: 1500, size: rand(4, 9), color, rot: rand(0, 3), vr: rand(-12, 12), life: 0, max: rand(0.55, 0.9) });
+  }
+  for (let i = 0; i < 4 * Math.min(JUICE, 2); i++) {
+    const a = rand(0, Math.PI * 2), v = rand(300, 560) * speed * Math.sqrt(JUICE);
+    FX.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 400, size: rand(2.5, 4), color: '#fffbe6', rot: 0, vr: 0, life: 0, max: rand(0.18, 0.3) });
+  }
+}
+function fxDust(x, y) {
+  if (JUICE <= 0) return;
+  for (let i = 0; i < 3; i++) FX.parts.push({ x: x + rand(-10, 10), y, vx: (i % 2 ? 1 : -1) * rand(30, 70), vy: rand(-40, -10), g: 0, size: rand(3, 6), color: 'rgba(160,170,180,.7)', rot: 0, vr: 0, life: 0, max: rand(0.3, 0.45), round: true });
+}
+function fxRing(x, y, r0, r1, dur, w = 3, rgb = '255,255,255') { if (JUICE > 0) FX.rings.push({ x, y, r0, r1, dur: dur / 1000, w, rgb, t: 0 }); }
+function fxText(x, y, str, size, color) { if (JUICE > 0) FX.texts.push({ x, y, str, size, color, t: 0, dur: 0.9 }); }
+function fxShake(px) { if (JUICE > 0) FX.amp = Math.max(FX.amp, Math.min(px * JUICE, 10 * JUICE)); }
+function vibrate(p) { if (JUICE > 0 && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) {} } }
+function fxUpdate(s) {
+  for (const p of FX.parts) { p.life += s; p.vy += p.g * s; p.x += p.vx * s; p.y += p.vy * s; p.rot += p.vr * s; }
+  FX.parts = FX.parts.filter(p => p.life < p.max);
+  FX.rings.forEach(r => r.t += s); FX.rings = FX.rings.filter(r => r.t < r.dur);
+  FX.texts.forEach(t => t.t += s); FX.texts = FX.texts.filter(t => t.t < t.dur);
+  FX.amp *= Math.pow(0.0015, s);
+  if (FX.amp < 0.3) FX.amp = 0;
+  FX.sx = FX.amp ? rand(-FX.amp, FX.amp) : 0; FX.sy = FX.amp ? rand(-FX.amp, FX.amp) : 0;
+}
+function fxDraw() {
+  const cv = $('fxc'); if (!cv) return;
+  const ctx = cv.getContext('2d'), dpr = devicePixelRatio || 1;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.translate(FX.M, FX.M);
+  for (const r of FX.rings) {
+    const p = r.t / r.dur;
+    ctx.strokeStyle = `rgba(${r.rgb},${(1 - p) * 0.9})`; ctx.lineWidth = r.w;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * EASE.outQuad(p), 0, Math.PI * 2); ctx.stroke();
+  }
+  for (const p of FX.parts) {
+    ctx.globalAlpha = Math.max(0, 1 - p.life / p.max);
+    ctx.fillStyle = p.color;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); } else ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  for (const t of FX.texts) {
+    const p = t.t / t.dur, s = p < 0.15 ? 0.4 + 0.8 * (p / 0.15) * 1.0 : 1.2 - 0.2 * Math.min(1, (p - 0.15) * 4);
+    ctx.save(); ctx.translate(t.x, t.y - 30 * p); ctx.scale(s, s);
+    ctx.globalAlpha = p > 0.7 ? (1 - p) / 0.3 : 1;
+    ctx.font = `${t.size}px 'Black Han Sans', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(19,32,42,.85)'; ctx.strokeText(t.str, 0, 0);
+    ctx.fillStyle = t.color; ctx.fillText(t.str, 0, 0);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ───────── 보드 그리기: 타일은 DOM, 위치·크기·번쩍임은 매 프레임 타일 상태로 ─────────
 let geo = { size: 0, step: 0, pad: 0 };
 const tileEls = new Map();
+const tileHex = {};
 function layout() {
   const el = $('board');
-  const W = el.clientWidth;
+  const W = el.clientWidth, H = el.clientHeight;
   const pad = 6, gap = 5;
-  const size = (W - pad * 2 - gap * (COLS - 1)) / COLS;
+  const size = Math.min((W - pad * 2 - gap * (COLS - 1)) / COLS, (H - pad * 2 - gap * (ROWS - 1)) / ROWS);
   geo = { size, step: size + gap, pad };
-  el.querySelectorAll('.cellbg').forEach(x => x.remove());
+  $('clip').querySelectorAll('.cellbg').forEach(x => x.remove());
   for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
     const b = document.createElement('div');
     b.className = 'cellbg';
     Object.assign(b.style, { left: pad + c * geo.step + 'px', top: pad + r * geo.step + 'px', width: size + 'px', height: size + 'px' });
-    el.prepend(b);
+    $('clip').prepend(b);
   }
-  tileEls.forEach((e, t) => sizeTile(e));
+  tileEls.forEach(e => sizeTile(e));
+  const cv = $('fxc'), dpr = devicePixelRatio || 1;
+  cv.style.width = (W + FX.M * 2) + 'px'; cv.style.height = (H + FX.M * 2) + 'px';
+  cv.width = Math.round((W + FX.M * 2) * dpr); cv.height = Math.round((H + FX.M * 2) * dpr);
+  const cs = getComputedStyle(document.documentElement);
+  Object.keys(TILES).forEach(k => { tileHex[k] = cs.getPropertyValue('--t-' + k).trim() || '#cccccc'; });
 }
 function sizeTile(e) { e.style.width = geo.size + 'px'; e.style.height = geo.size + 'px'; }
-const posOf = (r, c) => [geo.pad + c * geo.step, geo.pad + r * geo.step];
+const cx = c => geo.pad + c * geo.step + geo.size / 2;
+const cy = r => geo.pad + r * geo.step + geo.size / 2;
 function tileEl(t) {
   let e = tileEls.get(t);
   if (!e) {
@@ -661,22 +749,21 @@ function tileEl(t) {
     e.style.background = TILES[t.type].color;
     e.innerHTML = `<span class="ic">${TILES[t.type].icon}</span><span class="nm">${TILES[t.type].name}</span>`;
     sizeTile(e);
-    const [x, y] = posOf(t.y, t.x);
-    e.style.transition = 'none';
-    e.style.transform = `translate(${x}px, ${y}px)`;
-    $('board').appendChild(e);
-    void e.offsetWidth;
-    e.style.transition = '';
+    t.flash = 0;
+    $('clip').appendChild(e);
     tileEls.set(t, e);
   }
   return e;
 }
-function place(t, r, c, ms) {
-  const e = tileEl(t);
-  t.x = c; t.y = r;
-  if (ms !== undefined) e.style.transitionDuration = ms + 'ms';
-  const [x, y] = posOf(r, c);
-  e.style.transform = `translate(${x}px, ${y}px)`;
+function drawTiles() {
+  tileEls.forEach((e, t) => {
+    const x = geo.pad + t.x * geo.step, y = geo.pad + t.y * geo.step;
+    e.style.transform = `translate(${x + (t.ox || 0)}px, ${y + (t.oy || 0)}px) scale(${t.scale * t.sx}, ${t.scale * t.sy})`;
+    e.style.opacity = t.alpha;
+    e.style.filter = t.flash > 0 ? `brightness(${1 + t.flash * 1.5})` : '';
+    e.style.zIndex = t.scale > 1.01 ? 3 : 1;
+  });
+  $('board').style.transform = FX.amp ? `translate(${FX.sx}px, ${FX.sy}px)` : '';
 }
 function renderBoard() {
   const live = new Set();
@@ -684,7 +771,6 @@ function renderBoard() {
     const t = S.board.get(r, c);
     if (!t) continue;
     live.add(t);
-    place(t, r, c);
     tileEl(t).classList.toggle('sel', !!S.sel && S.sel.r === r && S.sel.c === c);
   }
   tileEls.forEach((e, t) => { if (!live.has(t)) { e.remove(); tileEls.delete(t); } });
@@ -692,25 +778,53 @@ function renderBoard() {
 function clearBoardEls() { tileEls.forEach(e => e.remove()); tileEls.clear(); }
 
 // ───────── 매치3 진행 ─────────
+function slide(t, r, c, ms) {
+  const x0 = t.x, y0 = t.y;
+  return tween(ms, p => { t.x = x0 + (c - x0) * p; t.y = y0 + (r - y0) * p; }, EASE.outQuad);
+}
 async function trySwap(a, b) {
   if (S.busy || !S.running || S.paused) return;
-  S.busy = true; S.sel = null; S.idle = 0; clearHint();
+  S.busy = true; S.sel = null; S.idle = 0; clearHint(); renderBoard();
   const ta = S.board.get(a.r, a.c), tb = S.board.get(b.r, b.c);
   SFX.swap();
   if (!S.board.wouldMatch(a, b)) {
-    place(ta, b.r, b.c, 140); place(tb, a.r, a.c, 140);
-    await wait(150);
-    SFX.nope();
-    place(ta, a.r, a.c, 140); place(tb, b.r, b.c, 140);
-    await wait(150);
-    S.busy = false; renderBoard();
+    await Promise.all([slide(ta, b.r, b.c, 110), slide(tb, a.r, a.c, 110)]);
+    SFX.nope(); fxShake(1.5);
+    await Promise.all([slide(ta, a.r, a.c, 130), slide(tb, b.r, b.c, 130)]);
+    S.busy = false;
     return;
   }
   S.board.swap(a, b);
-  place(ta, b.r, b.c, 150); place(tb, a.r, a.c, 150);
-  await wait(160);
+  await Promise.all([slide(ta, b.r, b.c, 120), slide(tb, a.r, a.c, 120)]);
   await resolve();
   S.busy = false;
+}
+function popTile(t) {
+  const x = cx(t.x), y = cy(t.y);
+  fxBurst(x, y, tileHex[t.type], 8 + Math.floor(Math.random() * 5));
+  fxRing(x, y, geo.size * 0.25, geo.size, 150);
+  if (JUICE <= 0) { t.alpha = 0; return Promise.resolve(); }
+  const s1 = 1 + 0.4 * JUICE;
+  return tween(120, p => { t.scale = 1 + (s1 - 1) * p; t.alpha = 1 - p; t.flash = Math.max(0, 1 - p * 2.5); }, EASE.outQuad);
+}
+function land(t) {
+  t.y = Math.round(t.y);
+  fxDust(cx(t.x), cy(t.y) + geo.size / 2 - 2);
+  const A = 0.15 * JUICE;
+  if (A <= 0) return;
+  tween(180, p => {
+    const f = p < 0.2 ? p / 0.2 : Math.exp(-6 * (p - 0.2)) * Math.cos((p - 0.2) * Math.PI * 3);
+    t.sy = 1 - A * f; t.sx = 1 + A * 0.5 * f;
+  }).then(() => { t.sx = t.sy = 1; });
+}
+function animateFalls(falls) {
+  const g = FALL_GRAVITY / 1e6; // 칸/ms²
+  return Promise.all(falls.map(f => {
+    const t = f.tile, d = f.toR - f.fromY;
+    t.x = f.c; t.y = f.fromY;
+    tileEl(t);
+    return tween(Math.sqrt((2 * d) / g), p => { t.y = f.fromY + d * p; }, EASE.inQuad).then(() => land(t));
+  }));
 }
 async function resolve() {
   let chain = 0;
@@ -719,8 +833,14 @@ async function resolve() {
     if (!m.groups.length) break;
     chain++;
     S.chainMax = Math.max(S.chainMax, chain);
-    if (chain >= 2) { $('chain').textContent = `연쇄 ×${chain}`; }
-    SFX.match(chain - 1);
+    const big = m.groups.some(g => g.cells.length >= 4);
+    // 히트스톱: 연쇄나 4개 이상이면 터지기 직전 아주 잠깐 멈춤
+    if (JUICE > 0 && (chain >= 2 || big)) await wait(35 * JUICE);
+    SFX.match(chain - 1); vibrate(10);
+    if (chain >= 2 || big) fxShake(Math.min(Math.max(big ? 2 : 0, 2 * (chain - 1)), 10));
+    let sx = 0, sy = 0;
+    for (const i of m.matched) { const [r, c] = S.board.rc(i); sx += cx(c); sy += cy(r); }
+    if (chain >= 2) { fxText(sx / m.matched.size, sy / m.matched.size, `x${chain}`, 30 + chain * 8, '#FFD84A'); $('chain').textContent = `연쇄 ×${chain}`; }
     for (const g of m.groups) {
       // 3개 = 부품 1, 4개 = 2, 5개 이상 = 3
       const gain = Math.min(3, g.cells.length - 2);
@@ -728,31 +848,25 @@ async function resolve() {
       const [mr, mc] = S.board.rc(mid);
       const fromEl = tileEls.get(S.board.get(mr, mc));
       for (let k = 0; k < gain; k++) givePart(g.type, fromEl);
-      S.score += 10 * g.cells.length * chain;
-      if (gain > 1) floatText(fromEl, `${TILES[g.type].icon}×${gain}`, 'big');
+      const pts = 10 * g.cells.length * chain;
+      S.score += pts;
+      let gx = 0, gy = 0;
+      g.cells.forEach(i => { const [r, c] = S.board.rc(i); gx += cx(c); gy += cy(r); });
+      fxText(gx / g.cells.length, gy / g.cells.length + (chain >= 2 ? 26 : 0), gain > 1 ? `${TILES[g.type].icon}×${gain}` : `+${pts}`, gain > 1 ? 26 : 18, gain > 1 ? '#FFD84A' : '#ffffff');
     }
-    for (const i of m.matched) {
-      const t = S.board.cells[i];
-      const e = tileEls.get(t);
-      if (e) { e.classList.add('pop'); const [x, y] = posOf(t.y, t.x); e.style.transform = `translate(${x}px, ${y}px) scale(.3)`; }
-      S.board.cells[i] = null;
-    }
+    const doomed = [...m.matched].map(i => S.board.cells[i]);
+    await Promise.all(doomed.map(popTile));
+    for (const i of m.matched) S.board.cells[i] = null;
+    renderBoard();
     renderHud();
-    await wait(210);
-    tileEls.forEach((e, t) => { if (e.classList.contains('pop')) { e.remove(); tileEls.delete(t); } });
-    const falls = S.board.collapse();
-    for (const f of falls) {
-      tileEl(f.tile);
-      const dist = f.toR - f.fromY;
-      place(f.tile, f.toR, f.c, 90 + dist * 55);
-    }
-    await wait(90 + ROWS * 55);
+    await animateFalls(S.board.collapse());
   }
-  setTimeout(() => { $('chain').textContent = ''; }, 600);
+  setTimeout(() => { $('chain').textContent = ''; }, 700);
   if (!S.board.findMove()) {
     banner('🔀 섞는 중');
     await wait(400);
     S.board.shuffle();
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const t = S.board.get(r, c); t.x = c; t.y = r; }
     renderBoard();
   }
 }
@@ -846,6 +960,10 @@ function loop(t) {
     updateBars();
     if (!S.busy && (S.idle += dt) > 6 && !hintCells.length) showHint();
   }
+  updateTweens(dt * 1000);
+  fxUpdate(dt);
+  if (S.board) drawTiles();
+  fxDraw();
   requestAnimationFrame(loop);
 }
 function startLevel() {
