@@ -654,12 +654,15 @@ function updateTweens(dms) {
 }
 const rand = (a, b) => a + Math.random() * (b - a);
 const FX = { parts: [], rings: [], texts: [], amp: 0, sx: 0, sy: 0, M: 40 };
+const MONEY = ['₩', '$', '₩', '$', '€'];
+const MONEY_COLORS = ['#F0B400', '#2E9E5B', '#FFD84A'];
 function fxBurst(x, y, color, count, speed = 1) {
   if (JUICE <= 0) return;
   const n = Math.round(count * Math.min(JUICE, 2));
   for (let i = 0; i < n; i++) {
     const a = rand(0, Math.PI * 2), v = rand(140, 380) * speed * Math.sqrt(JUICE);
-    FX.parts.push({ x: x + rand(-8, 8), y: y + rand(-8, 8), vx: Math.cos(a) * v, vy: Math.sin(a) * v - rand(80, 220) * speed, g: 1500, size: rand(4, 9), color, rot: rand(0, 3), vr: rand(-12, 12), life: 0, max: rand(0.55, 0.9) });
+    // 파편 = 돈: ₩ $ 기호가 금색·초록으로 튐
+    FX.parts.push({ x: x + rand(-8, 8), y: y + rand(-8, 8), vx: Math.cos(a) * v, vy: Math.sin(a) * v - rand(80, 220) * speed, g: 1500, size: rand(14, 22), color: MONEY_COLORS[i % MONEY_COLORS.length], glyph: MONEY[Math.floor(Math.random() * MONEY.length)], rot: rand(-0.6, 0.6), vr: rand(-6, 6), life: 0, max: rand(0.6, 0.95) });
   }
   for (let i = 0; i < 4 * Math.min(JUICE, 2); i++) {
     const a = rand(0, Math.PI * 2), v = rand(300, 560) * speed * Math.sqrt(JUICE);
@@ -699,7 +702,10 @@ function fxDraw() {
     ctx.globalAlpha = Math.max(0, 1 - p.life / p.max);
     ctx.fillStyle = p.color;
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-    if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); } else ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+    if (p.glyph) {
+      ctx.font = `700 ${p.size}px 'IBM Plex Sans KR', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(19,32,42,.55)'; ctx.strokeText(p.glyph, 0, 0); ctx.fillText(p.glyph, 0, 0);
+    } else if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); } else ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
     ctx.restore();
   }
   ctx.globalAlpha = 1;
