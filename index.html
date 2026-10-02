@@ -456,14 +456,25 @@ ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push(
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
 // ───────── 단계: 한 판에 로봇 여러 종 + 손님 많이 ─────────
-// 5×5 보드 시뮬레이션: 일반 타일 5종이면 막힘 1.6%, 6종이면 6.4% (막히면 섞음)
-const LEVELS = [
+// 일반 타일 수: 1~4단계 4종, 5~9단계 5종, 10단계부터 6종 (휴머노이드는 특수 타일이라 세지 않음)
+// 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.6%, 6종 6.4% (막히면 섞음)
+const LEVELS4 = [
+  { robots: ['amr', 'cobot', 'mm', 'hum'],  tiles: ['wheel', 'auto', 'arm', 'tool'] },
+  { robots: ['amr', 'agv', 'quad', 'hum'],  tiles: ['wheel', 'auto', 'floor', 'legs'] },
+  { robots: ['agv', 'cobot', 'hum'],        tiles: ['wheel', 'floor', 'arm', 'tool'] },
+  { robots: ['quad', 'cobot', 'hum'],       tiles: ['legs', 'auto', 'arm', 'tool'] },
+];
+const LEVELS5 = [
   { robots: ['amr', 'agv', 'cobot', 'mm', 'hum'],  tiles: ['wheel', 'auto', 'floor', 'arm', 'tool'] },
   { robots: ['amr', 'cobot', 'mm', 'quad', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'legs'] },
 ];
 const ALL_LEVEL = { robots: Object.keys(ROBOTS), tiles: ['wheel', 'auto', 'floor', 'arm', 'tool', 'legs'] };
-const levelDef = lv => LEVELS[lv - 1] || ALL_LEVEL;
-const NEW_AT = { 1: ['amr', 'agv', 'cobot', 'mm', 'hum'], 2: ['quad'], 3: ['agv', 'quad'] };
+function levelDef(lv) {
+  if (lv <= 4) return LEVELS4[lv - 1];
+  if (lv <= 9) return LEVELS5[(lv - 5) % LEVELS5.length];
+  return ALL_LEVEL;
+}
+const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 2: ['agv', 'quad'] };
 const levelTarget = lv => Math.min(20, 10 + lv * 2);
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
 // 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
