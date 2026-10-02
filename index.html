@@ -497,8 +497,8 @@ const ORDERS = [
   { id: 'transys',  want: 'amr',   n: 1, mood: 'mid',  icon: '🏭', who: '현대트랜시스', task: '바닥 공사 없이 운반', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요.' },
   { id: 'ford',     want: 'amr',   n: 1, mood: 'hot',  icon: '🔌', who: '포드',        task: '공장 자재 운반',     sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
   { id: 'ecopro',   want: 'amr',   n: 1, mood: 'mid',  icon: '🧪', who: '에코프로',    task: '설비 순찰 점검',     sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
-  { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: '',            task: '선체 용접',          sec: '④ 조선',        weight: 4, label: '용접 협동로봇', fact: '한 조선소는 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공을 구하지 못해 "일을 못 받는다"는 현장이에요.' },
-  { id: 'ship2',    want: 'cobot', n: 1, mood: 'hot',  icon: '🚢', who: '',            task: '고열·분진 속 용접',   sec: '④ 조선',        weight: 4, label: '용접 협동로봇', fact: '조선소는 고열·먼지·용접 스패터 속에서 용접선을 따라 움직여야 해요. 작업자가 말로 지시하면 로봇이 토치 각도와 속도를 정하는 AI 과제도 진행 중이에요.' },
+  { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: '',            task: '선체 용접',          sec: '④ 조선',        label: '용접 협동로봇', fact: '한 조선소는 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공을 구하지 못해 "일을 못 받는다"는 현장이에요.' },
+  { id: 'ship2',    want: 'cobot', n: 1, mood: 'hot',  icon: '🚢', who: '',            task: '고열·분진 속 용접',   sec: '④ 조선',        label: '용접 협동로봇', fact: '조선소는 고열·먼지·용접 스패터 속에서 용접선을 따라 움직여야 해요. 작업자가 말로 지시하면 로봇이 토치 각도와 속도를 정하는 AI 과제도 진행 중이에요.' },
   { id: 'busanEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '부산교육청',  task: '급식 조리',          sec: '⑱ 학교 급식',   label: '조리 협동로봇',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
   { id: 'gwangjin', want: 'cobot', n: 1, mood: 'hot',  icon: '⚙️', who: '광진',        task: '양산 라인 피킹',     sec: '③ 제조 SI',     label: '피킹 협동로봇',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
   { id: 'polytech', want: 'cobot', n: 1, mood: 'calm', icon: '🎓', who: '폴리텍',      task: '학생 실습',          sec: '① 교육용 로봇', label: '실습용 협동로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
@@ -524,6 +524,7 @@ const O = Object.fromEntries(ORDERS.map(o => [o.id, o]));
 // 기다리는 시간(초): 부품 하나마다 조금씩 더. 휴머노이드 손님은 아주 길고 바가 천천히 내려감
 const MOODS = { hot: 22, mid: 30, calm: 40, long: 120 };
 const PART_SEC = 3.5;
+const SHIP_SHARE = 1 / 7;  // 조선소 손님 비율
 const secKey = o => o.sec.split(' ')[0];
 const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
@@ -724,16 +725,19 @@ function pickOrder() {
   const humOpen = S.slots.some(c => c && c.state === 'wait' && c.order.want === 'hum');
   let pool = ORDERS.filter(o => ok.has(o.want) && !open.has(o.id) && !(humOpen && o.want === 'hum'));
   if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum');
+  // 조선소 손님은 7명 중 1명꼴
+  const ships = pool.filter(o => o.ind === '조선소'), rest = pool.filter(o => o.ind !== '조선소');
+  if (ships.length && (Math.random() < SHIP_SHARE || !rest.length)) return ships[Math.floor(Math.random() * ships.length)];
   // 휴머노이드 손님은 드물게
-  const weighted = pool.flatMap(o => o.want === 'hum' ? (Math.random() < 0.5 ? [o] : []) : Array(2 * (o.weight || 1)).fill(o));
-  const list = weighted.length ? weighted : pool;
+  const weighted = rest.flatMap(o => o.want === 'hum' ? (Math.random() < 0.5 ? [o] : []) : [o, o]);
+  const list = weighted.length ? weighted : rest;
   return list[Math.floor(Math.random() * list.length)];
 }
 function addClient(i) {
   const order = pickOrder();
   const needs = [];
   for (let k = 0; k < order.n; k++) needs.push(...ROBOTS[order.want].parts);
-  const max = (MOODS[order.mood] + needs.length * PART_SEC) * (order.mood === 'long' ? 1 : Math.max(0.5, 1 - (S.lv - 1) * 0.06));
+  const max = MOODS[order.mood] + needs.length * PART_SEC;  // 단계가 올라도 인내심은 그대로
   const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, slow: order.mood === 'long', intro: true };
   S.slots[i] = c;
   S.spawned++;
