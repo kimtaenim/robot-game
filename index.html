@@ -77,7 +77,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .need { position: relative; width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 17px; border: 2px dashed var(--line); box-sizing: border-box; }
 .need.got { border: 2px solid var(--good); background: var(--surface-2); }
 .need.got::after { content: '✓'; position: absolute; right: -4px; bottom: -6px; font-size: 11px; font-weight: 700; color: var(--good); }
-.face { font-size: 46px; line-height: 1; margin-top: 8px; transition: transform .2s; }
+.face { font-size: 58px; line-height: 1; margin-top: 8px; transition: transform .25s ease-out; }
 .who { font-size: 12.5px; font-weight: 700; text-align: center; line-height: 1.2; word-break: keep-all; }
 .who small { display: block; font-size: 10.5px; color: var(--muted); font-weight: 700; }
 .pat { width: 90%; height: 7px; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; flex: none; }
@@ -614,26 +614,43 @@ function burstAt(x, y) {
 }
 
 // ───────── 렌더링: 클라이언트 ─────────
-// 기다리는 동안 표정: 남은 인내심 구간마다 여러 표정 중에서 1.5~3.5초마다 바꿔 가며 딴짓
-const MOODS_FACE = [
-  [0.6,  ['😊', '🙂', '😄', '😌', '🤗', '😉', '🤔', '☺️']],   // 여유: 웃으며 기다림
-  [0.35, ['😐', '🤔', '🥱', '😶', '🙄', '😑', '🧐']],        // 슬슬 지루함
-  [0.15, ['😣', '😟', '😒', '😮‍💨', '😤', '😥']],             // 찌푸림
-  [0,    ['😠', '😤', '😡', '🤬']],                          // 폭발 직전
+// 기다리는 동안 표정: 구간마다 기본 얼굴 하나(크게). 중간중간 곁눈질·하품·한숨 같은 딴짓을 해서
+// 플레이어 신경을 분산시킴. 인내심이 줄수록 딴짓이 잦아짐
+const BANDS = [
+  { at: 0.6,  face: '😊', acts: ['glance', 'glance', 'yawn', 'smile'] },        // 여유
+  { at: 0.35, face: '😐', acts: ['yawn', 'yawn', 'glance', 'eyeroll', 'sigh'] }, // 지루함
+  { at: 0.15, face: '😣', acts: ['glance', 'sigh', 'watch', 'eyeroll'] },       // 찌푸림
+  { at: 0,    face: '😠', acts: ['huff', 'watch', 'huff', 'glance'] },          // 폭발 직전
 ];
-const bandOf = c => MOODS_FACE.findIndex(([f]) => c.t / c.max >= f);
+// 딴짓: 표정 + 몸짓(transform)
+const ACTS = {
+  glance:  { face: ['😒', '🫤'], dur: 1.1, move: d => `translateX(${d * 9}px) rotate(${d * 7}deg)` },
+  yawn:    { face: ['🥱'], dur: 1.4, move: () => 'scale(1.18) translateY(-3px)' },
+  eyeroll: { face: ['🙄'], dur: 1.0, move: () => 'rotate(-4deg)' },
+  sigh:    { face: ['😮‍💨'], dur: 1.2, move: () => 'translateY(4px) scale(.96)' },
+  smile:   { face: ['😄', '☺️'], dur: 0.9, move: () => 'translateY(-4px)' },
+  watch:   { face: ['⌚'], dur: 0.8, move: () => 'scale(.8) rotate(-12deg)' },
+  huff:    { face: ['😤'], dur: 0.8, move: () => 'scale(1.14)' },
+};
+const bandOf = c => Math.max(0, BANDS.findIndex(b => c.t / c.max >= b.at));
 function moodFace(c) {
   const band = bandOf(c);
-  if (c.band !== band || S.clock >= (c.faceUntil || 0)) {
-    const pool = MOODS_FACE[band < 0 ? 3 : band][1].filter(f => f !== c.face);
-    c.face = pool[Math.floor(Math.random() * pool.length)];
-    c.faceUntil = S.clock + 1.5 + Math.random() * 2;
-    c.band = band;
+  if (c.act && S.clock < c.act.until) return c.act.face;
+  c.act = null;
+  if (S.clock >= (c.nextAct ?? (c.nextAct = S.clock + 1.5 + Math.random() * 2))) {
+    const name = BANDS[band].acts[Math.floor(Math.random() * BANDS[band].acts.length)];
+    const a = ACTS[name], dir = Math.random() < 0.5 ? -1 : 1;
+    c.act = { face: a.face[Math.floor(Math.random() * a.face.length)], until: S.clock + a.dur, move: a.move(dir) };
+    // 인내심이 줄수록 딴짓 간격이 짧아짐 (여유 3~6초 → 폭발 직전 1~2초)
+    const gap = [4.5, 3.2, 2.2, 1.4][band];
+    c.nextAct = S.clock + a.dur + gap * (0.7 + Math.random() * 0.6);
+    return c.act.face;
   }
-  return c.face;
+  return BANDS[band].face;
 }
+const faceMove = c => (c.state === 'wait' && c.act && S.clock < c.act.until) ? c.act.move : '';
 // 부품이 붙을 때 잠깐 반가운 표정
-function cheer(c) { c.face = ['😃', '😍', '🥳', '😁'][Math.floor(Math.random() * 4)]; c.faceUntil = S.clock + 0.9; c.band = bandOf(c); }
+function cheer(c) { c.act = { face: ['😃', '😍', '🥳', '😁'][Math.floor(Math.random() * 4)], until: S.clock + 0.9, move: 'scale(1.15) translateY(-4px)' }; }
 const faceOf = c => c.state === 'gone' ? '😡' : c.state === 'done' ? '😆' : moodFace(c);
 function sayOf(c) {
   if (c.state === 'gone') return '계약은 없던 걸로 하죠!';
@@ -666,6 +683,7 @@ function updateBars() {
     const face = document.querySelector(`[data-face="${i}"]`);
     const want = faceOf(c);
     if (face && face.textContent !== want) face.textContent = want;
+    if (face) { const mv = faceMove(c); if (face.style.transform !== mv) face.style.transform = mv; }
   });
 }
 // 주문 없이 만든 부품은 그냥 날려버림 (카운터 없음)
