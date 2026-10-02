@@ -114,7 +114,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* 매치3 보드 */
 .boardwrap { flex: none; display: flex; justify-content: center; }
-.board { position: relative; width: min(100%, 380px); aspect-ratio: 1; background: var(--board); border-radius: 14px; touch-action: none; overflow: visible; }
+.board { position: relative; width: 100%; aspect-ratio: 1; background: var(--board); border-radius: 14px; touch-action: none; overflow: visible; }
 .clip { position: absolute; inset: 0; overflow: hidden; border-radius: 14px; }
 .fxc { position: absolute; left: -40px; top: -40px; pointer-events: none; z-index: 5; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); }
@@ -797,11 +797,15 @@ const tileEls = new Map();
 const tileHex = {};
 function layout() {
   const el = $('board');
-  // 보드 크기: 화면에 남은 높이에 맞춤 (5×6 비율), 너무 작아지지 않게
-  el.style.width = '';
+  // 보드는 가로폭을 꽉 채움. 세로가 모자라면 손님 영역을 줄이고(최소 236px), 그래도 모자랄 때만 보드를 줄임
+  const full = el.parentElement.clientWidth;
+  const rail = $('rail');
+  rail.style.height = '';
+  const railH = rail.getBoundingClientRect().height;
+  const spare = innerHeight - el.getBoundingClientRect().top - 14 - full * ROWS / COLS;
+  if (spare < 0) rail.style.height = Math.max(236, railH + spare) + 'px';
   const room = innerHeight - el.getBoundingClientRect().top - 14;
-  const maxW = Math.min(el.parentElement.clientWidth, 380);
-  el.style.width = Math.max(240, Math.min(maxW, room * COLS / ROWS)) + 'px';
+  el.style.width = Math.min(full, room * COLS / ROWS) + 'px';
   const W = el.clientWidth, H = el.clientHeight;
   const pad = 6, gap = 5;
   const size = Math.min((W - pad * 2 - gap * (COLS - 1)) / COLS, (H - pad * 2 - gap * (ROWS - 1)) / ROWS);
