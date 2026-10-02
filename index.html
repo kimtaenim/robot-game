@@ -90,6 +90,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .client.gone .who, .client.gone .pat { opacity: .5; }
 .client.done .bubble { border-color: var(--good); }
 .client.done .bubble .say { color: var(--good); font-size: 13px; }
+.client.done .stars { display: block; font-size: 20px; letter-spacing: 1px; color: var(--accent); margin-top: 2px; animation: pop .45s ease-out; }
+@keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
 .client.slow .pat i { background: var(--steel); }
 .client.enter { animation: drop .35s ease-out; }
 .client.bump .face { transform: scale(1.18); }
@@ -167,7 +169,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
       <button class="tool" id="btnPause" type="button" aria-label="일시정지와 도감">⏸</button>
     </span>
   </header>
-  <div class="sub"><span class="num">💰 <b id="score">0</b></span><span class="chain" id="chain"></span><span class="left" id="left"></span></div>
+  <div class="sub"><span class="num">💰 <b id="score">0</b></span><span class="num">⭐ <b id="stars">0</b></span><span class="chain" id="chain"></span><span class="left" id="left"></span></div>
 
   <section class="rail" id="rail" aria-label="클라이언트"></section>
   <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"><div class="clip" id="clip"></div><canvas class="fxc" id="fxc"></canvas></div></div>
@@ -479,7 +481,7 @@ const BREATH = 0.025;     // 타일 숨쉬기: 크기가 ±2.5% 아주 조금 �
 // ───────── 상태 ─────────
 const S = {
   lv: 1, running: false, paused: false, busy: false, score: 0, best: 0,
-  def: null, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0,
+  def: null, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0,
   board: null, sel: null, idle: 0, chainMax: 0, dex: new Set(), sound: true, last: 0, runServed: [], clock: 0,
 };
 try {
@@ -513,6 +515,7 @@ const SFX = {
   leave: () => tone(150, 0.25, 'sawtooth', 0, 0.06),
   ticket: () => tone(1200, 0.04, 'sine', 0, 0.05),
   stick: () => tone(1320, 0.07, 'triangle', 0, 0.09),
+  star:  n => { for (let i = 0; i < n; i++) tone(1568 + i * 220, 0.12, 'sine', 0.25 + i * 0.12, 0.09); },
   waste: () => { tone(300, 0.12, 'sine', 0, 0.06); tone(200, 0.18, 'sine', 0.1, 0.06); },
   hum:   () => [392, 523, 659].forEach((f, i) => tone(f, 0.16, 'square', i * 0.08, 0.06)),
   clear: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.18, 'triangle', i * 0.07, 0.11)),
@@ -587,6 +590,10 @@ function complete(i) {
   if (!c || c.state !== 'wait' || !S.running) return;
   const el = document.querySelector(`[data-slot="${i}"] .face`);
   const tip = Math.round(100 * c.t / c.max);
+  // 만족도 별: 남은 인내심 60% 이상 ★★★, 30% 이상 ★★, 그 밑은 ★
+  const f = c.t / c.max;
+  c.stars = f >= 0.6 ? 3 : f >= 0.3 ? 2 : 1;
+  S.stars += c.stars;
   const gain = 80 * c.needs.length + tip + (c.order.want === 'hum' ? 400 : 0);
   S.score += gain; S.best = Math.max(S.best, S.score);
   floatText(el, `+${gain}`, 'big');
@@ -595,7 +602,8 @@ function complete(i) {
   const lit = [...S.dex].some(id => secKey(O[id]) === secKey(c.order));
   S.dex.add(c.order.id); S.runServed.push(c.order.id); save();
   if (!lit) banner(`${secKey(c.order)}${c.order.icon} 점등!`, 250);
-  c.state = 'done'; c.until = DONE_SEC;
+  c.state = 'done'; c.until = DONE_SEC + 0.6;
+  SFX.star(c.stars);
   S.done++;
   renderClients(); renderHud();
 }
@@ -629,7 +637,7 @@ function cheer(c) { c.face = ['😃', '😍', '🥳', '😁'][Math.floor(Math.ra
 const faceOf = c => c.state === 'gone' ? '😡' : c.state === 'done' ? '😆' : moodFace(c);
 function sayOf(c) {
   if (c.state === 'gone') return '계약은 없던 걸로 하죠!';
-  if (c.state === 'done') return '계약 성사! 감사합니다';
+  if (c.state === 'done') return `${['', '그럭저럭이네요', '좋아요, 감사합니다', '최고예요!'][c.stars]}<span class="stars">${'⭐'.repeat(c.stars)}${'☆'.repeat(3 - c.stars)}</span>`;
   const r = ROBOTS[c.order.want];
   return `${c.order.task}에 ${r.name}${c.order.n > 1 ? ` ${c.order.n}대` : ''} 주세요`;
 }
@@ -669,6 +677,7 @@ function renderHud() {
   $('goalBar').style.width = (S.done / n * 100).toFixed(1) + '%';
   $('score').textContent = S.score;
   $('left').textContent = S.missed ? `💢 떠난 손님 ${S.missed}` : '';
+  $('stars').textContent = S.stars;
 }
 
 // ───────── 연출 엔진: 트윈 + 파티클 캔버스 + 화면 흔들림 (Bosses of Our World의 fx/tween 방식을 따라함) ─────────
@@ -1077,7 +1086,7 @@ function loop(t) {
 }
 function startLevel() {
   S.def = levelDef(S.lv);
-  Object.assign(S, { running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, sel: null, idle: 0 });
+  Object.assign(S, { running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0 });
   $('overlay').hidden = true;
   clearBoardEls();
   S.board = new Board(COLS, ROWS, S.def.tiles);
@@ -1095,11 +1104,13 @@ function levelClear() {
   if (!S.running) return;
   S.running = false;
   const n = levelTarget(S.lv);
-  const stars = S.missed <= Math.floor(n * 0.05) ? 3 : S.missed <= Math.ceil(n * 0.2) ? 2 : 1;
+  // 단계 별: 손님들이 준 별의 평균 (떠난 손님은 0개)
+  const avg = S.stars / n;
+  const stars = avg >= 2.5 ? 3 : avg >= 1.8 ? 2 : 1;
   const bonus = stars * 300;
   S.score += bonus; S.best = Math.max(S.best, S.score); save();
   SFX.clear();
-  banner(`CLEAR ${'⭐'.repeat(stars)} +${bonus}`);
+  banner(`CLEAR ${'⭐'.repeat(stars)} 평균 ${avg.toFixed(1)}`);
   S.lv++;
   setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, 2400);
   renderHud();
