@@ -122,6 +122,10 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .banner { position: fixed; left: 50%; top: 42%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 40px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
 @keyframes banner { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
 
+.flyer { position: fixed; z-index: 38; pointer-events: none; font-size: 36px; transform: translate(-50%, -50%); transition: left .22s ease-in, top .22s ease-in, transform .22s ease-in; }
+.card.idle { animation: shake .35s; }
+.par { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
 /* 오버레이 */
 .overlay { position: fixed; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 30; }
 .sheet { background: var(--surface); color: var(--ink); border-radius: 16px; width: 100%; max-width: 520px; max-height: 88%; overflow: auto; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; user-select: text; -webkit-user-select: text; }
@@ -162,15 +166,16 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 <div class="app">
   <header class="top">
     <span class="lv" id="lv">1단계</span>
-    <span class="stat" aria-label="남은 시간">⏱<b class="num" id="clock">1:15</b></span>
-    <span class="goal" aria-label="목표 점수"><i id="goalBar"></i><span class="st" id="st1">⭐</span><span class="st" id="st2">⭐</span><span class="st" id="st3">⭐</span></span>
+    <span class="stat" aria-label="걸린 시간">⏱<b class="num" id="clock">0:00</b></span>
+    <span class="goal" aria-label="단계 진행"><i id="goalBar"></i></span>
+    <span class="stat" aria-label="납품 진행">📦<b class="num" id="prog">0/8</b></span>
     <span class="tools">
       <button class="tool" id="btnSound" type="button" aria-label="소리 켜고 끄기">🔊</button>
       <button class="tool" id="btnDex" type="button" aria-label="현장 도감">📖</button>
       <button class="tool" id="btnPause" type="button" aria-label="일시정지">⏸</button>
     </span>
   </header>
-  <div class="subbar"><span class="num" aria-label="점수">⭐ <b id="score">0</b></span><span class="combo" id="combo">🔥0</span><span class="meter"><i id="flowBar"></i></span></div>
+  <div class="subbar"><span class="num" aria-label="점수">💰 <b id="score">0</b></span><span class="par" id="par"></span><span class="combo" id="combo">🔥0</span><span class="meter"><i id="flowBar"></i></span></div>
 
   <section class="rail" id="rail" aria-label="주문표"></section>
   <section class="table" id="table" aria-label="카드 테이블"></section>
@@ -210,10 +215,8 @@ const HINTS = {
   quad:  { icon: '🪜', text: '계단·험지' },
   hum:   { icon: '👷', text: '사람 자리' },
 };
-
-// 단계마다 새 로봇이 열림
 const UNLOCKS = [['amr', 'agv'], ['cobot'], ['mm'], ['quad'], ['hum']];
-const unlockedAt = lv => UNLOCKS.slice(0, Math.min(lv, UNLOCKS.length)).flat();
+const unlockedAt = lv => UNLOCKS.slice(0, Math.max(0, Math.min(lv, UNLOCKS.length))).flat();
 
 // ───────── 현장: 자료가 로봇 종류를 직접 밝힌 곳만 (로봇 스터디 2차 발제 자료, 2026.09.21) ─────────
 const ORDERS = [
@@ -245,24 +248,32 @@ const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
-const LEVEL_SEC = 75, COMBO_SEC = 6, SPOTS = 8, RAIL = 4, MAX_BACKLOG = 3, FAST_SEC = 8;
-const levelGoals = lv => { const k = 1 + (lv - 1) * 0.3; return [600, 1300, 2100].map(x => Math.round(x * k / 50) * 50); };
-const levelGap = lv => Math.max(2.4, 4.6 - (lv - 1) * 0.35);
+// ───────── 템포 ─────────
+const COMBO_SEC = 5, SPOTS = 8, RAIL = 4, FAST_SEC = 7, REVEAL_SEC = 6;
+const levelTarget = lv => Math.min(16, 6 + lv);                 // 이 단계에서 쳐낼 주문 수
+const levelGap = lv => Math.max(1.4, 3.2 - (lv - 1) * 0.22);   // 주문이 떨어지는 간격
+const levelPar = lv => { const n = levelTarget(lv); return [n * 4.2, n * 6.5]; }; // ⭐⭐⭐ / ⭐⭐ 기준 초
 
 // ───────── 상태 ─────────
 const S = {
-  lv: 1, running: false, paused: false, time: LEVEL_SEC, score: 0, combo: 0, comboT: 0, best: 0,
-  table: Array(SPOTS).fill(null), sel: null, tickets: [], backlog: 0, spawnT: 0, served: [],
-  dex: new Set(), stage: {}, last: 0, sound: true, intro: [], clock: 0,
+  lv: 1, running: false, paused: false, score: 0, combo: 0, comboT: 0, best: 0, bestScore: 0,
+  table: Array(SPOTS).fill(null), sel: null, tickets: [], spawned: 0, done: 0, spawnT: 0,
+  elapsed: 0, clock: 0, served: [], runServed: [], dex: new Set(), stage: {}, last: 0, sound: true, intro: [],
 };
 try {
   JSON.parse(localStorage.getItem('robotsi.dex5') || '[]').forEach(id => O[id] && S.dex.add(id));
   S.stage = JSON.parse(localStorage.getItem('robotsi.stage5') || '{}') || {};
   S.sound = localStorage.getItem('robotsi.sound') !== '0';
+  S.bestScore = +localStorage.getItem('robotsi.best') || 0;
 } catch (e) {}
-const save = () => { try { localStorage.setItem('robotsi.dex5', JSON.stringify([...S.dex])); localStorage.setItem('robotsi.stage5', JSON.stringify(S.stage)); } catch (e) {} };
+const save = () => { try {
+  localStorage.setItem('robotsi.dex5', JSON.stringify([...S.dex]));
+  localStorage.setItem('robotsi.stage5', JSON.stringify(S.stage));
+  localStorage.setItem('robotsi.best', String(S.bestScore));
+} catch (e) {} };
 const $ = id => document.getElementById(id);
 const nudge = el => { if (!el) return; el.classList.remove('nope', 'shake'); void el.offsetWidth; el.classList.add(el.classList.contains('ticket') ? 'shake' : 'nope'); };
+const fmt = s => { s = Math.max(0, Math.floor(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
 // ───────── 효과음 ─────────
 let ac = null;
@@ -282,10 +293,10 @@ const SFX = {
   pick:  () => tone(520, 0.05, 'triangle', 0, 0.07),
   merge: () => { tone(523, 0.07, 'square', 0, 0.06); tone(784, 0.12, 'square', 0.06, 0.06); },
   half:  () => tone(880, 0.1, 'triangle', 0, 0.1),
-  done:  n => [523, 659, 784, 1047, 1319].slice(0, 2 + Math.min(3, n)).forEach((f, i) => tone(f, 0.14, 'triangle', i * 0.06, 0.12)),
+  done:  n => [523, 659, 784, 1047, 1319].slice(0, 2 + Math.min(3, n)).forEach((f, i) => tone(f * (1 + Math.min(n, 10) * 0.03), 0.13, 'triangle', i * 0.05, 0.12)),
   nope:  () => tone(150, 0.14, 'sawtooth', 0, 0.06),
   ticket: () => tone(1200, 0.04, 'sine', 0, 0.05),
-  star:  () => [784, 1047, 1568].forEach((f, i) => tone(f, 0.2, 'sine', i * 0.08, 0.1)),
+  clear: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.18, 'triangle', i * 0.07, 0.11)),
 };
 
 // ───────── 주문 ─────────
@@ -302,33 +313,39 @@ function pickOrder() {
 }
 function addTicket() {
   const order = O[pickOrder()];
-  // 학습 단계: 0 = 로봇 그림, 1 = 힌트, 2 = 현장만
-  S.tickets.push({ order, left: order.wants.slice(), stage: Math.min(2, S.stage[order.id] || 0), born: S.clock, fresh: true, uid: Math.random() });
+  const stage = Math.min(2, S.stage[order.id] || 0);
+  // 학습 단계: 0 = 로봇 그림, 1 = 힌트, 2 = 현장만. 오래 머물면 저절로 한 단계씩 풀림
+  S.tickets.push({ order, left: order.wants.slice(), stage, shown: stage, born: S.clock, fresh: true });
+  S.spawned++;
   SFX.ticket();
 }
+const shownStage = t => Math.max(0, t.stage - Math.floor((S.clock - t.born) / REVEAL_SEC));
 function spawnTick(dt) {
-  if (S.tickets.length >= RAIL && S.backlog >= MAX_BACKLOG) return;
-  if ((S.spawnT -= dt) > 0) return;
-  S.spawnT = levelGap(S.lv) * (0.8 + Math.random() * 0.4);
-  if (S.tickets.length < RAIL) { addTicket(); renderRail(); } else { S.backlog++; renderRail(); }
+  if (S.spawned >= levelTarget(S.lv) || S.tickets.length >= RAIL) return;
+  S.spawnT -= dt;
+  if (S.spawnT <= 0 || !S.tickets.length) {
+    addTicket(); renderRail();
+    S.spawnT = levelGap(S.lv) * (0.8 + Math.random() * 0.4);
+  }
 }
 
 // ───────── 렌더링 ─────────
 const selRobot = () => S.sel !== null && S.table[S.sel] && ITEMS[S.table[S.sel]].kind === 'robot';
 function askHtml(t) {
   const o = t.order, kinds = [...new Set(o.wants)];
-  if (t.stage === 0) {
+  if (t.shown === 0) {
     const left = t.left.slice();
     const icons = o.wants.map(w => { const k = left.indexOf(w); if (k >= 0) { left.splice(k, 1); return `<span>${ITEMS[w].icon}</span>`; } return `<span class="done">${ITEMS[w].icon}</span>`; }).join('');
     return `<span class="icons">${icons}</span><span class="t">${kinds.map(w => ITEMS[w].name).join('+')}</span>`;
   }
-  if (t.stage === 1) return `<span class="icons">${kinds.map(w => `<span>${HINTS[w].icon}</span>`).join('')}</span><span class="t">${kinds.map(w => HINTS[w].text).join(' + ')}</span>`;
+  if (t.shown === 1) return `<span class="icons">${kinds.map(w => `<span>${HINTS[w].icon}</span>`).join('')}</span><span class="t">${kinds.map(w => HINTS[w].text).join(' + ')}</span>`;
   return `<span class="q">?</span>`;
 }
 function renderRail() {
+  const rest = levelTarget(S.lv) - S.spawned;
   $('rail').innerHTML = Array.from({ length: RAIL }, (_, i) => {
     const t = S.tickets[i];
-    const more = i === RAIL - 1 && S.backlog ? `<span class="more">+${S.backlog}</span>` : '';
+    const more = i === RAIL - 1 && rest > 0 ? `<span class="more">+${rest}</span>` : '';
     if (!t) return `<div class="ticket slot">${more}</div>`;
     const qty = t.order.wants.length > 1 ? `<span class="qty">${t.order.wants.length - t.left.length}/${t.order.wants.length}</span>` : '';
     return `<button class="ticket${t.fresh ? ' enter' : ''}${selRobot() ? ' target' : ''}" type="button" data-ticket="${i}" aria-label="${t.order.who} 주문">
@@ -353,13 +370,14 @@ function renderDeck() {
       <span class="ic">${ITEMS[id].icon}</span><span class="nm">${ITEMS[id].name}</span></button>`).join('');
 }
 function renderHud() {
-  const t = Math.max(0, Math.ceil(S.time));
-  $('clock').textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`;
+  const n = levelTarget(S.lv), [p3, p2] = levelPar(S.lv);
+  $('clock').textContent = fmt(S.elapsed);
+  $('clock').style.color = S.elapsed <= p3 ? 'var(--good)' : S.elapsed <= p2 ? 'var(--ink)' : 'var(--muted)';
+  $('prog').textContent = `${S.done}/${n}`;
+  $('goalBar').style.width = (S.done / n * 100).toFixed(1) + '%';
+  $('par').textContent = S.elapsed <= p3 ? `⭐⭐⭐ ${fmt(p3)}까지` : S.elapsed <= p2 ? `⭐⭐ ${fmt(p2)}까지` : '⭐';
   $('score').textContent = S.score;
   $('lv').textContent = `${S.lv}단계`;
-  const g = levelGoals(S.lv), top = g[2] * 1.08;
-  $('goalBar').style.width = Math.min(100, S.score / top * 100).toFixed(1) + '%';
-  g.forEach((v, i) => { const el = $(`st${i + 1}`); el.style.left = (v / top * 100) + '%'; el.classList.toggle('on', S.score >= v); });
   $('combo').textContent = `🔥${S.combo}`;
   $('combo').classList.toggle('hot', S.combo >= 3);
   $('flowBar').style.width = (S.combo ? S.comboT / COMBO_SEC * 100 : 0).toFixed(1) + '%';
@@ -368,47 +386,83 @@ function renderHud() {
     if (el) el.style.transform = `scaleX(${Math.max(0, 1 - (S.clock - tk.born) / FAST_SEC)})`;
   });
 }
+function centerOf(el) { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
 function floatText(el, text, big) {
   if (!el) return;
-  const r = el.getBoundingClientRect();
+  const [x, y] = centerOf(el);
   const f = document.createElement('div');
   f.className = 'float' + (big ? ' big' : ''); f.textContent = text;
-  f.style.left = (r.left + r.width / 2) + 'px'; f.style.top = (r.top + 20) + 'px';
+  f.style.left = x + 'px'; f.style.top = (y - 30) + 'px';
   document.body.appendChild(f);
   setTimeout(() => f.remove(), 950);
 }
-function banner(text) {
-  const b = document.createElement('div');
-  b.className = 'banner'; b.textContent = text;
-  document.body.appendChild(b);
-  setTimeout(() => b.remove(), 1250);
+function fly(fromEl, toEl, icon) {
+  if (!fromEl || !toEl) return;
+  const [x0, y0] = centerOf(fromEl), [x1, y1] = centerOf(toEl);
+  const f = document.createElement('div');
+  f.className = 'flyer'; f.textContent = icon;
+  f.style.left = x0 + 'px'; f.style.top = y0 + 'px';
+  document.body.appendChild(f);
+  requestAnimationFrame(() => requestAnimationFrame(() => { f.style.left = x1 + 'px'; f.style.top = y1 + 'px'; f.style.transform = 'translate(-50%, -50%) scale(.6)'; }));
+  setTimeout(() => f.remove(), 260);
+}
+function banner(text, delay) {
+  setTimeout(() => {
+    const b = document.createElement('div');
+    b.className = 'banner'; b.textContent = text;
+    document.body.appendChild(b);
+    setTimeout(() => b.remove(), 1250);
+  }, delay || 0);
 }
 
 // ───────── 카드 동작 ─────────
 const firstEmpty = () => S.table.findIndex(x => !x);
+const neededRobots = () => new Set(S.tickets.flatMap(t => t.left));
+const ticketFor = id => S.tickets.findIndex(t => t.left.includes(id));
+
+// 완성된 로봇은 찾는 주문표로 저절로 날아감
+function autoShip(spot) {
+  const id = S.table[spot];
+  if (!id || ITEMS[id].kind !== 'robot') return false;
+  const ti = ticketFor(id);
+  if (ti < 0) return false;
+  fly(document.querySelector(`[data-spot="${spot}"]`), document.querySelector(`[data-ticket="${ti}"]`), ITEMS[id].icon);
+  deliver({ spot }, ti);
+  return true;
+}
 function mergeInto(target, incoming, from) {
   const r = recipe(S.table[target], incoming);
   if (!r) return false;
   if (from !== undefined) S.table[from] = null;
   S.table[target] = r; S.sel = null;
   SFX.merge(); renderTable(target);
+  if (!autoShip(target) && !neededRobots().has(r)) document.querySelector(`[data-spot="${target}"]`)?.classList.add('idle');
   return true;
 }
-// 덱에서 카드 뽑기: 고른 카드 → 짝이 맞는 부품 카드 → 빈 자리 순으로 놓임
+function place(id, at) {
+  const i = at ?? firstEmpty();
+  if (i < 0 || S.table[i]) { SFX.nope(); nudge($('btnTrash')); return false; }
+  S.table[i] = id; S.sel = null; SFX.card(); renderTable(i);
+  return true;
+}
+// 덱 누르기: 고른 카드와 조합 → 필요한 완제품이면 바로 납품 → 필요한 로봇이 되는 짝과 조합 → 빈 자리
 function drawCard(id, at) {
   if (at !== undefined) {
-    if (!S.table[at]) { S.table[at] = id; S.sel = null; SFX.card(); renderTable(at); return; }
+    if (!S.table[at]) { place(id, at); autoShip(at); return; }
     if (!mergeInto(at, id)) { SFX.nope(); nudge(document.querySelector(`[data-spot="${at}"]`)); }
     return;
   }
   if (S.sel !== null && S.table[S.sel] && mergeInto(S.sel, id)) return;
-  if (ITEMS[id].kind === 'part') {
-    const k = S.table.findIndex(x => x && ITEMS[x].kind === 'part' && recipe(x, id));
-    if (k >= 0 && mergeInto(k, id)) return;
+  const need = neededRobots();
+  if (ITEMS[id].kind === 'robot' && need.has(id)) {
+    const ti = ticketFor(id);
+    fly(document.querySelector(`[data-pile="${id}"]`), document.querySelector(`[data-ticket="${ti}"]`), ITEMS[id].icon);
+    deliver({ pile: id }, ti);
+    return;
   }
-  const i = firstEmpty();
-  if (i < 0) { SFX.nope(); nudge($('btnTrash')); return; }
-  S.table[i] = id; S.sel = null; SFX.card(); renderTable(i);
+  const k = S.table.findIndex(x => x && need.has(recipe(x, id)));
+  if (k >= 0 && mergeInto(k, id)) return;
+  place(id);
 }
 function moveCard(from, to) {
   if (from === to) return;
@@ -418,7 +472,11 @@ function moveCard(from, to) {
   nudge(document.querySelector(`[data-spot="${to}"]`));
 }
 function tapSpot(i) {
-  if (S.sel === null) { if (S.table[i]) { S.sel = i; SFX.pick(); renderTable(); } return; }
+  if (S.sel === null) {
+    if (!S.table[i]) return;
+    if (autoShip(i)) return;
+    S.sel = i; SFX.pick(); renderTable(); return;
+  }
   if (S.sel === i) { S.sel = null; renderTable(); return; }
   if (!S.table[i]) { moveCard(S.sel, i); return; }
   if (mergeInto(i, S.table[S.sel], S.sel)) return;
@@ -428,7 +486,7 @@ function trash(i) {
   if (i === null || i === undefined || !S.table[i]) return;
   S.table[i] = null; S.sel = null; renderTable();
 }
-// src: { spot } 또는 { pile } — 완제품은 덱에서 주문표로 바로 끌어다 줄 수 있음
+// src: { spot } 또는 { pile }
 function deliver(src, ti) {
   const t = S.tickets[ti];
   const id = src.pile || S.table[src.spot];
@@ -437,8 +495,9 @@ function deliver(src, ti) {
   const k = t.left.indexOf(id);
   if (k < 0) {
     SFX.nope(); nudge(el);
-    if (t.stage > 0) { t.stage = 0; S.stage[t.order.id] = 0; save(); setTimeout(() => { renderRail(); renderHud(); }, 380); }
+    t.stage = 0; t.shown = 0; S.stage[t.order.id] = 0; save();
     S.combo = 0; S.comboT = 0;
+    setTimeout(renderRail, 380);
     return;
   }
   t.left.splice(k, 1);
@@ -448,24 +507,25 @@ function deliver(src, ti) {
   S.combo = S.comboT > 0 ? S.combo + 1 : 1;
   S.comboT = COMBO_SEC;
   S.best = Math.max(S.best, S.combo);
+  const shown = shownStage(t);
   const fast = S.clock - t.born < FAST_SEC;
-  const stageBonus = [1, 1.5, 2][t.stage];
-  const gain = Math.round(100 * t.order.wants.length * stageBonus * Math.min(3, 1 + 0.25 * (S.combo - 1)) + (fast ? 50 : 0));
-  const before = levelGoals(S.lv).filter(v => S.score >= v).length;
+  const gain = Math.round(100 * t.order.wants.length * [1, 1.5, 2][shown] * Math.min(3, 1 + 0.2 * (S.combo - 1)) + (fast ? 50 : 0));
   S.score += gain;
-  const after = levelGoals(S.lv).filter(v => S.score >= v).length;
   floatText(el, `+${gain}`, S.combo >= 3);
   SFX.done(S.combo);
-  if (after > before) { setTimeout(SFX.star, 200); banner('⭐'.repeat(after)); }
-  else if (S.combo >= 3 && S.combo % 3 === 0) banner(`🔥 ${S.combo} 콤보!`);
-  S.served.push(t.order.id);
+  if (S.combo >= 3 && S.combo % 4 === 0) banner(`🔥 ${S.combo} 콤보!`);
+  S.done++;
+  S.served.push(t.order.id); S.runServed.push(t.order.id);
+  const lit = S.dex.has(t.order.id) || [...S.dex].some(id => secKey(O[id]) === secKey(t.order));
   S.dex.add(t.order.id);
-  S.stage[t.order.id] = Math.min(2, t.stage + 1);
+  if (!lit) banner(`${secKey(t.order)}${t.order.icon} 점등!`, 150);
+  S.stage[t.order.id] = Math.min(2, shown + 1);
+  S.bestScore = Math.max(S.bestScore, S.score);
   save();
   S.tickets.splice(ti, 1);
-  if (S.backlog > 0) { S.backlog--; addTicket(); }
-  if (!S.tickets.length) S.spawnT = Math.min(S.spawnT, 0.4);
+  if (!S.tickets.length) S.spawnT = 0;
   renderRail(); renderTable(); renderHud();
+  if (S.done >= levelTarget(S.lv)) levelClear();
 }
 
 // ───────── 끌기 + 누르기 ─────────
@@ -479,7 +539,7 @@ document.addEventListener('pointerdown', e => {
 document.addEventListener('pointermove', e => {
   if (!drag) return;
   if (!drag.started) {
-    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 8) return;
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 10) return;
     const id = drag.src.pile || S.table[drag.src.spot];
     if (!id) { drag = null; return; }
     drag.started = true;
@@ -499,6 +559,7 @@ document.addEventListener('pointermove', e => {
 document.addEventListener('pointerup', e => {
   if (!drag) return;
   const d = drag; drag = null;
+  if (!S.running) { d.ghost?.remove(); return; }
   if (!d.started) { if (d.src.pile) drawCard(d.src.pile); else tapSpot(d.src.spot); return; }
   d.ghost.remove();
   d.over?.classList.remove('drop', 'over');
@@ -517,91 +578,96 @@ $('rail').addEventListener('click', e => {
 });
 $('btnTrash').addEventListener('click', () => { if (S.running && !S.paused) trash(S.sel); });
 
-// ───────── 단계 진행 ─────────
+// ───────── 진행: 단계를 깨면 멈추지 않고 바로 다음 단계 ─────────
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
   if (S.running && !S.paused) {
-    S.time -= dt; S.clock += dt;
+    S.elapsed += dt; S.clock += dt;
     if (S.comboT > 0 && (S.comboT -= dt) <= 0) { S.comboT = 0; S.combo = 0; }
     spawnTick(dt);
+    let changed = false;
+    S.tickets.forEach(tk => { const s = shownStage(tk); if (s !== tk.shown) { tk.shown = s; changed = true; } });
+    if (changed) renderRail();
     renderHud();
-    if (S.time <= 0) endLevel();
   }
   requestAnimationFrame(loop);
 }
-let litBefore = new Set();
-const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
 function startLevel() {
-  Object.assign(S, { running: true, paused: false, time: LEVEL_SEC, score: 0, combo: 0, comboT: 0, best: 0, clock: 0,
-    served: [], table: Array(SPOTS).fill(null), sel: null, tickets: [], backlog: 0, spawnT: 0.2,
+  Object.assign(S, { running: true, paused: false, elapsed: 0, spawned: 0, done: 0, tickets: [], spawnT: 0, served: [],
     intro: S.lv === 1 ? ['transys', 'kai', 'stl'] : [] });
-  litBefore = litSectors();
   $('overlay').hidden = true;
   renderRail(); renderTable(); renderDeck(); renderHud();
-  banner(`${S.lv}단계`);
-  // 시작하자마자 주문 두 장
   addTicket(); addTicket(); S.spawnT = levelGap(S.lv); renderRail();
 }
-const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${o.wants.map(w => ITEMS[w].icon).join('')}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
-const mapHtml = () => {
-  const lit = litSectors();
-  return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}${lit.has(s.key) && !litBefore.has(s.key) ? ' new' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`;
-};
-function endLevel() {
+function levelClear() {
   S.running = false;
-  const stars = levelGoals(S.lv).filter(v => S.score >= v).length;
-  const seen = [...new Set(S.served)].map(id => logItem(O[id])).join('');
+  const [p3, p2] = levelPar(S.lv);
+  const stars = S.elapsed <= p3 ? 3 : S.elapsed <= p2 ? 2 : 1;
+  const bonus = stars * 200;
+  S.score += bonus; S.bestScore = Math.max(S.bestScore, S.score); save();
+  SFX.clear();
+  banner(`CLEAR ${'⭐'.repeat(stars)} +${bonus}`);
   const next = UNLOCKS[S.lv];
-  const unlock = next ? `<div class="unlock"><span class="ic">${next.map(w => ITEMS[w].icon).join('')}</span><div><b>NEW · ${next.map(w => ITEMS[w].name).join(', ')}</b><span>${next.map(w => { const r = recipeOf(w); return r ? `${ITEMS[r[0]].icon}+${ITEMS[r[1]].icon}=${ITEMS[w].icon}` : `덱에서 ${ITEMS[w].icon}`; }).join('  ')}</span></div></div>` : '';
-  openSheet(`
-    <h2>${S.lv}단계 끝!</h2>
-    <div class="stars">${[0, 1, 2].map(i => `<span class="${i < stars ? '' : 'off'}" style="animation-delay:${i * 0.15}s">⭐</span>`).join('')}</div>
-    <div class="big-stats"><span>⭐<b class="num">${S.score}</b></span><span>📦<b class="num">${S.served.length}</b></span><span>🔥<b class="num">${S.best}</b></span></div>
-    ${unlock}
-    <button class="primary" type="button" data-act="next">${S.lv + 1}단계 ▶</button>
-    <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>
-    ${mapHtml()}
-    ${seen ? `<span class="lbl">이번 단계 현장</span><div class="log">${seen}</div>` : ''}`);
-  if (stars) SFX.star();
+  if (next) banner(`NEW ${next.map(w => ITEMS[w].icon + ' ' + ITEMS[w].name).join(' ')}`, 1300);
+  S.lv++;
+  setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, next ? 2700 : 1500);
+  renderHud();
 }
 
 // ───────── 오버레이 ─────────
+let litBefore = new Set();
+const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
+const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.who} ${o.wants.map(w => ITEMS[w].icon).join('')}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
+const mapHtml = () => {
+  const lit = litSectors();
+  return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`;
+};
 function openSheet(html, pause) {
   $('sheet').innerHTML = html;
   $('overlay').hidden = false;
   $('sheet').scrollTop = 0;
-  if (pause && S.running) S.paused = true;
+  if (pause) S.paused = true;
   $('sheet').querySelector('button')?.focus();
+}
+function resume() {
+  $('overlay').hidden = true; S.paused = false;
+  if (S.pendingStart) { S.pendingStart = false; startLevel(); }
 }
 const HELP = `
   <h2>로봇 SI 납품소</h2>
   <div class="steps">
-    <div class="step">🂠 🛞 👁️ <span>덱을 눌러 카드 뽑기</span></div>
-    <div class="step">🛞 + 👁️ = 🚚 <span>카드끼리 겹치면 조합</span></div>
-    <div class="step">🚚 → 🧾 <span>주문표에 놓으면 납품</span></div>
+    <div class="step">🛞 👁️ <span>덱을 톡톡 누르면</span></div>
+    <div class="step">🛞 + 👁️ = 🚚 <span>카드가 겹쳐 조립되고</span></div>
+    <div class="step">🚚 ➜ 🧾 <span>찾는 주문표로 저절로 날아가요</span></div>
   </div>
-  <p>주문이 쏟아져요. 빨리 쳐낼수록 🔥콤보! 익숙한 현장은 주문표에 그림 대신 힌트만, 나중엔 <b>?</b>만 나와요. 맞히면 점수가 더 커요.</p>
-  <button class="primary" type="button" data-act="begin">1단계 시작 ▶</button>`;
+  <p>주문이 쏟아져요. 단계마다 주문을 다 쳐내면 바로 다음 단계! 빨리 깰수록 ⭐, 연달아 쳐내면 🔥. 익숙한 현장은 주문표에 <b>?</b>만 떠요. 맞히면 점수 2배.</p>
+  <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
+function summaryHtml() {
+  const seen = [...new Set(S.runServed)].map(id => logItem(O[id])).join('');
+  return `
+    <h2>⏸ ${S.lv}단계</h2>
+    <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.bestScore}</b></span><span>🔥<b class="num">${S.best}</b></span></div>
+    <button class="primary" type="button" data-act="close">계속 ▶</button>
+    <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>
+    ${mapHtml()}
+    ${seen ? `<span class="lbl">이번 판에 다녀온 현장</span><div class="log">${seen}</div>` : ''}`;
+}
 $('sheet').addEventListener('click', e => {
   const act = e.target.closest('[data-act]')?.dataset.act;
-  if (act === 'close') { $('overlay').hidden = true; if (S.running) S.paused = false; }
-  else if (act === 'begin') startLevel();
-  else if (act === 'next') { S.lv++; startLevel(); }
+  if (act === 'close') resume();
+  else if (act === 'begin') { $('overlay').hidden = true; startLevel(); }
 });
 $('btnDex').addEventListener('click', () => {
-  litBefore = litSectors();
   openSheet(`
     <h2>현장 도감 ${S.dex.size}/${ORDERS.length}</h2>
     ${mapHtml()}
     <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o)
       : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
     <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21)</p>
-    <button class="primary" type="button" data-act="close">닫기</button>`, true);
+    <button class="primary" type="button" data-act="close">계속 ▶</button>`, true);
 });
-$('btnPause').addEventListener('click', () => {
-  if (S.running) openSheet(`<h2>⏸</h2><button class="primary" type="button" data-act="close">계속 ▶</button>`, true);
-});
+$('btnPause').addEventListener('click', () => { if (!$('overlay').hidden) return; openSheet(summaryHtml(), true); });
 const syncSound = () => { $('btnSound').textContent = S.sound ? '🔊' : '🔇'; };
 $('btnSound').addEventListener('click', () => {
   S.sound = !S.sound; syncSound();
