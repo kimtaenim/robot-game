@@ -180,7 +180,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   <div class="hud">
     <span class="lv" id="lv">1단계</span>
     <span class="goal" aria-label="단계 진행"><i id="goalBar"></i></span>
-    <span class="stat" aria-label="손님 진행">🧾<b class="num" id="prog">0/6</b></span>
+    <span class="stat" aria-label="만족시킨 손님">😊<b class="num" id="prog">0/20</b></span>
     <span class="stat num" aria-label="번 돈">💰<b id="score">0</b></span>
     <span class="stat num" aria-label="받은 별">⭐<b id="stars">0</b></span>
     <span class="chain" id="chain"></span><span class="left" id="left"></span>
@@ -487,7 +487,8 @@ const STAGES = [
 ];
 const levelDef = lv => STAGES.filter(s => lv >= s.from).pop();
 const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 5: ['agv'], 10: ['quad'] };
-const levelTarget = lv => Math.min(60, 30 + (lv - 1) * 4);
+// 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음): 1단계 20명, 단계마다 +2명
+const levelTarget = lv => 20 + (lv - 1) * 2;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
 // 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
 const JUICE = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2.0;
@@ -677,7 +678,7 @@ function clientTick(dt) {
       SFX.leave(); vibrate([40, 40, 40]);
       // 떠난 손님 몫으로 만든 부품은 갈 데가 없어 악성재고
       S.dead += c.needs.filter(nd => nd.got).length;
-      S.missed++; S.done++;
+      S.missed++;
       renderClients(); renderStock(); renderHud();
       faceZoom(i, '😡');
       return;
@@ -691,7 +692,7 @@ function clientTick(dt) {
   });
 }
 function spawnTick(dt) {
-  if (S.spawned >= levelTarget(S.lv)) return;
+  if (S.done + waiting().length >= levelTarget(S.lv)) return;
   const free = S.slots.findIndex(c => !c);
   if (free < 0) return;
   if ((S.spawnT -= dt) <= 0 || !waiting().length) {
@@ -800,7 +801,7 @@ function sayOf(c) {
 }
 function renderClients() {
   $('rail').innerHTML = S.slots.map((c, i) => {
-    if (!c) return `<div class="client empty"><div class="door">${S.spawned < levelTarget(S.lv) ? '다음 손님…' : ''}</div></div>`;
+    if (!c) return `<div class="client empty"><div class="door">${S.done + waiting().length < levelTarget(S.lv) ? '다음 손님…' : ''}</div></div>`;
     const r = ROBOTS[c.order.want];
     const needs = c.state === 'wait' ? `<span class="needs">${c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('')}</span>` : '';
     const robot = c.state === 'wait' ? `<span class="robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</span>` : '';
@@ -1273,7 +1274,7 @@ function levelClear() {
   S.running = false;
   const n = levelTarget(S.lv);
   // 단계 별: 손님들이 준 별의 평균 (떠난 손님은 0개)
-  const avg = S.stars / n;
+  const avg = S.stars / Math.max(1, S.done + S.missed);
   const stars = avg >= 2.5 ? 3 : avg >= 1.8 ? 2 : 1;
   const bonus = stars * 300;
   S.score += bonus; S.best = Math.max(S.best, S.score); save();
