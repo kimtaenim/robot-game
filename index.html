@@ -479,20 +479,23 @@ const TILES = {
   auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
   arm:   { icon: '🦾', name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
-  tool:  { icon: '🔧', name: '엔드포인트 SI', color: 'var(--t-tool)' },
+  tool:  { icon: '🤏', name: '엔드포인트 SI', color: 'var(--t-tool)' },
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
 // AMR = 바퀴+자율주행 / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI)
-// 모바일 매니퓰레이터 = AMR 위에 협동로봇(⑧ LG엔솔) / 4족 = 다리+자율주행 / 휴머노이드 = 특수 타일 3개 맞추기
+// 모바일 매니퓰레이터 = AMR 위에 협동로봇(⑧ LG엔솔) / 4족 = 다리 둘+SI / 휴머노이드 = 특수 타일 3개 맞추기+SI
+// 팔 달린 4족 = 다리 둘+팔+SI / 켄타우로스 = 4족 하체에 휴머노이드 상체+SI
 const ROBOTS = {
   amr:   { icon: '🚚', name: 'AMR',               parts: ['wheel', 'auto'] },
   agv:   { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
   cobot: { icon: '🦾', name: '협동로봇',           parts: ['arm', 'tool'] },
   mm:    { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'tool'] },
-  quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'auto'] },
-  hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum'] },
+  quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'legs', 'tool'] },
+  qarm:  { icon: '🦂', name: '팔 달린 4족로봇',    parts: ['legs', 'legs', 'arm', 'tool'] },
+  centaur: { icon: '🏇', name: '켄타우로스 로봇',  parts: ['legs', 'legs', 'hum', 'tool'] },
+  hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum', 'tool'] },
 };
 
 // ───────── 클라이언트 (로봇 스터디 2차 발제 자료, 2026.09.21에서 로봇 종류를 밝힌 현장) ─────────
@@ -511,9 +514,11 @@ const ORDERS = [
   { id: 'polytech', want: 'cobot', n: 1, mood: 'calm', icon: '🎓', who: '폴리텍',      task: '학생 실습',          sec: '① 교육용 로봇', label: '실습용 협동로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
   { id: 'lg',       want: 'mm',    n: 1, mood: 'mid',  icon: '🔋', who: 'LG엔솔',      task: '다니며 불량 셀 빼기', sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
   { id: 'posco',    want: 'quad',  n: 1, mood: 'mid',  icon: '🌋', who: '포스코',      task: '고로 가스 누설 점검', sec: '⑦ 철강',       fact: '스팟이 고로를 순찰하며 누수·발열 징후를 감지하고, 하루 12번 배관 누설을 점검해요.' },
-  { id: 'police',   want: 'quad',  n: 2, mood: 'hot',  icon: '🚓', who: '경찰청',      task: '폭발물 현장 정찰',   sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
+  { id: 'police',   want: 'quad',  n: 1, mood: 'hot',  icon: '🚓', who: '경찰청',      task: '폭발물 현장 정찰',   sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
   { id: 'army',     want: 'quad',  n: 1, mood: 'calm', icon: '🎖️', who: '방사청',      task: '산악 정찰',          sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
   { id: 'fire',     want: 'quad',  n: 1, mood: 'hot',  icon: '🚒', who: '소방청',      task: '화재 현장 탐색',     sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
+  { id: 'posco2',   want: 'qarm',  n: 1, mood: 'calm', icon: '🔥', who: '포스코',      task: '용선 측온·샘플링', sec: '⑦ 철강',     fact: '고로에서는 스팟이 하루 12번 배관 누설을 점검하고, 1500도 용선의 측온·샘플링도 로봇화 중이에요.' },
+  { id: 'fire2',    want: 'centaur', n: 1, mood: 'long', icon: '🧯', who: '소방청',    task: '들어가서 구조·진압', sec: '㉖ 소방·경찰',   fact: '지금 무인소방로봇은 원격으로 물을 쏘는 수준이라, 위험 지역에 직접 들어가 탐색·구조·진압까지 하는 형태로 가야 한다는 주문이 나와요.' },
   { id: 'hyundai',  want: 'hum',   n: 1, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
   { id: 'bmw',      want: 'hum',   n: 1, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
   { id: 'cj',       want: 'hum',   n: 1, mood: 'long', icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
@@ -523,7 +528,7 @@ const ORDERS = [
 const IND = {
   port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', ecopro: '배터리 소재 공장',
   mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
-  posco: '제철소', police: '경찰', army: '국방', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
+  posco: '제철소', posco2: '제철소', fire2: '소방', police: '경찰', army: '국방', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
 };
 ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
 const robotLabel = o => o.label || ROBOTS[o.want].name;
@@ -542,16 +547,18 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 // 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.7%, 6종 6.3% (막히면 섞음)
 // 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
 // 로봇은 단계마다 갈아치우지 않고, 쌓아 가며 천천히 늘림
-//   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (🛞🧭🦾🔧)
+//   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (🛞🧭🦾🤏)
 //   5~9단계: + AGV (🚧 바닥 공사 추가)
-//   10단계~: + 4족로봇 (🦿 다리 추가)
+//   10단계~: + 4족로봇 (🦿 다리 추가) / 12단계~: + 팔 달린 4족 / 14단계~: + 켄타우로스
 const STAGES = [
   { from: 1,  robots: ['amr', 'cobot', 'mm', 'hum'],                tiles: ['wheel', 'auto', 'arm', 'tool'] },
   { from: 5,  robots: ['amr', 'cobot', 'mm', 'agv', 'hum'],         tiles: ['wheel', 'auto', 'arm', 'tool', 'floor'] },
   { from: 10, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
+  { from: 12, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
+  { from: 14, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
 ];
 const levelDef = lv => STAGES.filter(s => lv >= s.from).pop();
-const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 5: ['agv'], 10: ['quad'] };
+const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 5: ['agv'], 10: ['quad'], 12: ['qarm'], 14: ['centaur'] };
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음): 1단계 20명, 단계마다 +2명
 const levelTarget = lv => 20 + (lv - 1) * 2;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
@@ -1419,7 +1426,7 @@ function levelClear() {
 const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
 const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.ind}${o.who ? ' · ' + o.who : ''} ${ROBOTS[o.want].icon} ${robotLabel(o)}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
 const mapHtml = () => { const lit = litSectors(); return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`; };
-const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon).join('')}${r.parts.length === 1 ? '×3' : ''} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
+const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon + (p === 'hum' ? '×3' : '')).join(' ')} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
 function openSheet(html, pause) {
   $('sheet').innerHTML = html;
   $('overlay').hidden = false;
@@ -1436,7 +1443,7 @@ const HELP = `
   <div class="steps">
     <div class="step">📨 <span>새 주문서가 뜨면 눌러서 수락! (어느 업종이 어떤 로봇을 사는지 읽어 보세요)</span></div>
     <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 주문서로 날아가 붙어요</span></div>
-    <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
+    <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 휴머노이드도 🤏 SI를 붙여야 납품돼요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
   </div>
   <p>주문서 아래 바가 다 떨어지면 😭 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
   ${recipesHtml()}
