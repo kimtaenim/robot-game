@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 위 클라이언트 3명(말풍선 주문) → 악성재고 표시 → 아래 5×5 매치3 보드. 공장 작업장 톤 */
+/* 레이아웃: 위 클라이언트 3명(말풍선 주문) → 아래 5×5 매치3 보드. 공장 작업장 톤 */
 :root {
   --bg: #DDE4E8;
   --board: #C3CED5;
@@ -170,7 +170,6 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   <div class="sub"><span class="num">💰 <b id="score">0</b></span><span class="chain" id="chain"></span><span class="left" id="left"></span></div>
 
   <section class="rail" id="rail" aria-label="클라이언트"></section>
-  <div class="stock" id="stock" aria-label="악성재고"></div>
   <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"><div class="clip" id="clip"></div><canvas class="fxc" id="fxc"></canvas></div></div>
 </div>
 
@@ -661,10 +660,8 @@ function updateBars() {
     if (face && face.textContent !== want) face.textContent = want;
   });
 }
-// 주문 없이 만든 부품은 버려짐: 실제로는 창고에 쌓이는 악성재고
-function renderStock() {
-  $('stock').innerHTML = S.dead ? `<span class="chip">🗑 악성재고 <b class="num">${S.dead}</b></span>` : '';
-}
+// 주문 없이 만든 부품은 그냥 날려버림 (카운터 없음)
+function renderStock() {}
 function renderHud() {
   const n = levelTarget(S.lv);
   $('lv').textContent = `${S.lv}단계`;
@@ -891,14 +888,14 @@ async function showcase(p, x0, y0, delay) {
   await tween(220, q => set(x0 + (midX - x0) * q, y0 - 34 + (midY - y0 + 34) * q, 1.4 + 1.8 * q), EASE.outQuad);
   SFX.part();
   await wait(170);
-  // 받을 손님이 없으면 버려짐(악성재고): 회색으로 바래며 아래로 떨어져 사라짐
+  // 받을 손님이 없으면 화면 밖으로 날려버림
   const live = claim && claim.c === S.slots[claim.i] && claim.c.state === 'wait';
   if (!live) {
     if (claim) claim.c.needs[claim.k].res = false;
-    el.querySelector('b').textContent = '악성재고';
     el.style.filter = 'grayscale(1)';
     SFX.waste();
-    await tween(420, q => { set(midX, midY + 60 * q, 3.2 - 1.6 * q); el.style.opacity = 1 - q; }, EASE.inQuad);
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    await tween(380, q => { set(midX + dir * innerWidth * 0.7 * q, midY - 120 * q + 220 * q * q, 3.2 - 1.8 * q); el.style.opacity = 1 - q * 0.6; el.style.rotate = (dir * 540 * q) + 'deg'; }, EASE.inQuad);
     el.remove(); flying.n--;
     S.dead++; renderStock();
     return;
