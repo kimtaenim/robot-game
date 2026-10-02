@@ -97,50 +97,52 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .hud .left { display: none; }
 
 /* 주문표 */
-.rail { flex: none; height: 262px; padding-bottom: 6px; border-bottom: 6px solid; border-image: repeating-linear-gradient(-45deg, var(--gold) 0 10px, var(--frame) 10px 20px) 6; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-/* 세 클라이언트의 윗선(말풍선 꼭대기)과 아랫선(얼굴·이름·바)을 맞추고, 말풍선 크기만 달라짐 */
-.client { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; min-height: 0; padding-top: 2px; }
-.client.empty .door { flex: 1; width: 100%; border: 2px dashed var(--hud-line); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--hud-muted); font-size: 12px; }
-.bubble { position: relative; width: 100%; box-sizing: border-box; background: var(--surface); border: 2px solid var(--ink); border-radius: 14px; padding: 6px 4px 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; box-shadow: 0 2px 0 var(--line); }
-.bubble::after { content: ''; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px; background: var(--surface); border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: translateX(-50%) rotate(45deg); }
-.bubble .say { font-size: 12px; font-weight: 700; text-align: center; line-height: 1.25; word-break: keep-all; }
-.bubble .robot { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px; font-size: 26px; line-height: 1; max-width: 100%; }
-.bubble .robot small { font-family: var(--font-display); font-size: 12px; color: var(--steel); margin-left: 2px; text-align: center; word-break: keep-all; line-height: 1.15; }
-.bubble .robot b { font-family: var(--font-display); font-weight: 400; font-size: 15px; color: var(--ink); }
-.client .needs { display: flex; flex-wrap: nowrap; justify-content: center; gap: 2px; margin-top: 11px; max-width: 100%; }
-.client.intro .bubble, .client.intro .needs { visibility: hidden; }
-.need { flex: none; position: relative; width: 23px; height: 23px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1px dashed var(--hud-muted); background: rgba(0, 0, 0, .18); box-sizing: border-box; }
-.need.got { border: 1px solid #5fe05a; background: rgba(95, 224, 90, .25); }
-.need.got::after { content: '✓'; position: absolute; right: -3px; bottom: -5px; font-size: 10px; font-weight: 700; color: #5fe05a; }
-.face { font-size: 48px; line-height: 1; margin-top: auto; padding-top: 4px; height: 50px; display: flex; align-items: center; justify-content: center; transition: transform .25s ease-out; }
-.who { font-size: 12.5px; font-weight: 700; color: var(--hud-ink); text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.who small { display: block; font-size: 10.5px; color: var(--hud-muted); font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
-.pat { width: 94%; height: 14px; border-radius: 8px; background: rgba(0, 0, 0, .35); border: 2px solid var(--frame); overflow: hidden; flex: none; box-sizing: border-box; }
-/* 기다림 바: 세룰리안블루 → 노랑 → 다홍 → 버건디 (얼굴 구간과 같은 경계) */
+.rail { flex: none; height: 206px; padding-bottom: 6px; border-bottom: 6px solid; border-image: repeating-linear-gradient(-45deg, var(--gold) 0 10px, var(--frame) 10px 20px) 6; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .52fr); gap: 7px; }
+/* 주문서: 종이 카드. 위에서부터 업종 → 회사·할 일 → 로봇 → 부품 칸 → 기다림 바 */
+.ocard { position: relative; min-width: 0; min-height: 0; box-sizing: border-box; background: var(--surface); color: var(--ink); border: 2px solid var(--ink); border-radius: 12px; padding: 7px 5px 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; box-shadow: 0 3px 0 var(--gold-deep); transition: transform .18s ease-out, opacity .3s; overflow: hidden; }
+.ocard .ind { font-family: var(--font-display); font-size: 16px; line-height: 1.12; text-align: center; word-break: keep-all; max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: none; }
+.ocard .co { font-size: 11px; font-weight: 700; color: var(--muted); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ocard .task { font-size: 11.5px; font-weight: 700; color: var(--steel); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ocard .rb { display: flex; align-items: center; justify-content: center; gap: 3px; margin-top: auto; max-width: 100%; }
+.ocard .rb .ric { font-size: 32px; line-height: 1; }
+.ocard .rb b { font-family: var(--font-display); font-weight: 400; font-size: 16px; }
+.ocard .rname { font-family: var(--font-display); font-size: 12px; color: var(--steel); line-height: 1.15; text-align: left; word-break: keep-all; }
+.ocard .needs { display: flex; flex-wrap: nowrap; justify-content: center; gap: 2px; margin: 3px 0 4px; }
+.ocard .hint { font-size: 10px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+/* 좁은 휴머노이드 상시 주문서 */
+.ocard.hum { padding: 7px 3px 6px; background: linear-gradient(180deg, #FFF8E1, var(--surface) 45%); border-color: var(--gold-deep); }
+.ocard.hum .ind { font-size: 22px; }
+.ocard.hum .rname { font-size: 11px; text-align: center; }
+.ocard.hum .needs { flex-wrap: wrap; gap: 2px; }
+.ocard.hum .need { width: 21px; height: 21px; font-size: 14px; }
+.ocard.empty, .ocard.pending { background: rgba(0, 0, 0, .14); border: 2px dashed var(--hud-line); box-shadow: none; color: var(--hud-muted); justify-content: center; font-size: 12px; font-weight: 700; }
+.ocard.pending span { font-size: 30px; animation: urgent 1s ease-in-out infinite; }
+.ocard.done { border-color: var(--good); }
+.ocard.gone { border-color: var(--bad); }
+.ocard.done > :not(.tag), .ocard.gone > :not(.tag) { opacity: .35; }
+.ocard .tag { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%) rotate(-12deg); font-family: var(--font-display); font-size: 22px; padding: 2px 10px; border: 3px solid; border-radius: 8px; background: rgba(255, 255, 255, .85); white-space: nowrap; animation: stampIn .3s ease-out; }
+.ocard .tag.ok { color: var(--good); }
+.ocard .tag.no { color: var(--bad); }
+.ocard.hum .tag { font-size: 15px; padding: 2px 5px; }
+@keyframes stampIn { 0% { transform: translate(-50%, -50%) rotate(-12deg) scale(2.2); opacity: 0; } 100% { transform: translate(-50%, -50%) rotate(-12deg) scale(1); opacity: 1; } }
+.ocard.enter { animation: drop .3s ease-out; }
+.ocard.bump { transform: scale(1.06); }
+.need { flex: none; position: relative; width: 23px; height: 23px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1.5px dashed var(--muted); background: var(--surface-2); box-sizing: border-box; }
+.need.got { border: 1.5px solid var(--good); background: rgba(46, 160, 67, .18); }
+.need.got::after { content: '✓'; position: absolute; right: -3px; bottom: -5px; font-size: 10px; font-weight: 700; color: var(--good); }
+.pat { width: 100%; height: 12px; border-radius: 7px; background: rgba(0, 0, 0, .12); border: 2px solid var(--ink); overflow: hidden; flex: none; box-sizing: border-box; }
+/* 기다림 바: 세룰리안블루 → 노랑 → 다홍 → 버건디 */
 .pat i { display: block; height: 100%; background: var(--p-1); transform-origin: left; transition: background-color .3s; }
 .pat i.p2 { background: var(--p-2); }
 .pat i.p3 { background: var(--p-3); }
 .pat i.p4 { background: var(--p-4); animation: urgent .6s ease-in-out infinite; }
+/* 휴머노이드 손님은 기다림이 끝없음: 금색 줄무늬 */
+.pat.inf i { background: repeating-linear-gradient(-45deg, var(--gold) 0 6px, #FFE9A8 6px 12px); }
 @keyframes urgent { 50% { filter: brightness(1.45); } }
-.client.gone .bubble { border-color: var(--bad); background: var(--surface); }
-.client.gone .bubble .say { color: var(--bad); font-size: 13px; }
-.client.gone .face { animation: stomp .5s ease-in-out infinite; }
-.client.gone .who, .client.gone .pat { opacity: .5; }
-.client.done .bubble { border-color: var(--good); }
-.client.done .bubble .say { color: var(--good); font-size: 13px; }
-.client.done .stars { display: block; font-size: 20px; letter-spacing: 1px; color: var(--accent); margin-top: 2px; animation: pop .45s ease-out; }
 @keyframes pop { 0% { transform: scale(.4); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
-.client.enter { animation: drop .35s ease-out; }
-.client.bump .face { transform: scale(1.18); }
 @keyframes drop { from { transform: translateY(-18px); opacity: .2; } to { transform: none; opacity: 1; } }
-@keyframes stomp { 50% { transform: translateY(-4px) rotate(-6deg); } }
 .showcase { position: fixed; z-index: 39; pointer-events: none; font-size: 30px; transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,.35)); }
 .showcase b { position: absolute; left: 50%; top: 100%; transform: translateX(-50%); font-family: var(--font-display); font-weight: 400; font-size: 9px; color: var(--ink); white-space: nowrap; text-shadow: 0 1px 0 var(--surface); }
-
-/* 악성재고 */
-.stock { display: flex; gap: 6px; align-items: center; min-height: 28px; font-size: 13px; color: var(--muted); }
-.stock .chip { display: inline-flex; align-items: center; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 2px 8px; font-size: 15px; color: var(--ink); }
-.stock .chip b { font-size: 12px; }
 
 /* 매치3 보드 */
 .boardwrap { flex: none; display: flex; justify-content: center; }
@@ -167,30 +169,35 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .banner { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
 @keyframes banner { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
 
-.order-card { position: fixed; z-index: 38; pointer-events: none; width: 210px; box-sizing: border-box; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 20px; padding: 14px 12px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0, 0, 0, .45); }
-.order-card .oc-ind { font-family: var(--font-display); font-size: 26px; line-height: 1.1; text-align: center; word-break: keep-all; }
-.order-card .oc-who { font-size: 12px; font-weight: 700; color: var(--muted); }
-.order-card .oc-say { font-size: 14px; color: var(--ink); font-weight: 700; text-align: center; word-break: keep-all; }
-.order-card .oc-robot { font-size: 54px; line-height: 1.1; display: flex; align-items: center; gap: 4px; }
-.order-card .oc-robot b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
-.order-card .oc-name { font-family: var(--font-display); font-size: 18px; color: var(--steel); }
-.order-card .oc-needs { display: flex; gap: 4px; margin-top: 4px; }
-.order-card .oc-needs i { font-style: normal; font-size: 22px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--line); border-radius: 8px; }
-.order-card .oc-face { position: absolute; left: -18px; bottom: -18px; font-size: 44px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.3)); }
-.leave { position: fixed; z-index: 40; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.leave .lbubble { position: relative; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 8px 14px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 24px rgba(0,0,0,.4); }
-.leave .lbubble::after { content: ''; position: absolute; left: 50%; bottom: -11px; width: 16px; height: 16px; background: var(--surface); border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink); transform: translateX(-50%) rotate(45deg); }
-.leave .lbubble .oc-robot { font-size: 46px; line-height: 1.1; display: flex; align-items: center; gap: 3px; }
-.leave .lbubble .oc-robot b { font-family: var(--font-display); font-weight: 400; font-size: 22px; }
-.leave .lbubble .oc-name { font-family: var(--font-display); font-size: 15px; color: var(--steel); }
-.leave.angry .lbubble { border-color: var(--bad); }
-.leave .lface { font-size: 120px; line-height: 1; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .4)); }
+.readscrim { position: fixed; inset: 0; z-index: 37; background: rgba(5, 25, 30, .55); opacity: 0; cursor: pointer; }
+.order-card { position: fixed; z-index: 38; cursor: pointer; width: 236px; box-sizing: border-box; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 12px 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0, 0, 0, .45); }
+.order-card .oc-head { align-self: stretch; text-align: center; font-family: var(--font-display); font-size: 13px; letter-spacing: .08em; color: var(--surface); background: var(--ink); border-radius: 8px; padding: 3px 0; margin-bottom: 4px; }
+.order-card.hum .oc-head { background: var(--gold-deep); }
+.order-card .ind { font-family: var(--font-display); font-size: 30px; line-height: 1.1; text-align: center; word-break: keep-all; }
+.order-card .co { font-size: 13px; font-weight: 700; color: var(--muted); }
+.order-card .task { font-size: 15px; font-weight: 700; color: var(--steel); text-align: center; word-break: keep-all; }
+.order-card .rb { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.order-card .rb .ric { font-size: 58px; line-height: 1.05; }
+.order-card .rb b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
+.order-card .rname { font-family: var(--font-display); font-size: 17px; color: var(--steel); line-height: 1.2; word-break: keep-all; max-width: 110px; }
+.order-card .needs { display: flex; gap: 4px; margin-top: 4px; }
+.order-card .need { width: 34px; height: 34px; font-size: 22px; border-width: 2px; border-radius: 8px; }
+.order-card .oc-tap { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--surface); background: var(--accent); color: #1A1400; border-radius: 999px; padding: 6px 16px; animation: urgent 1s ease-in-out infinite; }
+.order-card .stamp { position: absolute; right: 10px; top: 42%; font-family: var(--font-display); font-size: 34px; color: var(--bad); border: 4px solid var(--bad); border-radius: 10px; padding: 0 10px; background: rgba(255, 255, 255, .7); transform: rotate(-14deg) scale(2.4); opacity: 0; pointer-events: none; }
+.order-card.stamped .stamp { animation: stampHit .22s ease-out forwards; }
+.order-card.stamped .oc-tap { visibility: hidden; }
+@keyframes stampHit { to { transform: rotate(-14deg) scale(1); opacity: 1; } }
+.leave { position: fixed; z-index: 40; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.leave .lstars { font-size: 64px; line-height: 1; letter-spacing: 2px; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .45)); white-space: nowrap; }
+.leave .lstars span { color: rgba(255, 255, 255, .55); }
+.leave .lskull { font-size: 120px; line-height: 1; filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .45)); }
+.leave .lword { font-family: var(--font-display); font-size: 30px; color: var(--accent); text-shadow: 0 2px 0 var(--ink), 0 0 12px rgba(0, 0, 0, .5); white-space: nowrap; }
+.leave.angry .lword { color: #FF8A80; }
 .puff { position: fixed; z-index: 41; pointer-events: none; border-radius: 50%; transform: translate(-50%, -50%) scale(.3); background: radial-gradient(circle, rgba(225, 230, 234, .95) 0%, rgba(170, 178, 186, .7) 45%, rgba(150, 160, 170, 0) 70%); animation: puff .8s ease-out forwards; }
 @keyframes puff { to { transform: translate(-50%, -80%) scale(1.6); opacity: 0; } }
-.bigface { position: fixed; z-index: 37; pointer-events: none; font-size: 54px; line-height: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .4)); }
 
 /* 오버레이 */
-.overlay { position: fixed; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 30; }
+.overlay { position: fixed; inset: 0; background: var(--scrim); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 50; }
 .sheet { background: var(--surface); color: var(--ink); border-radius: 16px; width: 100%; max-width: 480px; max-height: 88%; overflow: auto; padding: 22px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; user-select: text; -webkit-user-select: text; }
 .sheet h2 { font-family: var(--font-display); font-weight: 400; font-size: 28px; margin: 0; text-wrap: balance; }
 .sheet p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
@@ -214,7 +221,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .lbl { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .06em; }
 
 @media (prefers-reduced-motion: reduce) {
-  .client.enter, .client.gone .face, .float, .banner, .tile.hint, .pat i.p4, .title .usd, .title .star, .puff { animation: none; }
+  .ocard.enter, .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .title .usd, .title .star, .puff { animation: none; }
   .flyer { transition: none; }
 }
 </style>
@@ -234,7 +241,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
     <span class="chain" id="chain"></span><span class="left" id="left"></span>
   </div>
 
-  <section class="rail" id="rail" aria-label="클라이언트"></section>
+  <section class="rail" id="rail" aria-label="주문서"></section>
   <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"><div class="clip" id="clip"></div><canvas class="fxc" id="fxc"></canvas></div></div>
 </div>
 
@@ -675,6 +682,8 @@ const SFX = {
   leave: () => { if (!audio()) return; voiceAwOh(ac.currentTime); },
   // 새 손님: 로봇 안내음 삐-빅
   ticket: () => { if (!audio()) return; const t = ac.currentTime; osc('square', 880, t, 0.06, 0.03); osc('square', 1320, t + 0.07, 0.07, 0.03); },
+  // 주문서 수락 도장: 쿵 + 종이 탁
+  stamp: () => { if (!audio()) return; const t = ac.currentTime; osc('sine', 140, t, 0.18, 0.18, 55); nz(t, 0.07, 0.14, 'lowpass', 900); nz(t + 0.01, 0.05, 0.06, 'bandpass', 2600, 1.5); },
   star: n => { if (!audio()) return; const t = ac.currentTime; for (let i = 0; i < n; i++) osc('sine', 1568 + i * 220, t + 0.9 + i * 0.12, 0.25, 0.06); },
   // 주문 없는 부품 날려버림: 압축공기 치익
   waste: () => { if (!audio()) return; const t = ac.currentTime; nz(t, 0.45, 0.07, 'highpass', 2500); },
@@ -717,31 +726,36 @@ function ambient(dt, on) {
   }
   if ((hum.hiss -= dt) <= 0) { hum.hiss = 6 + Math.random() * 5; nz(t, 0.6, 0.015, 'highpass', 3000); }
 }
-// ───────── 클라이언트: 3자리, 말풍선으로 주문 ─────────
+// ───────── 주문서: 큰 주문 2장 + 좁은 휴머노이드 주문 1장 (늘 2.5장) ─────────
+// 0·1번 자리는 일반 주문, 2번 자리는 늘 휴머노이드를 사 가는 손님 (기다림 바 없음, 휴머노이드가 버려지지 않게)
+const HUM_SLOT = 2;
+const isHumSlot = i => i === HUM_SLOT;
 const waiting = () => S.slots.filter(c => c && c.state === 'wait');
-function pickOrder() {
+const waitingNormal = () => S.slots.filter((c, i) => c && c.state === 'wait' && !isHumSlot(i));
+function pickOrder(i) {
   const ok = new Set(S.def.robots);
   const open = new Set(S.slots.filter(Boolean).map(c => c.order.id));
-  const humOpen = S.slots.some(c => c && c.state === 'wait' && c.order.want === 'hum');
-  let pool = ORDERS.filter(o => ok.has(o.want) && !open.has(o.id) && !(humOpen && o.want === 'hum'));
+  if (isHumSlot(i)) {
+    const hums = ORDERS.filter(o => o.want === 'hum');
+    const fresh = hums.filter(o => !open.has(o.id));
+    const list = fresh.length ? fresh : hums;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  let pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum' && !open.has(o.id));
   if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum');
   // 조선소 손님은 7명 중 1명꼴
   const ships = pool.filter(o => o.ind === '조선소'), rest = pool.filter(o => o.ind !== '조선소');
   if (ships.length && (Math.random() < SHIP_SHARE || !rest.length)) return ships[Math.floor(Math.random() * ships.length)];
-  // 휴머노이드 손님은 드물게
-  const weighted = rest.flatMap(o => o.want === 'hum' ? (Math.random() < 0.5 ? [o] : []) : [o, o]);
-  const list = weighted.length ? weighted : rest;
-  return list[Math.floor(Math.random() * list.length)];
+  return rest[Math.floor(Math.random() * rest.length)];
 }
 function addClient(i) {
-  const order = pickOrder();
+  const order = pickOrder(i);
   const needs = [];
   for (let k = 0; k < order.n; k++) needs.push(...ROBOTS[order.want].parts);
   const max = MOODS[order.mood] + needs.length * PART_SEC;  // 단계가 올라도 인내심은 그대로
-  const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, slow: order.mood === 'long', intro: true };
+  const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, noTimer: isHumSlot(i), intro: true };
   S.slots[i] = c;
   S.spawned++;
-  SFX.ticket();
   renderClients();
   onStage(() => orderIntro(c, i));
 }
@@ -749,15 +763,14 @@ function clientTick(dt) {
   S.slots.forEach((c, i) => {
     if (!c) return;
     if (c.state === 'wait') {
-      if (c.intro) return;  // 주문서를 보여 주는 동안은 기다림 바가 멈춤
+      if (c.intro || c.noTimer) return;  // 주문서를 읽는 동안·휴머노이드 손님은 기다림 바가 흐르지 않음
       if ((c.t -= dt) > 0) return;
-      // 너무 늦음: 화내고 떠남. 자리는 몇 초 동안 그대로 남아 부담을 줌
+      // 너무 늦음: 계약 취소. 해골이 뜨고 피식 사라짐
       c.state = 'gone'; c.until = GONE_SEC;
       vibrate([40, 40, 40]);
-      // 떠난 손님 몫으로 만든 부품은 갈 데가 없어 악성재고
       S.dead += c.needs.filter(nd => nd.got).length;
       S.missed++;
-      renderClients(); renderStock(); renderHud();
+      renderClients(); renderHud();
       c.showing = true;
       onStage(() => leaveShow(c, i, false)).then(() => { c.showing = false; });
       return;
@@ -766,23 +779,25 @@ function clientTick(dt) {
       S.slots[i] = null;
       S.spawnT = Math.min(S.spawnT, 0.6);
       renderClients();
-      if (S.done >= levelTarget(S.lv) && S.slots.every(x => !x || x.state !== 'wait')) levelClear();
+      if (S.done >= levelTarget(S.lv) && !waitingNormal().length) levelClear();
     }
   });
 }
 function spawnTick(dt) {
-  if (S.done + waiting().length >= levelTarget(S.lv)) return;
   if (!stageIdle()) return;
-  const free = S.slots.findIndex(c => !c);
-  if (free < 0) return;
-  if ((S.spawnT -= dt) <= 0 || !waiting().length) {
+  // 휴머노이드 자리는 비면 바로 다음 손님
+  if (!S.slots[HUM_SLOT] && S.done < levelTarget(S.lv)) { addClient(HUM_SLOT); return; }
+  if (S.done + waitingNormal().length >= levelTarget(S.lv)) return;
+  const free = [0, 1].find(i => !S.slots[i]);
+  if (free === undefined) return;
+  if ((S.spawnT -= dt) <= 0 || !waitingNormal().length) {
     addClient(free);
     S.spawnT = Math.max(1.2, 2.4 - S.lv * 0.1);
   }
 }
-// 이 부품을 받을 클라이언트 칸 찾기 (가장 급한 손님부터)
+// 이 부품을 받을 주문 칸 찾기 (가장 급한 주문부터)
 function claimNeed(p) {
-  const order = S.slots.map((c, i) => ({ c, i })).filter(x => x.c && x.c.state === 'wait').sort((a, b) => a.c.t / a.c.max - b.c.t / b.c.max);
+  const order = S.slots.map((c, i) => ({ c, i })).filter(x => x.c && x.c.state === 'wait' && !x.c.intro).sort((a, b) => a.c.t / a.c.max - b.c.t / b.c.max);
   for (const { c, i } of order) {
     const k = c.needs.findIndex(nd => nd.p === p && !nd.res);
     if (k >= 0) { c.needs[k].res = true; return { c, i, k }; }
@@ -792,10 +807,10 @@ function claimNeed(p) {
 function complete(i) {
   const c = S.slots[i];
   if (!c || c.state !== 'wait' || !S.running) return;
-  const el = document.querySelector(`[data-slot="${i}"] .face`);
+  const el = document.querySelector(`[data-slot="${i}"]`);
   const tip = Math.round(100 * c.t / c.max);
-  // 만족도 별: 남은 인내심 60% 이상 ★★★, 30% 이상 ★★, 그 밑은 ★
-  const f = c.t / c.max;
+  // 만족도 별: 남은 인내심 60% 이상 ★★★, 30% 이상 ★★, 그 밑은 ★ (휴머노이드 손님은 늘 ★★★)
+  const f = c.noTimer ? 1 : c.t / c.max;
   c.stars = f >= 0.6 ? 3 : f >= 0.3 ? 2 : 1;
   S.stars += c.stars;
   const gain = 80 * c.needs.length + tip + (c.order.want === 'hum' ? 400 : 0);
@@ -804,22 +819,22 @@ function complete(i) {
   vibrate([30, 50, 30]);
   const lit = [...S.dex].some(id => secKey(O[id]) === secKey(c.order));
   S.dex.add(c.order.id); S.runServed.push(c.order.id); save();
-  if (!lit) banner(`${secKey(c.order)}${c.order.icon} 점등!`, 250);
-  c.state = 'done'; c.until = DONE_SEC + 0.6;
-  SFX.star(c.stars);
+  if (!lit) banner(`${secKey(c.order)}${c.order.icon} 점등!`, 2100);
+  c.state = 'done'; c.until = DONE_SEC;
   S.done++;
   renderClients(); renderHud();
   c.showing = true;
   onStage(() => leaveShow(c, i, true)).then(() => { c.showing = false; });
 }
-// 주문 카드 내용: 로봇 + 필요한 부품
-const orderCardHtml = (c, big) => {
-  const r = ROBOTS[c.order.want];
-  return `<span class="oc-robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</span><span class="oc-name">${robotLabel(c.order)}</span>` +
-    (big ? `<span class="oc-needs">${c.needs.map(nd => `<i>${TILES[nd.p].icon}</i>`).join('')}</span>` : '');
-};
 const centerX = () => innerWidth / 2;
-// 가운데 무대: 등장 주문서·떠나는 연출을 겹치지 않게 한 번에 하나씩 순서대로 보여 줌
+// 부품이 붙을 때 그 주문서가 살짝 튐
+function cheer(c) {
+  const i = S.slots.indexOf(c);
+  const el = document.querySelector(`[data-slot="${i}"]`);
+  if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+}
+
+// ───────── 가운데 무대: 주문서 등장·떠나는 연출을 겹치지 않게 한 번에 하나씩 ─────────
 const stage = { q: [], busy: false };
 function onStage(fn) {
   return new Promise(done => { stage.q.push(async () => { try { await fn(); } catch (e) {} done(); }); runStage(); });
@@ -831,55 +846,78 @@ async function runStage() {
   stage.busy = false;
 }
 const stageIdle = () => !stage.busy && !stage.q.length;
-// 손님 등장: 주문서가 화면 가운데에 크게 3.5초 떠 있다가 작아지며 그 손님 말풍선 자리로 들어감
+
+// 주문서 내용 (가운데 큰 카드와 자리의 카드가 같은 순서로 읽힘)
+function orderBody(c, big) {
+  const o = c.order, r = ROBOTS[o.want];
+  const needs = c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('');
+  if (isHumSlot(S.slots.indexOf(c)) && !big) {
+    return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">휴머노이드</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
+  }
+  return `<div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div>
+    <div class="rb"><span class="ric">${r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
+    <div class="needs">${needs}</div>`;
+}
+
+// 손님 등장: 주문서가 가운데 크게 뜸 → 눌러서 수락(도장 쾅) → 작아지며 자리로 들어감
+// 수락 전에는 보드를 못 만지고 이 주문의 기다림 바도 흐르지 않음
 async function orderIntro(c, i) {
   if (JUICE <= 0) { c.intro = false; renderClients(); return; }
+  S.reading = true;
+  const scrim = document.createElement('div');
+  scrim.className = 'readscrim';
   const el = document.createElement('div');
-  el.className = 'order-card';
-  el.innerHTML = `<span class="oc-ind">${c.order.icon} ${c.order.ind}</span>${c.order.who ? `<span class="oc-who">${c.order.who}</span>` : ''}<span class="oc-say">${c.order.task}</span>${orderCardHtml(c, true)}<span class="oc-face">${BANDS[0].face}</span>`;
-  const mx = centerX(), my = innerHeight * 0.44;
+  el.className = 'order-card' + (isHumSlot(i) ? ' hum' : '');
+  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '새 주문'}</div>${orderBody(c, true)}<div class="oc-tap">눌러서 수락</div><div class="stamp">수락</div>`;
+  const mx = centerX(), my = innerHeight * 0.46;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(mx, my, 0.3, 0);
+  document.body.appendChild(scrim);
   document.body.appendChild(el);
-  await tween(260, q => set(mx, my, 0.3 + 0.7 * q, q), EASE.outQuad);
-  await wait(2920);  // 나타남 0.26 + 떠 있음 2.92 + 말풍선으로 0.32 = 3.5초
-  const target = document.querySelector(`[data-slot="${i}"] .bubble`);
+  SFX.ticket();
+  // 수락: 카드나 어두운 바탕 어디를 눌러도 됨 (뜨는 중에 눌러도 받아 줌)
+  const accepted = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
+  await tween(240, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
+  await accepted;
+  el.classList.add('stamped');
+  SFX.stamp();
+  await wait(380);
+  const target = document.querySelector(`[data-slot="${i}"]`);
   const [tx, ty] = target ? centerOf(target) : [mx, 80];
   const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width : 0.4;
-  await tween(320, q => set(mx + (tx - mx) * q, my + (ty - my) * q, 1 + (s1 - 1) * q, 1 - 0.3 * q), EASE.inQuad);
-  el.remove();
+  await tween(300, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1 + (s1 - 1) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inQuad);
+  el.remove(); scrim.remove();
+  S.reading = false;
   c.intro = false;
   if (S.slots[i] === c) renderClients();
 }
-// 손님이 떠날 때: 얼굴이 바라던 물건 말풍선을 들고 화면 가운데에 몇 초 떠 있다가
-//   만족 → 나타나며 빵빠레, 몇 초 뒤 캐시 소리와 함께 펑! 돈이 쏟아지며 사라짐 / 화남 → 피식 연기와 함께 사라짐 + "아 오"
+// 떠나는 연출 (2초): 만족 → 별이 크게 뜨며 빵빠레, 캐시 소리와 함께 돈이 우수수 / 중간에 떠남 → 해골 + "아 오" + 피식 연기
 async function leaveShow(c, i, happy) {
-  const src = document.querySelector(`[data-face="${i}"]`);
+  const src = document.querySelector(`[data-slot="${i}"]`);
   if (!src || JUICE <= 0) { (happy ? SFX.cash : SFX.leave)(); return; }
   const [x0, y0] = centerOf(src);
   const el = document.createElement('div');
   el.className = 'leave' + (happy ? ' happy' : ' angry');
-  el.innerHTML = `<div class="lbubble">${orderCardHtml(c, false)}</div><div class="lface">${happy ? ['', '😐', '😊', '😆'][c.stars] : '😡'}</div>`;
+  el.innerHTML = happy
+    ? `<div class="lstars">${'⭐'.repeat(c.stars)}<span>${'☆'.repeat(3 - c.stars)}</span></div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]}</div>`
+    : `<div class="lskull">💀</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
   const mx = centerX(), my = innerHeight * 0.45;
-  if (happy) SFX.done();  // 등장하며 빵빠레
+  if (happy) SFX.done();  // 별이 뜨며 빵빠레
   await tween(330, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
-  // 몇 초 떠 있음 (살짝 둥실)
-  // 전체 2초: 만족은 떠 있음 1.53 + 펑 0.14, 화남은 떠 있음 1.29 + 연기 0.38
+  // 전체 2초: 만족은 떠 있음 1.53 + 펑 0.14, 떠남은 떠 있음 1.29 + 연기 0.38
   await tween(happy ? 1530 : 1290, q => set(mx, my - 6 * Math.sin(q * Math.PI * 3), 1, 1));
   const r = el.getBoundingClientRect();
   if (happy) {
-    // 캐시 소리와 함께 펑! 돈이 쏟아짐
-    SFX.cash();
+    SFX.cash();  // 캐시 소리와 함께 돈이 우수수
     const b = $('board').getBoundingClientRect();
     fxBurst(mx - b.left, my - b.top, '#F0B400', 46, 1.6);
     fxRing(mx - b.left, my - b.top, 20, r.width * 0.8, 260, 5, '255,215,90');
     await tween(140, q => set(mx, my, 1 + 0.25 * q, 1 - q));
   } else {
-    // 피식 연기와 함께 사라짐
-    SFX.leave();
+    SFX.leave();  // "아 오" + 피식 연기
     for (let k = 0; k < 9; k++) {
       const p = document.createElement('div');
       p.className = 'puff';
@@ -892,86 +930,36 @@ async function leaveShow(c, i, happy) {
   }
   el.remove();
 }
-// 보드 밖(클라이언트 자리)에서 돈 파편 터뜨리기: 보드 기준 좌표로 바꿔서
+// 보드 밖에서 돈 파편 터뜨리기: 보드 기준 좌표로 바꿔서
 function burstAt(x, y) {
   const r = $('board').getBoundingClientRect();
   fxBurst(x - r.left, y - r.top, '#F0B400', 10, 1.1);
 }
 
-// ───────── 렌더링: 클라이언트 ─────────
-// 기다리는 동안 표정: 구간마다 기본 얼굴 하나(크게). 중간중간 곁눈질·하품·한숨 같은 딴짓을 해서
-// 플레이어 신경을 분산시킴. 인내심이 줄수록 딴짓이 잦아짐
-const BANDS = [
-  { at: 0.6,  face: '😊', acts: ['glance', 'glance', 'yawn', 'smile'] },        // 여유
-  { at: 0.35, face: '😐', acts: ['yawn', 'yawn', 'glance', 'eyeroll', 'sigh'] }, // 지루함
-  { at: 0.15, face: '😣', acts: ['glance', 'sigh', 'watch', 'eyeroll'] },       // 찌푸림
-  { at: 0,    face: '😠', acts: ['huff', 'watch', 'huff', 'glance'] },          // 폭발 직전
-];
-// 딴짓: 표정 + 몸짓(transform)
-const ACTS = {
-  glance:  { face: ['😒', '🫤'], dur: 1.1, move: d => `translateX(${d * 9}px) rotate(${d * 7}deg)` },
-  yawn:    { face: ['🥱'], dur: 1.4, move: () => 'scale(1.18) translateY(-3px)' },
-  eyeroll: { face: ['🙄'], dur: 1.0, move: () => 'rotate(-4deg)' },
-  sigh:    { face: ['😮‍💨'], dur: 1.2, move: () => 'translateY(4px) scale(.96)' },
-  smile:   { face: ['😄', '☺️'], dur: 0.9, move: () => 'translateY(-4px)' },
-  watch:   { face: ['⌚'], dur: 0.8, move: () => 'scale(.8) rotate(-12deg)' },
-  huff:    { face: ['😤'], dur: 0.8, move: () => 'scale(1.14)' },
-};
+// ───────── 렌더링: 주문서 자리 ─────────
+// 기다림 바 색 구간: 세룰리안 → 노랑 → 다홍 → 버건디
+const BANDS = [{ at: 0.6 }, { at: 0.35 }, { at: 0.15 }, { at: 0 }];
 const bandOf = c => Math.max(0, BANDS.findIndex(b => c.t / c.max >= b.at));
-function moodFace(c) {
-  const band = bandOf(c);
-  if (c.act && S.clock < c.act.until) return c.act.face;
-  c.act = null;
-  if (S.clock >= (c.nextAct ?? (c.nextAct = S.clock + 1.5 + Math.random() * 2))) {
-    const name = BANDS[band].acts[Math.floor(Math.random() * BANDS[band].acts.length)];
-    const a = ACTS[name], dir = Math.random() < 0.5 ? -1 : 1;
-    c.act = { face: a.face[Math.floor(Math.random() * a.face.length)], until: S.clock + a.dur, move: a.move(dir) };
-    // 인내심이 줄수록 딴짓 간격이 짧아짐 (여유 3~6초 → 폭발 직전 1~2초)
-    const gap = [4.5, 3.2, 2.2, 1.4][band];
-    c.nextAct = S.clock + a.dur + gap * (0.7 + Math.random() * 0.6);
-    return c.act.face;
-  }
-  return BANDS[band].face;
-}
-const faceMove = c => (c.state === 'wait' && c.act && S.clock < c.act.until) ? c.act.move : '';
-// 부품이 붙을 때 잠깐 반가운 표정
-function cheer(c) { c.act = { face: ['😃', '😍', '🥳', '😁'][Math.floor(Math.random() * 4)], until: S.clock + 0.9, move: 'scale(1.15) translateY(-4px)' }; }
-const faceOf = c => c.state === 'gone' ? '😡' : c.state === 'done' ? '😆' : moodFace(c);
-function sayOf(c) {
-  if (c.state === 'gone') return '계약은 없던 걸로 하죠!';
-  if (c.state === 'done') return `${['', '그럭저럭이네요', '좋아요, 감사합니다', '최고예요!'][c.stars]}<span class="stars">${'⭐'.repeat(c.stars)}${'☆'.repeat(3 - c.stars)}</span>`;
-  const r = ROBOTS[c.order.want];
-  return `${c.order.task}에 ${robotLabel(c.order)}${c.order.n > 1 ? ` ${c.order.n}대` : ''} 주세요`;
-}
 function renderClients() {
   $('rail').innerHTML = S.slots.map((c, i) => {
-    if (!c) return `<div class="client empty"><div class="door">${S.done + waiting().length < levelTarget(S.lv) ? '다음 손님…' : ''}</div></div>`;
-    const r = ROBOTS[c.order.want];
-    const needs = c.state === 'wait' ? `<span class="needs">${c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('')}</span>` : '';
-    const robot = c.state === 'wait' ? `<span class="robot">${r.icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</span>` : '';
-    return `<div class="client ${c.state}${c.fresh ? ' enter' : ''}${c.slow ? ' slow' : ''}${c.intro ? ' intro' : ''}" data-slot="${i}">
-      <div class="bubble"><span class="say">${sayOf(c)}</span>${robot}</div>${needs}
-      <div class="face" data-face="${i}">${faceOf(c)}</div>
-      <div class="who">${c.order.icon} ${c.order.ind}<small>${c.order.who || '&nbsp;'}</small></div>
-      <div class="pat" data-pat="${i}"><i></i></div>
-    </div>`;
+    const hum = isHumSlot(i) ? ' hum' : '';
+    if (!c) return `<div class="ocard empty${hum}"><span>${isHumSlot(i) ? '🤖' : '주문 대기…'}</span></div>`;
+    if (c.intro) return `<div class="ocard pending${hum}" data-slot="${i}"><span>📨</span></div>`;
+    const bar = c.noTimer ? `<div class="pat inf"><i></i></div>` : `<div class="pat" data-pat="${i}"><i></i></div>`;
+    const tag = c.state === 'done' ? `<div class="tag ok">완료</div>` : c.state === 'gone' ? `<div class="tag no">취소</div>` : '';
+    return `<div class="ocard ${c.state}${hum}${c.fresh ? ' enter' : ''}" data-slot="${i}">${orderBody(c, false)}${bar}${tag}</div>`;
   }).join('');
   S.slots.forEach(c => c && (c.fresh = false));
   updateBars();
 }
 function updateBars() {
   S.slots.forEach((c, i) => {
-    if (!c) return;
+    if (!c || c.noTimer) return;
     const f = Math.max(0, c.t / c.max);
     const el = document.querySelector(`[data-pat="${i}"] i`);
     if (el) { el.style.transform = `scaleX(${c.state === 'wait' ? f : 0})`; el.className = 'p' + (bandOf(c) + 1); }
-    const face = document.querySelector(`[data-face="${i}"]`);
-    const want = faceOf(c);
-    if (face && face.textContent !== want) face.textContent = want;
-    if (face) { const mv = faceMove(c); if (face.style.transform !== mv) face.style.transform = mv; }
   });
 }
-// 주문 없이 만든 부품은 그냥 날려버림 (카운터 없음)
 function renderStock() {}
 function renderHud() {
   const n = levelTarget(S.lv);
@@ -979,10 +967,9 @@ function renderHud() {
   $('prog').textContent = `${S.done}/${n}`;
   $('goalBar').style.width = (S.done / n * 100).toFixed(1) + '%';
   $('score').textContent = S.score;
-  $('left').textContent = S.missed ? `💢 떠난 손님 ${S.missed}` : '';
+  $('left').textContent = '';
   $('stars').textContent = S.stars;
 }
-
 // ───────── 연출 엔진: 트윈 + 파티클 캔버스 + 화면 흔들림 (Bosses of Our World의 fx/tween 방식을 따라함) ─────────
 const tweens = [];
 function tween(ms, fn, ease = p => p, delay = 0) {
@@ -1079,7 +1066,7 @@ function layout() {
   rail.style.height = '';
   const railH = rail.getBoundingClientRect().height;
   const spare = innerHeight - el.getBoundingClientRect().top - 14 - full * ROWS / COLS;
-  if (spare < 0) rail.style.height = Math.max(222, railH + spare) + 'px';
+  if (spare < 0) rail.style.height = Math.max(190, railH + spare) + 'px';
   const room = innerHeight - el.getBoundingClientRect().top - 14;
   el.style.width = Math.min(full, room * COLS / ROWS) + 'px';
   const W = el.clientWidth, H = el.clientHeight;
@@ -1147,7 +1134,7 @@ function slide(t, r, c, ms) {
   return tween(ms, p => { t.x = x0 + (c - x0) * p; t.y = y0 + (r - y0) * p; }, EASE.outQuad);
 }
 async function trySwap(a, b) {
-  if (S.busy || !S.running || S.paused) return;
+  if (S.busy || !S.running || S.paused || S.reading) return;
   S.busy = true; S.sel = null; S.idle = 0; clearHint(); renderBoard();
   const ta = S.board.get(a.r, a.c), tb = S.board.get(b.r, b.c);
   SFX.swap();
@@ -1229,8 +1216,6 @@ async function showcase(p, x0, y0, delay) {
   if (live && claim.c.state === 'wait') {
     claim.c.needs[claim.k].got = true;
     SFX.stick();
-    cheer(claim.c);
-    const face = document.querySelector(`[data-slot="${claim.i}"]`);
     renderClients();
     document.querySelector(`[data-slot="${claim.i}"]`)?.classList.add('bump');
     setTimeout(() => document.querySelector(`[data-slot="${claim.i}"]`)?.classList.remove('bump'), 200);
@@ -1325,7 +1310,7 @@ function cellAt(x, y) {
 }
 const adjacent = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.c - b.c) === 1;
 $('board').addEventListener('pointerdown', e => {
-  if (!S.running || S.paused || S.busy) return;
+  if (!S.running || S.paused || S.busy || S.reading) return;
   const cell = cellAt(e.clientX, e.clientY);
   if (!cell) return;
   if (S.sel && adjacent(S.sel, cell)) { const a = S.sel; S.sel = null; trySwap(a, cell); return; }
@@ -1399,7 +1384,8 @@ function loop(t) {
 }
 function startLevel() {
   S.def = levelDef(S.lv);
-  Object.assign(S, { running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0 });
+  stage.q.length = 0;
+  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0 });
   $('overlay').hidden = true;
   clearBoardEls();
   S.board = new Board(COLS, ROWS, S.def.tiles);
@@ -1448,11 +1434,11 @@ function resume() {
 const HELP = `
   <h2>ROBOT RU$H</h2>
   <div class="steps">
-    <div class="step">💬 <span>클라이언트가 말풍선으로 로봇을 주문해요</span></div>
-    <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 말풍선으로 날아가 붙어요</span></div>
-    <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 휴머노이드 3개를 맞추면 휴머노이드 납품!</span></div>
+    <div class="step">📨 <span>새 주문서가 뜨면 눌러서 수락! (어느 업종이 어떤 로봇을 사는지 읽어 보세요)</span></div>
+    <div class="step">🛞🛞🛞 <span>같은 부품 3개를 맞추면 주문서로 날아가 붙어요</span></div>
+    <div class="step">🤖 <span>4개 이상 맞추면 휴머노이드가 하나 내려와요. 오른쪽 좁은 주문서는 늘 휴머노이드 손님이라 버릴 일이 없어요</span></div>
   </div>
-  <p>처음엔 웃으며 기다리던 손님도 오래 걸리면 찌푸리고, 바가 다 떨어지면 "계약은 없던 걸로 하죠!" 하고 떠나요. 휴머노이드 손님은 아주 오래 기다려줘요.</p>
+  <p>주문서 아래 바가 다 떨어지면 💀 계약 취소. 다 채우면 남은 시간만큼 ⭐을 받아요.</p>
   ${recipesHtml()}
   <button class="primary" type="button" data-act="begin">시작 ▶</button>`;
 function summaryHtml() {
