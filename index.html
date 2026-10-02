@@ -607,8 +607,27 @@ function burstAt(x, y) {
 }
 
 // ───────── 렌더링: 클라이언트 ─────────
-const FACES = [[0.6, '😊'], [0.35, '😐'], [0.15, '😣'], [0, '😠']];
-const faceOf = c => c.state === 'gone' ? '😡' : c.state === 'done' ? '😆' : (FACES.find(([f]) => c.t / c.max >= f) || FACES[3])[1];
+// 기다리는 동안 표정: 남은 인내심 구간마다 여러 표정 중에서 1.5~3.5초마다 바꿔 가며 딴짓
+const MOODS_FACE = [
+  [0.6,  ['😊', '🙂', '😄', '😌', '🤗', '😉', '🤔', '☺️']],   // 여유: 웃으며 기다림
+  [0.35, ['😐', '🤔', '🥱', '😶', '🙄', '😑', '🧐']],        // 슬슬 지루함
+  [0.15, ['😣', '😟', '😒', '😮‍💨', '😤', '😥']],             // 찌푸림
+  [0,    ['😠', '😤', '😡', '🤬']],                          // 폭발 직전
+];
+const bandOf = c => MOODS_FACE.findIndex(([f]) => c.t / c.max >= f);
+function moodFace(c) {
+  const band = bandOf(c);
+  if (c.band !== band || S.clock >= (c.faceUntil || 0)) {
+    const pool = MOODS_FACE[band < 0 ? 3 : band][1].filter(f => f !== c.face);
+    c.face = pool[Math.floor(Math.random() * pool.length)];
+    c.faceUntil = S.clock + 1.5 + Math.random() * 2;
+    c.band = band;
+  }
+  return c.face;
+}
+// 부품이 붙을 때 잠깐 반가운 표정
+function cheer(c) { c.face = ['😃', '😍', '🥳', '😁'][Math.floor(Math.random() * 4)]; c.faceUntil = S.clock + 0.9; c.band = bandOf(c); }
+const faceOf = c => c.state === 'gone' ? '😡' : c.state === 'done' ? '😆' : moodFace(c);
 function sayOf(c) {
   if (c.state === 'gone') return '계약은 없던 걸로 하죠!';
   if (c.state === 'done') return '계약 성사! 감사합니다';
@@ -892,6 +911,7 @@ async function showcase(p, x0, y0, delay) {
   if (live && claim.c.state === 'wait') {
     claim.c.needs[claim.k].got = true;
     SFX.stick();
+    cheer(claim.c);
     const face = document.querySelector(`[data-slot="${claim.i}"]`);
     renderClients();
     document.querySelector(`[data-slot="${claim.i}"]`)?.classList.add('bump');
