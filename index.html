@@ -188,8 +188,8 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 // ───────── 카드 15종: 부품·도구 7 + 완제품 2 + 조립 로봇 6. 아이콘은 임시 이모지 ─────────
 const ITEMS = {
   wheel:   { kind: 'part',  icon: '🛞', name: '바퀴' },
-  lidar:   { kind: 'part',  icon: '📡', name: '센서' },
-  tape:    { kind: 'part',  icon: '🧲', name: '바닥 경로' },
+  lidar:   { kind: 'part',  icon: '🧭', name: '자율주행' },
+  tape:    { kind: 'part',  icon: '🚧', name: '바닥 공사' },
   arm:     { kind: 'part',  icon: '🦾', name: '협동로봇 팔' },
   torch:   { kind: 'part',  icon: '🔥', name: '용접 토치' },
   pan:     { kind: 'part',  icon: '🍳', name: '조리 도구' },
@@ -204,7 +204,7 @@ const ITEMS = {
   mm:      { kind: 'robot', icon: '🚜', name: '모바일 매니퓰레이터' },
 };
 const DECK = ['wheel', 'lidar', 'tape', 'arm', 'torch', 'pan', 'gripper', 'quad', 'hum'];
-// 자료에 나온 조합만: AMR(센서로 스스로 길 찾기: 라이다·카메라 등) / AGV(바닥 경로: 마그넷·QR 등)
+// 납품하는 쪽 입장의 카드: 바퀴 + 자율주행(센서·SW) = AMR / 바퀴 + 바닥 공사(마그넷·QR 경로 시공) = AGV
 // 협동로봇 팔은 도구를 붙여야(SI) 일을 함: 용접(④ 조선), 조리(⑱ 급식), 그리퍼(집기)
 // AMR 위에 협동로봇을 얹은 모바일 매니퓰레이터(⑧ LG엔솔)
 const RECIPES = [
@@ -632,9 +632,9 @@ function resume() {
 const HELP = `
   <h2>로봇 SI 납품소</h2>
   <div class="steps">
-    <div class="step">🛞 📡 <span>덱을 톡톡 누르면</span></div>
+    <div class="step">🛞 🧭 <span>덱을 톡톡 누르면</span></div>
     <div class="step">🦾 + 🔥 = 🧑‍🏭 <span>협동로봇은 도구를 붙여야 일해요</span></div>
-    <div class="step">🛞 + 📡 = 🚚 <span>카드가 겹쳐 조립되고</span></div>
+    <div class="step">🛞 + 🧭 = 🚚 <span>카드가 겹쳐 조립되고</span></div>
     <div class="step">🚚 ➜ 🧾 <span>찾는 주문표로 저절로 날아가요</span></div>
   </div>
   <p>주문이 쏟아져요. 단계마다 주문을 다 쳐내면 바로 다음 단계! 빨리 깰수록 ⭐, 연달아 쳐내면 🔥.</p>
