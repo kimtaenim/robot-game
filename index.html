@@ -302,6 +302,10 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 /* 주문서가 다 뜨면 까딱까딱 두 번 */
 .order-card.wiggle { animation: cardWiggle .7s ease-in-out 2; }
 @keyframes cardWiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -5deg; } 75% { rotate: 5deg; } }
+/* 처음 그림 불러오는 동안 */
+.loading { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: var(--bg); color: var(--hud-ink); font-family: var(--font-display); font-size: 18px; }
+.ld-gear { font-size: 56px; animation: ldSpin 1.2s linear infinite; }
+@keyframes ldSpin { to { transform: rotate(360deg); } }
 /* 단계 시작 */
 .startshow.ready { pointer-events: auto; cursor: pointer; }
 .startshow.out { opacity: 0; transition: opacity .25s; }
@@ -1708,7 +1712,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790995720';
+const ART_V = '1790995800';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1747,7 +1751,7 @@ async function loadArt() {
   ]);
   if (any && S.slots) renderClients();
 }
-loadArt();
+const artReady = loadArt();
 // ───────── 매치3 진행 ─────────
 function slide(t, r, c, ms) {
   const x0 = t.x, y0 = t.y;
@@ -1996,7 +2000,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1148';
+const BUILD_V = '1003-1150';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2121,7 +2125,14 @@ document.addEventListener('visibilitychange', () => {
 });
 
 syncSound(); renderHud();
-startLevel();  // 안내창 없이 바로 시작 (첫 주문서를 누르면 소리도 켜짐)
+// 그림을 다 불러온 뒤에 시작 (느린 망이면 최대 10초 기다리고 그냥 시작)
+{
+  const ld = document.createElement('div');
+  ld.className = 'loading';
+  ld.innerHTML = '<div class="ld-gear">⚙️</div><div>로봇 공장 준비 중…</div>';
+  document.body.appendChild(ld);
+  Promise.race([artReady, new Promise(r => setTimeout(r, 10000))]).then(() => { ld.remove(); startLevel(); });
+}
 requestAnimationFrame(loop);
 </script>
 </body>
