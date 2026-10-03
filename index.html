@@ -248,8 +248,33 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .order-card.stamped .oc-tap { visibility: hidden; }
 @keyframes stampHit { to { transform: rotate(-14deg) scale(1); opacity: 1; } }
 .leave { position: fixed; z-index: 40; pointer-events: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.leave .lstars { font-size: 64px; line-height: 1; letter-spacing: 2px; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .45)); white-space: nowrap; }
-.leave .lstars span { color: rgba(255, 255, 255, .55); }
+.leave .lstars { font-size: 64px; line-height: 1; letter-spacing: 2px; filter: drop-shadow(0 6px 14px rgba(0, 0, 0, .45)); white-space: nowrap; display: flex; }
+.leave .lstars i { font-style: normal; display: inline-block; opacity: 0; transform: scale(.2); animation: starPop .4s cubic-bezier(.2, 1.8, .4, 1) forwards; }
+.leave .lstars i.off { color: rgba(255, 255, 255, .55); }
+@keyframes starPop { 0% { opacity: 0; transform: scale(.2) rotate(-40deg); } 100% { opacity: 1; transform: scale(1) rotate(0); } }
+/* 납품 완료 강조: 뒤에서 도는 금빛 햇살 + 빨간 도장 + 화면 금빛 번쩍 */
+.leave.happy { z-index: 41; }
+.leave .lrays { position: absolute; left: 50%; top: 38%; width: 360px; height: 360px; margin: -180px 0 0 -180px; z-index: -1; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(255, 215, 90, .55) 0 10deg, rgba(255, 215, 90, 0) 10deg 20deg); mask: radial-gradient(circle, #000 25%, transparent 70%); -webkit-mask: radial-gradient(circle, #000 25%, transparent 70%); animation: raysSpin 3s linear infinite; }
+@keyframes raysSpin { to { transform: rotate(360deg); } }
+.leave .lstamp { margin-top: -18px; font-family: var(--font-display); font-size: 28px; color: #C0392B; background: rgba(255, 255, 255, .92); border: 4px solid #C0392B; border-radius: 10px; padding: 0 12px; transform: rotate(-10deg) scale(2.5); opacity: 0; animation: lstamp .25s .15s ease-in forwards; white-space: nowrap; }
+@keyframes lstamp { to { transform: rotate(-10deg) scale(1); opacity: 1; } }
+.leave .lword b { color: #fff; font-weight: 400; }
+.lflash { position: fixed; inset: 0; z-index: 39; pointer-events: none; background: radial-gradient(circle at 50% 45%, rgba(255, 230, 130, .55), rgba(255, 200, 60, 0) 60%); animation: mrFlash .9s ease-out forwards; }
+.coinshower { position: fixed; inset: 0; z-index: 42; pointer-events: none; overflow: hidden; }
+.coinshower span { position: absolute; transform: translate(-50%, -50%); animation: coinJump 1.2s cubic-bezier(.3, .6, .6, 1) forwards; filter: drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
+@keyframes coinJump { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 1; } 35% { transform: translate(calc(-50% + var(--dx) * .5), calc(-50% + var(--up))) rotate(calc(var(--rot) * .4)) scale(1); } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + 340px)) rotate(var(--rot)); opacity: 0; } }
+/* 단계 시작 */
+.startshow { position: fixed; inset: 0; z-index: 46; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.ss-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(255, 230, 130, .8), rgba(255, 190, 40, .25) 45%, rgba(20, 28, 36, .55) 80%); opacity: 0; animation: ssFlash 1.9s ease-out forwards; }
+@keyframes ssFlash { 0% { opacity: 0; } 10% { opacity: .6; } 50% { opacity: .6; } 55% { opacity: 1; } 100% { opacity: 0; } }
+.ss-lv { position: relative; font-family: var(--font-display); font-size: 40px; color: #fff; text-shadow: 0 3px 0 var(--ink); transform: translateY(-80px); opacity: 0; animation: ssLv 1.9s ease-out forwards; }
+@keyframes ssLv { 0% { transform: translateY(-80px); opacity: 0; } 15% { transform: translateY(0); opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+.ss-go { position: relative; font-family: var(--font-title); font-size: 78px; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 5px 0 #5a3104, 0 0 30px rgba(255, 200, 60, .9); transform: scale(3); opacity: 0; animation: ssGo 1.9s forwards; }
+@keyframes ssGo { 0%, 48% { transform: scale(3) rotate(-6deg); opacity: 0; } 56% { transform: scale(.9) rotate(-3deg); opacity: 1; } 62% { transform: scale(1.05) rotate(-3deg); } 88% { transform: scale(1) rotate(-3deg); opacity: 1; } 100% { transform: scale(1.3) rotate(-3deg); opacity: 0; } }
+.ss-goal { position: relative; font-family: var(--font-display); font-size: 18px; color: #fff; background: rgba(0, 0, 0, .45); border-radius: 999px; padding: 3px 14px; opacity: 0; animation: ssLv 1.9s .1s ease-out forwards; }
+.ss-gear { position: absolute; font-size: 120px; opacity: .35; animation: gearSpin 1.9s linear forwards; }
+.ss-gear.g1 { left: -30px; top: 28%; } .ss-gear.g2 { right: -30px; top: 50%; animation-direction: reverse; }
+@keyframes gearSpin { to { transform: rotate(240deg); opacity: 0; } }
 .leave .lrobot { font-size: 88px; line-height: 1; display: flex; align-items: center; gap: 4px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, .45)); }
 .leave .lrobot b { font-family: var(--font-display); font-weight: 400; font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); }
 /* 완성 못 한 로봇: 검은 실루엣 */
@@ -676,8 +701,8 @@ function levelDef(lv) {
   return tryPick(want, 4, true) || tryPick(2, 3, true) || tryPick(1, 1, false) || { lv, tiles: ['wheel', 'auto', 'arm', 'tool'], robots: ['amr', 'cobot', 'mm', 'hum'], pool, fresh };
 }
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음)
-// 1단계 15명, 단계마다 +1명, 최대 25명
-const levelTarget = lv => Math.min(25, 15 + (lv - 1));
+// 1단계 10명, 단계마다 +1명, 최대 20명
+const levelTarget = lv => Math.min(20, 10 + (lv - 1));
 // RU$H TIME: 연속 납품(다음 납품까지 12초 이내) 3번이면 10초 동안 점수 2배·기다림 바 절반 속도, 납품할 때마다 3초 연장
 const RUSH_GAP = 12, RUSH_NEED = 3, RUSH_SEC = 10, RUSH_ADD = 3;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
@@ -853,7 +878,7 @@ const SFX = {
   ticket: () => { if (!audio()) return; const t = ac.currentTime; osc('square', 880, t, 0.06, 0.03); osc('square', 1320, t + 0.07, 0.07, 0.03); },
   // 주문서 수락 도장: 쿵 + 종이 탁
   stamp: () => { if (!audio()) return; const t = ac.currentTime; osc('sine', 140, t, 0.18, 0.18, 55); nz(t, 0.07, 0.14, 'lowpass', 900); nz(t + 0.01, 0.05, 0.06, 'bandpass', 2600, 1.5); },
-  star: n => { if (!audio()) return; const t = ac.currentTime; for (let i = 0; i < n; i++) osc('sine', 1568 + i * 220, t + 0.9 + i * 0.12, 0.25, 0.06); },
+  star: n => { if (!audio()) return; const t = ac.currentTime; for (let i = 0; i < n; i++) { osc('sine', 1568 + i * 262, t + 0.35 + i * 0.22, 0.3, 0.07); osc('sine', 3136 + i * 524, t + 0.35 + i * 0.22, 0.15, 0.025); } },
   // 주문 없는 부품 날려버림: 압축공기 치익
   waste: () => { if (!audio()) return; const t = ac.currentTime; nz(t, 0.45, 0.07, 'highpass', 2500); },
   // 휴머노이드 투입: 크게 번쩍 + 로봇 목소리 삐빅삐빅
@@ -882,6 +907,17 @@ const SFX = {
     }
     // 낮게 울리는 축하 북
     [0.42, 0.9, 1.38].forEach(d => osc('sine', 110, t + d, 0.3, 0.12, 50));
+  },
+  // 단계 시작: 공장 사이렌이 위잉 올라가고 삐·삐·삐 카운트 → 쾅(쇳소리) + 금관 한 방
+  start: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    osc('sawtooth', 220, t, 0.6, 0.035, 880); osc('triangle', 330, t, 0.6, 0.03, 1320);
+    [0.25, 0.5, 0.75].forEach(d => osc('square', 1046, t + d, 0.07, 0.04));
+    const g = t + 0.95;
+    osc('sine', 90, g, 0.45, 0.2, 40); nz(g, 0.25, 0.12, 'lowpass', 600);
+    [1, 2.76, 5.4].forEach((m, i) => osc('sine', 520 * m, g, 0.7 - i * 0.15, 0.08 / (i + 1)));
+    [523, 659, 784, 1047].forEach(f => brass(f, g, 0.6, 0.05));
   },
   // 단계 클리어: 긴 빵빠레
   clear: () => {
@@ -1009,6 +1045,7 @@ function complete(i) {
   rushDeliver();
   const gain = (80 * c.needs.length + tip + (c.order.want === 'hum' ? 400 : 0)) * rushMul();
   S.score += gain; S.best = Math.max(S.best, S.score);
+  c.gain = gain;
   floatText(el, `+${gain}${rushOn() ? ' ×2' : ''}`, 'big');
   vibrate([30, 50, 30]);
   const lit = [...S.dex].some(id => secKey(O[id]) === secKey(c.order));
@@ -1157,13 +1194,16 @@ async function leaveShow(c, i, happy) {
   el.className = 'leave' + (happy ? ' happy' : ' angry');
   const rob = `<div class="lrobot">${ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
-    ? `${rob}<div class="lstars">${'⭐'.repeat(c.stars)}<span>${'☆'.repeat(3 - c.stars)}</span></div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]}</div>`
+    ? `<div class="lrays"></div>${rob}<div class="lstamp">납품 완료!</div><div class="lstars">${[0, 1, 2].map(k => `<i class="${k < c.stars ? 'on' : 'off'}" style="animation-delay:${0.35 + k * 0.22}s">${k < c.stars ? '⭐' : '☆'}</i>`).join('')}</div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]} <b>+${c.gain || 0}</b></div>`
     : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢').repeat(3)}</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
   const mx = centerX(), my = innerHeight * 0.45;
-  if (happy) SFX.done();  // 별이 뜨며 빵빠레
+  if (happy) {
+    SFX.done(); SFX.stamp(); SFX.star(c.stars);  // 빵빠레 + 도장 쾅 + 별 하나씩 딩
+    const fl = document.createElement('div'); fl.className = 'lflash'; document.body.appendChild(fl); setTimeout(() => fl.remove(), 900);
+  }
   await tween(330, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
   // 전체 2초: 만족은 떠 있음 1.53 + 펑 0.14, 떠남은 떠 있음 1.29 + 연기 0.38
   await tween(happy ? 1530 : 1290, q => set(mx, my - 6 * Math.sin(q * Math.PI * 3), 1, 1));
@@ -1171,8 +1211,10 @@ async function leaveShow(c, i, happy) {
   if (happy) {
     SFX.cash();  // 캐시 소리와 함께 돈이 우수수
     const b = $('board').getBoundingClientRect();
-    fxBurst(mx - b.left, my - b.top, '#F0B400', 46, 1.6);
+    fxBurst(mx - b.left, my - b.top, '#F0B400', 80, 2);
     fxRing(mx - b.left, my - b.top, 20, r.width * 0.8, 260, 5, '255,215,90');
+    fxRing(mx - b.left, my - b.top, 10, r.width * 1.3, 420, 3, '255,240,170');
+    coinShower(mx, my, 26);
     await tween(140, q => set(mx, my, 1 + 0.25 * q, 1 - q));
   } else {
     SFX.leave();  // "아 오" + 피식 연기
@@ -1187,6 +1229,33 @@ async function leaveShow(c, i, happy) {
     await tween(380, q => set(mx, my - 10 * q, 1 - 0.5 * q, 1 - q));
   }
   el.remove();
+}
+// 납품 순간 그 자리에서 동전·지폐가 위로 튀었다 떨어짐 (돈벼락의 작은 버전)
+function coinShower(x, y, n) {
+  if (JUICE <= 0) return;
+  const layer = document.createElement('div');
+  layer.className = 'coinshower';
+  const G = ['🪙', '🪙', '💵', '💰', '🪙'];
+  layer.innerHTML = Array.from({ length: n }, () => {
+    const dx = (Math.random() - 0.5) * 260, up = 80 + Math.random() * 140, rot = (Math.random() - 0.5) * 720;
+    return `<span style="left:${x}px;top:${y}px;font-size:${18 + Math.random() * 16}px;--dx:${dx}px;--up:${-up}px;--rot:${rot}deg;animation-delay:${Math.random() * 0.12}s">${G[Math.floor(Math.random() * G.length)]}</span>`;
+  }).join('');
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 1400);
+}
+// 단계 시작: 단계 번호가 떨어지고 "START!"가 쾅 + 금빛 번쩍 + 공장 사이렌·카운트·쇳소리
+function startShow() {
+  if (JUICE <= 0) { banner(`${S.lv}단계`); return; }
+  return new Promise(done => {
+    const el = document.createElement('div');
+    el.className = 'startshow';
+    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-lv">${S.lv}단계</div><div class="ss-go">START!</div><div class="ss-goal">손님 ${levelTarget(S.lv)}명 만족시키기</div>`;
+    document.body.appendChild(el);
+    SFX.start();
+    vibrate([20, 60, 20, 60, 80]);
+    setTimeout(() => { const r = $('board').getBoundingClientRect(); fxBurst(r.width / 2, r.height * 0.1, '#F0B400', 40, 1.6); }, 950);
+    setTimeout(() => { el.remove(); done(); }, 1900);
+  });
 }
 // 보드 밖에서 돈 파편 터뜨리기: 보드 기준 좌표로 바꿔서
 function burstAt(x, y) {
@@ -1709,7 +1778,7 @@ function startLevel() {
   S.board.fillInitial();
   layout(); renderBoard();
   renderClients(); renderStock(); renderHud();
-  banner(`${S.lv}단계`);
+  onStage(startShow);  // 시작 연출이 끝난 뒤 첫 주문서가 뜸
   if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].emoji || TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
   addClient(0);
   S.spawnT = 2;
