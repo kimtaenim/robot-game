@@ -526,7 +526,7 @@ const TILES = {
   arm:   { icon: svgIcon('cobot'), img: svgImg('cobot'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
   tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
-  made:  { icon: '🇺🇸', name: '국내생산', color: 'var(--t-made)' },
+  made:  { icon: '🇺🇸', name: '해외수출', color: 'var(--t-made)' },
   union: { icon: '🤝', name: '노사합의', color: 'var(--t-union)' },
   korea: { icon: '🇰🇷', name: '국내생산', color: 'var(--t-korea)' },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
@@ -594,12 +594,12 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 // 타일 수(휴머노이드 제외): 1~4단계 4종, 5~9단계 5종, 10단계부터 6종
 // 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.7%, 6종 6.3% (막히면 섞음)
 // 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
-// 조건 타일: 4단계부터 노사합의(현대차), 9단계부터 국내생산 성조기(미국 손님), 10단계부터 국내생산 태극기(방위산업)
+// 조건 타일: 4단계부터 노사합의(현대차), 9단계부터 해외수출 성조기(미국 손님), 10단계부터 국내생산 태극기(방위산업)
 const BASE_TILES = ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'];
 const TILE_FROM = { union: 4, made: 9, korea: 10 };
 const tileCount = lv => lv >= 10 ? 6 : lv >= 5 ? 5 : 4;
 const poolAt = lv => [...BASE_TILES, ...Object.keys(TILE_FROM).filter(t => lv >= TILE_FROM[t])];
-// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 해금된 조건 칸(국내생산·노사합의 각 1칸 = 그 타일 3개 맞추기)
+// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 해금된 조건 칸(해외수출·국내생산·노사합의 각 1칸 = 그 타일 3개 맞추기)
 function orderParts(o, pool) {
   const out = [];
   for (let k = 0; k < o.n; k++) out.push(...ROBOTS[o.want].parts);
@@ -840,7 +840,7 @@ function pickOrder(i) {
     const hums = ORDERS.filter(o => o.want === 'hum' && can(o));
     const fresh = hums.filter(o => !open.has(o.id));
     let list = fresh.length ? fresh : hums;
-    // 보드에 조건 타일(노사합의·국내생산)이 있으면 그걸 쓰는 손님(현대차·BMW)이 자주 옴
+    // 보드에 조건 타일(노사합의·해외수출)이 있으면 그걸 쓰는 손님(현대차·BMW)이 자주 옴
     const cond = list.filter(o => orderParts(o, S.def.pool).some(p => p === 'union' || p === 'made' || p === 'korea'));
     if (cond.length && Math.random() < 0.7) list = cond;
     return list[Math.floor(Math.random() * list.length)];
