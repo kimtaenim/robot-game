@@ -120,16 +120,16 @@ img.art { object-fit: contain; }
 .ric .art, .lrobot .art, .order-card .rb .ric .art { width: 1.35em; height: 1.35em; }
 .cface .art { width: 1.75em; height: 1.75em; }
 .lsad .art { width: 1.3em; height: 1.3em; }
-.art.bob { transform-origin: 50% 85%; animation: artBob 1.1s ease-in-out infinite; animation-delay: var(--d, 0s); }
+.art.bob { transform-origin: 50% 85%; animation: artBob 1s ease-in-out infinite; animation-delay: var(--d, 0s); }
 .art.bob img { opacity: 1; }
 /* 찌그러짐 없이 통째로 살짝 기울며 통통. 로봇·부품은 a·b 두 장(자세만 다른 그림)을 번갈아 보여 줌 */
 .art.bob img.b { display: none; }
 .art.bob.swap img.b { display: block; }
-.art.bob.swap img { animation: artA 1.1s steps(1, end) infinite; animation-delay: var(--d, 0s); }
+.art.bob.swap img { animation: artA 1s steps(1, end) infinite; animation-delay: var(--d, 0s); }
 .art.bob.swap img.b { animation-name: artB; }
 @keyframes artA { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
 @keyframes artB { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 1; } }
-@keyframes artBob { 0%, 100% { rotate: -8deg; translate: 0 0; } 25% { rotate: 0deg; translate: 0 -10%; } 50% { rotate: 8deg; translate: 0 0; } 75% { rotate: 0deg; translate: 0 -10%; } }
+@keyframes artBob { 0%, 100% { rotate: -14deg; translate: 0 0; } 25% { rotate: 0deg; translate: 0 -18%; } 50% { rotate: 14deg; translate: 0 0; } 75% { rotate: 0deg; translate: 0 -18%; } }
 /* 돈벼락 */
 .moneyrain { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
 .moneyrain > span { position: absolute; top: -60px; line-height: 1; will-change: transform; animation: mrFall linear forwards; opacity: 0; }
@@ -744,10 +744,10 @@ const ORDERS = [
   { id: 'posco2',   want: 'qarm',  n: 1, label: '용선 샘플링 4족로봇', mood: 'calm', icon: '🔥', who: '포스코',      task: '용선 측온·샘플링', sec: '⑦ 철강',     fact: '고로에서는 스팟이 하루 12번 배관 누설을 점검하고, 1500도 용선의 측온·샘플링도 로봇화 중이에요.' },
   { id: 'fire2',    want: 'centaur', n: 1, label: '구조·진압 켄타우로스', mood: 'long', icon: '🧯', who: '소방청',    task: '들어가서 구조·진압', sec: '㉖ 소방·경찰',   fact: '지금 무인소방로봇은 원격으로 물을 쏘는 수준이라, 위험 지역에 직접 들어가 탐색·구조·진압까지 하는 형태로 가야 한다는 주문이 나와요.' },
   // 특별 주문 (농담): 휴머노이드 자리에 가끔
-  { id: 'skynet',   want: 'term',  n: 1, mood: 'long', icon: '🕶️', who: '사이버다인 시스템즈', task: '1984년 LA 출장', sec: '★ 특별 주문', fact: '농담 주문이에요. 사람처럼 생긴 로봇도 결국 손끝 SI를 붙여야 일을 해요.' },
-  { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '우주 요새 방어', sec: '★ 특별 주문', fact: '농담 주문이에요. 거대 로봇도 손끝 도구(SI)가 없으면 빔 사벨을 못 쥐어요.' },
-  { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '자동차로 변신 출동', sec: '★ 특별 주문', fact: '농담 주문이에요. 자동차로 변신하려면 손끝 SI보다 바퀴가 먼저예요.' },
-  { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '사도 요격', sec: '★ 특별 주문', fact: '농담 주문이에요. 타라는 말이 있어도 SI가 먼저예요.' },
+  { id: 'skynet',   want: 'term',  n: 1, mood: 'long', icon: '🕶️', who: '사이버다인 시스템즈', task: '"I\'ll be back."', sec: '★ 특별 주문', fact: '농담 주문이에요. 사람처럼 생긴 로봇도 결국 손끝 SI를 붙여야 일을 해요.' },
+  { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '"아무로, 출격합니다!"', sec: '★ 특별 주문', fact: '농담 주문이에요. 거대 로봇도 손끝 도구(SI)가 없으면 빔 사벨을 못 쥐어요.' },
+  { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '"오토봇, 변신!"', sec: '★ 특별 주문', fact: '농담 주문이에요. 자동차로 변신하려면 손끝 SI보다 바퀴가 먼저예요.' },
+  { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '"신지, 에바에 타라."', sec: '★ 특별 주문', fact: '농담 주문이에요. 타라는 말이 있어도 SI가 먼저예요.' },
   { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
   { id: 'bmw',      want: 'hum',   n: 1, us: true, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
   { id: 'cj',       want: 'hum',   n: 1, mood: 'long', icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
@@ -1342,7 +1342,7 @@ function orderBody(c, big) {
   const o = c.order, r = ROBOTS[o.want];
   const needs = c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('');
   if (isHumSlot(S.slots.indexOf(c)) && !big) {
-    return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">휴머노이드</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
+    return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">${r.name}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
@@ -1369,7 +1369,7 @@ async function orderIntro(c, i) {
   scrim.className = 'readscrim top';
   const el = document.createElement('div');
   el.className = 'order-card' + (isHumSlot(i) ? ' hum' : '');
-  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '새 주문'}</div>${orderBody(c, true)}<div class="oc-tap">눌러서 수락</div>`;
+  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? (c.order.want === 'hum' ? '휴머노이드 상시 주문' : '★ 특별 주문') : '새 주문'}</div>${orderBody(c, true)}<div class="oc-tap">눌러서 수락</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s * fit})`; el.style.opacity = o; };
   let fit = 1;
   set(-999, -999, 1, 0);
@@ -1473,7 +1473,7 @@ async function peekOrder(c, i, card) {
   scrim.className = 'readscrim';
   const el = document.createElement('div');
   el.className = 'order-card' + (isHumSlot(i) ? ' hum' : '');
-  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '주문서'} · 멈춤</div>${orderBody(c, true)}<div class="oc-tap">눌러서 닫기</div>`;
+  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? (c.order.want === 'hum' ? '휴머노이드 상시 주문' : '★ 특별 주문') : '주문서'} · 멈춤</div>${orderBody(c, true)}<div class="oc-tap">눌러서 닫기</div>`;
   const [x0, y0] = centerOf(card), mx = centerX(), my = innerHeight * 0.46;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.5, 0.6);
@@ -2112,7 +2112,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-124044';
+const BUILD_V = '1003-124157';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
