@@ -799,8 +799,10 @@ function levelDef(lv) {
   const pool = poolAt(lv), n = tileCount(lv);
   const fresh = Object.keys(TILE_FROM).find(t => TILE_FROM[t] === lv);
   // 4단계부터 세 판에 한 판꼴: 휴머노이드 대신 터미네이터·건담·에바·트랜스포머 중 하나
-  // 조건 타일이 처음 풀리는 판(4·9·10단계)은 그 타일을 쓰는 손님이 나와야 하므로 특별 판 없음
-  const special = lv >= 4 && !fresh && Math.random() < 1 / 3 ? ['term', 'gundam', 'eva', 'tf'][Math.floor(Math.random() * 4)] : 'hum';
+  // 특별 로봇 판: 5단계 건담, 8단계 에바, 11단계 터미네이터, 14단계 트랜스포머.
+  // 17단계부터는 3단계마다(17, 20, 23…) 넷 중 하나를 무작위로. 나머지 판은 휴머노이드
+  const FIXED_SPECIAL = { 5: 'gundam', 8: 'eva', 11: 'term', 14: 'tf' };
+  const special = FIXED_SPECIAL[lv] || (lv >= 17 && (lv - 17) % 3 === 0 ? ['term', 'gundam', 'eva', 'tf'][Math.floor(Math.random() * 4)] : 'hum');
   // 특별 로봇에 필요한 일반 부품(SI, 트랜스포머는 바퀴)은 보드에 꼭 포함
   const must = [...new Set([...ROBOTS[special].parts.filter(p => !isSpec(p)), 'tool', ...(fresh ? [fresh] : [])])];
   const tryPick = (minRobots, minOrders, allUsed) => {
@@ -2113,7 +2115,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-132819';
+const BUILD_V = '1003-133204';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
