@@ -309,15 +309,17 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 /* 단계 시작 */
 .startshow.ready { pointer-events: auto; cursor: pointer; }
 .startshow.out { opacity: 0; transition: opacity .25s; }
-.ss-make { position: relative; margin-top: 10px; font-family: var(--font-display); font-size: 17px; color: #FFE27A; opacity: 0; animation: csIn .4s 1s ease-out forwards; }
-.ss-bots { position: relative; display: flex; flex-direction: column; gap: 6px; width: min(340px, 90vw); }
-.ss-bot { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, .94); color: var(--ink); border-radius: 12px; padding: 4px 10px; opacity: 0; animation: csIn .35s ease-out forwards; }
+.ss-panel { position: relative; margin-top: 8px; width: min(340px, 90vw); background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0,0,0,.45); padding: 10px 12px 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; opacity: 0; animation: csIn .4s .9s ease-out forwards; }
+.ss-make { align-self: stretch; text-align: center; font-family: var(--font-display); font-size: 15px; color: #fff; background: var(--ink); border-radius: 8px; padding: 3px 0; margin-bottom: 4px; }
+.ss-bots { display: flex; flex-direction: column; width: 100%; }
+.ss-bot { display: flex; align-items: center; gap: 8px; padding: 4px 2px; border-bottom: 1px dashed var(--line); opacity: 0; animation: csIn .35s ease-out forwards; }
+.ss-bot:last-child { border-bottom: 0; }
 .ss-ic { font-size: 40px; line-height: 1; }
 .ss-nm { flex: 1; min-width: 0; font-family: var(--font-display); font-size: 16px; word-break: keep-all; }
 .ss-parts { display: flex; align-items: center; gap: 2px; font-size: 24px; white-space: nowrap; }
 .ss-parts i { font-style: normal; font-size: 13px; color: var(--muted); }
 .ss-p b { font-size: 12px; font-weight: 700; }
-.ss-tap { position: relative; margin-top: 10px; font-family: var(--font-display); font-size: 18px; color: #1A1400; background: var(--accent); border-radius: 999px; padding: 8px 22px; opacity: 0; transition: opacity .3s; }
+.ss-tap { position: relative; margin-top: 8px; font-family: var(--font-display); font-size: 18px; color: #1A1400; background: var(--accent); border-radius: 999px; padding: 8px 22px; opacity: 0; transition: opacity .3s; }
 .startshow.ready .ss-tap { opacity: 1; animation: urgent 1s ease-in-out infinite; }
 .startshow { position: fixed; inset: 0; z-index: 46; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .ss-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(255, 230, 130, .8), rgba(255, 190, 40, .25) 45%, rgba(20, 28, 36, .55) 80%); opacity: 0; animation: ssFlash 1.9s ease-out forwards; }
@@ -1470,12 +1472,17 @@ function startShow() {
   return new Promise(done => {
     const el = document.createElement('div');
     el.className = 'startshow';
-    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-go">START!</div>`;
+    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-go">START!</div><div class="ss-panel"><div class="ss-make">이번에 만들 로봇</div><div class="ss-bots">${botsToMakeHtml()}</div><div class="ss-tap">눌러서 시작 ▶</div></div>`;
     document.body.appendChild(el);
     SFX.start();
     vibrate([20, 60, 20, 60, 80]);
     setTimeout(() => { const r = $('board').getBoundingClientRect(); fxBurst(r.width / 2, r.height * 0.1, '#F0B400', 40, 1.6); }, 950);
-    setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); }, 1700);
+    // 만들 로봇을 읽을 수 있게: 눌러야 시작 (1.2초 뒤부터 누를 수 있음)
+    setTimeout(() => {
+      el.classList.add('ready');
+      const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); };
+      el.addEventListener('pointerdown', go);
+    }, 1200);
   });
 }
 // 보드 밖에서 돈 파편 터뜨리기: 보드 기준 좌표로 바꿔서
@@ -1712,7 +1719,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790995800';
+const ART_V = '1790995892';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -2000,7 +2007,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1150';
+const BUILD_V = '1003-1151';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
