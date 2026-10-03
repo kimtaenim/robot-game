@@ -1173,9 +1173,13 @@ async function orderIntro(c, i) {
   const accepted = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
   await tween(240, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
   await accepted;
-  // 누르면 살짝 커지면서 사라짐
+  // 누르면 살짝 커졌다가, 자기 칸으로 날아가며 다시 작아짐
   SFX.stamp();
-  await tween(260, q => { set(mx, my, 1 + 0.18 * q, 1 - q); scrim.style.opacity = 1 - q; }, EASE.outQuad);
+  await tween(140, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outQuad);
+  const target = document.querySelector(`[data-slot="${i}"]`);
+  const [tx, ty] = target ? centerOf(target) : [mx, 80];
+  const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width * 1.15 : 0.4;
+  await tween(320, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.4 * q); scrim.style.opacity = 1 - q; }, EASE.inQuad);
   el.remove(); scrim.remove();
   S.reading = false;
   c.intro = false;
