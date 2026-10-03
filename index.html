@@ -36,7 +36,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #D9578E;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #D9578E; --t-korea: #3C3F46;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -528,6 +528,7 @@ const TILES = {
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
   made:  { icon: '🇺🇸', name: '국내생산', color: 'var(--t-made)' },
   union: { icon: '🤝', name: '노사합의', color: 'var(--t-union)' },
+  korea: { icon: '🇰🇷', name: '한국로봇', color: 'var(--t-korea)' },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
@@ -562,7 +563,7 @@ const ORDERS = [
   { id: 'lg',       want: 'mm',    n: 1, mood: 'mid',  icon: '🔋', who: 'LG엔솔',      task: '다니며 불량 셀 빼기', sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
   { id: 'posco',    want: 'quad',  n: 1, mood: 'mid',  icon: '🌋', who: '포스코',      task: '고로 가스 누설 점검', sec: '⑦ 철강',       fact: '스팟이 고로를 순찰하며 누수·발열 징후를 감지하고, 하루 12번 배관 누설을 점검해요.' },
   { id: 'police',   want: 'quad',  n: 1, mood: 'hot',  icon: '🚓', who: '경찰청',      task: '폭발물 현장 정찰',   sec: '㉖ 소방·경찰',   fact: '사족보행 로봇이 폭발물 현장에 먼저 들어가 360도·열화상 영상을 보내요.' },
-  { id: 'army',     want: 'quad',  n: 1, mood: 'calm', icon: '🎖️', who: '방사청',      task: '산악 정찰',          sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
+  { id: 'army',     want: 'quad',  n: 1, korea: true, mood: 'calm', icon: '🎖️', who: '방사청',      task: '산악 정찰',          sec: '㉗ 국방',        fact: '대테러 다족보행로봇을 특전사·전방사단에 시범 배치했어요.' },
   { id: 'fire',     want: 'quad',  n: 1, mood: 'hot',  icon: '🚒', who: '소방청',      task: '화재 현장 탐색',     sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
   { id: 'posco2',   want: 'qarm',  n: 1, mood: 'calm', icon: '🔥', who: '포스코',      task: '용선 측온·샘플링', sec: '⑦ 철강',     fact: '고로에서는 스팟이 하루 12번 배관 누설을 점검하고, 1500도 용선의 측온·샘플링도 로봇화 중이에요.' },
   { id: 'fire2',    want: 'centaur', n: 1, mood: 'long', icon: '🧯', who: '소방청',    task: '들어가서 구조·진압', sec: '㉖ 소방·경찰',   fact: '지금 무인소방로봇은 원격으로 물을 쏘는 수준이라, 위험 지역에 직접 들어가 탐색·구조·진압까지 하는 형태로 가야 한다는 주문이 나와요.' },
@@ -597,7 +598,7 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 //   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (바퀴·자율주행·팔·SI)
 //   5~9단계: + AGV (🚧 바닥 공사 추가)
 //   10단계~: + 4족로봇 (다리 추가) / 12단계~: + 팔 달린 4족 / 14단계~: + 켄타우로스
-//   16단계~: + 국내생산 / 18단계~: + 노사합의 (이때부터 타일 6종을 단계마다 돌려 씀)
+//   16단계~: + 국내생산 / 18단계~: + 노사합의 / 20단계~: + 한국로봇 (16단계부터 타일 6종을 단계마다 돌려 씀)
 const STAGES = [
   { from: 1,  robots: ['amr', 'cobot', 'mm', 'hum'],                tiles: ['wheel', 'auto', 'arm', 'tool'] },
   { from: 5,  robots: ['amr', 'cobot', 'mm', 'agv', 'hum'],         tiles: ['wheel', 'auto', 'arm', 'tool', 'floor'] },
@@ -608,13 +609,17 @@ const STAGES = [
   // 18단계~: 현대차 손님은 노사합의 타일도 맞춰야 납품 (금속노조 현대차지부: "노사 합의 없이 단 1대의 로봇도 안 된다")
   { from: 16, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made'], fresh: 'made' },
   { from: 18, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made', 'union'], fresh: 'union' },
+  // 20단계~: 방위산업(방사청) 손님은 한국로봇 타일 2개를 더 맞춰야 납품
+  // (보스턴다이내믹스는 비무기화 서약 때문에 군 임무가 묶여서, 군용은 현대로템·레인보우로보틱스 국산 플랫폼으로)
+  { from: 20, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made', 'union', 'korea'], fresh: 'korea' },
 ];
-// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 단계에 따라 붙는 조건(국내생산 3개, 노사합의 1개)
+// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 단계에 따라 붙는 조건(국내생산 3개, 노사합의 1개, 한국로봇 2개)
 function orderParts(o, pool) {
   const out = [];
   for (let k = 0; k < o.n; k++) out.push(...ROBOTS[o.want].parts);
   if (o.us && pool.includes('made')) out.push('made', 'made', 'made');
   if (o.union && pool.includes('union')) out.push('union');
+  if (o.korea && pool.includes('korea')) out.push('korea', 'korea');
   return out;
 }
 // 타일은 휴머노이드 빼고 6종까지만. 해금된 타일이 6종을 넘으면 단계마다 6종을 무작위로 골라 돌려 씀
@@ -969,6 +974,7 @@ function orderNote(c) {
   let out = '';
   if (has('made')) out += `<div class="oc-note">🇺🇸 미국 FCC가 외국에서 생산된 첨단 로봇의 인증을 막아요. 미국 안에서 만든 로봇만!</div>`;
   if (has('union')) out += `<div class="oc-note">🤝 금속노조 현대차지부: "노사 합의 없이 단 1대의 로봇도 현장에 들어올 수 없다"</div>`;
+  if (has('korea')) out += `<div class="oc-note">🇰🇷 보스턴다이내믹스는 비무기화 서약 때문에 군 임무가 묶여요. 군용은 현대로템·레인보우로보틱스 같은 국산 플랫폼으로!</div>`;
   return out;
 }
 
