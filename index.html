@@ -172,7 +172,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .ocard.hum .hint { font-size: 11.5px; white-space: normal; word-break: keep-all; text-align: center; line-height: 1.05; }
 .ocard .rb { display: flex; align-items: center; justify-content: center; gap: 1px; max-width: 100%; }
 .ocard .rb .ric { font-size: clamp(28px, calc(var(--rh, 218px) * .14), 40px); line-height: 1; }
-.ocard.hum .rb .ric { font-size: 24px; }
+.ocard.hum .rb .ric { font-size: clamp(30px, calc(var(--rh, 218px) * .18), 50px); }
 .ocard .rb b { font-family: var(--font-display); font-weight: 400; font-size: 16px; }
 .ocard .rname { font-family: var(--font-display); font-size: 18px; color: var(--steel); line-height: 1.02; letter-spacing: -0.04em; text-align: left; word-break: keep-all; }
 .ocard .needs { display: flex; flex-wrap: nowrap; justify-content: center; gap: 2px; margin: 3px 0 4px; }
@@ -180,7 +180,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 /* 좁은 휴머노이드 상시 주문서 */
 .ocard.hum { padding: 4px 1px 4px; background: linear-gradient(180deg, #FFF8E1, var(--surface) 45%); border-color: var(--gold-deep); }
 .ocard.hum .ind { font-size: 24px; }
-.ocard.hum .rb { margin-top: 0; }
+.ocard.hum .rb { margin-top: auto; }
 .ocard.hum .cface { flex: 1 1 0; min-height: 0; width: 100%; margin: 0; align-items: center; }
 .ocard.hum .cface .art { height: 100%; max-height: 100%; width: auto; max-width: 100%; }
 .ocard.hum { container-type: inline-size; }
@@ -436,8 +436,6 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
   .title .star { font-size: 18px; }
   .hud { padding: 4px 7px; }
   .ocard .ind { font-size: 21px; }
-  .ocard.hum .hint { display: none; }
-  .ocard.hum .ind { font-size: 20px; }
   .ocard .co { font-size: 13.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1409,8 +1407,9 @@ function orderBody(c, big) {
   const o = c.order, r = ROBOTS[o.want];
   const needs = c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('');
   if (isHumSlot(S.slots.indexOf(c)) && !big) {
-    // 손님(트럼프 등)이 크게 서 있고, 만들 로봇은 작은 그림 + 이름으로
-    return `<div class="ind">${o.icon}</div><div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c), clientChar(c))}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">${splitName(r.name)}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
+    // 휴머노이드 칸은 손님 자리 없이 로봇 그림만. 미국 수출용(해외수출 칸)만 그 자리에 트럼프가 섬
+    const who = c.char === 'trump' ? `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c), 'trump')}</div>` : `<div class="rb"><span class="ric">${r.icon}</span></div>`;
+    return `<div class="ind">${o.icon}</div>${who}<div class="rname">${splitName(r.name)}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
@@ -1884,9 +1883,9 @@ const FACE_KEY = { '😊': 'smile', '😐': 'neutral', '😠': 'frown', '😡': 
 const CHAR_COOK = new Set(['학교 급식실', '치킨집']);
 const CHAR_SUIT = new Set(['물류센터', '경찰', '방위산업', '소방', '직업 교육', '미래에서 온 주문', '우주세기 0079', '제3신동경시']);
 const charOf = o => !o ? 'suit' : CHAR_COOK.has(o.ind) ? 'cook' : CHAR_SUIT.has(o.ind) ? 'suit' : 'worker';
-// 손님마다 한 번 정함: 미국 주문(해외수출 칸이 아직 없는 초반 단계도)은 트럼프, 양복 손님은 남녀 부장님이 무작위
+// 손님마다 한 번 정함: 해외수출 칸이 붙은 주문(9단계부터 미국 주문)만 트럼프, 양복 손님은 남녀 부장님이 무작위
 function pickChar(order, needs) {
-  if (order && order.us) return 'trump';
+  if (needs.includes('made')) return 'trump';
   const ch = charOf(order);
   return ch === 'suit' && Math.random() < 0.5 ? 'suitf' : ch;
 }
@@ -2229,7 +2228,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-162941';
+const BUILD_V = '1003-163139';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
