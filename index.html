@@ -1164,7 +1164,7 @@ const SFX = {
     const C5 = 523, D5 = 587, E5 = 659, F5 = 698, G5 = 784, A5 = 880;
     // [음, 시작 박, 길이 박]  달(.5) 려(.5) 라(1) 달(1) 려(1) | 로(.5) 보(.5) 트(.5) 야(1.5)
     for (const [f, at, len] of [[C5, 0, .5], [C5, .5, .5], [D5, 1, 1], [E5, 2, 1], [A5, 3, 1], [G5, 4, .5], [G5, 4.5, .5], [F5, 5, .5], [E5, 5.5, 1.5]]) {
-      brass2(f, t0 + at * B, len * B * 0.9, 0.07); brass2(f / 2, t0 + at * B, len * B * 0.9, 0.03);
+      brass2(f, t0 + at * B, len * B * 0.9, 0.16); brass2(f / 2, t0 + at * B, len * B * 0.9, 0.07); SFX.marimba(f, 0.05 + at * B, 0.18, len * B * 0.8);
     }
     for (let k = 0; k < 7; k++) { snare(t0 + k * B, k % 2 ? 0.06 : 0.04); if (k % 2 === 0) timp(t0 + k * B, 0.12); }
     crash(t0 + 5.5 * B, 0.07);
@@ -2441,7 +2441,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-210807';
+const BUILD_V = '1003-210830';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
