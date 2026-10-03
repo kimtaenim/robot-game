@@ -1,6 +1,6 @@
 {
- "total_usd": 0.6519,
- "images": 6,
+ "total_usd": 0.8694,
+ "images": 8,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -8,6 +8,13 @@
    "quality": "medium",
    "images": 6,
    "usd": 0.6519
+  },
+  {
+   "started": "2026-10-03T01:31:31.510Z",
+   "only": "robot-quad",
+   "quality": "medium",
+   "images": 2,
+   "usd": 0.2175
   }
  ]
 }
