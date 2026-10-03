@@ -185,7 +185,7 @@ async function make(item) {
   const refs = item.ref && (await exists(join(OUT, `${item.ref}.png`))) ? [join(OUT, `${item.ref}.png`), REFS[0]] : REFS;
   const b = join(OUT, `${item.name}-b.png`);
   if (FORCE || !(await exists(a))) {
-    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : 'The first reference image shows this exact character: keep the same person, face, hair, outfit, accessories and colors; only change the pose and expression. Use the other image only for the art style.';
+    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : 'The first reference image shows this exact character: keep the same person, face, hair, outfit, accessories and colors; only change the pose and expression. Do not add any facial feature that the first image does not have (for example, if it has no nose, do not draw a nose). Use the other image only for the art style.';
     await writeFile(a, await edit(refs, `${STYLE}\n\nDraw: ${item.prompt}\n\n${how}`));
     console.log('✓', a.replace(ROOT + '/', ''));
   }
