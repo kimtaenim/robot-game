@@ -281,6 +281,11 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .clearshow.ready { pointer-events: auto; cursor: pointer; }
 .clearshow.ready .cs-tap { opacity: 1; animation: urgent 1s ease-in-out infinite; }
 .clearshow.out { opacity: 0; transition: opacity .3s; }
+.built { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.b-item { display: flex; align-items: center; gap: 6px; background: var(--surface-2); border-radius: 10px; padding: 6px 8px; font-size: 13px; font-weight: 700; }
+.b-ic { font-size: 30px; line-height: 1; }
+.b-nm { flex: 1; min-width: 0; word-break: keep-all; }
+.b-item b { color: var(--steel); }
 .sheet-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .ghost { background: transparent; color: var(--muted); border: 2px solid var(--line); border-radius: 12px; padding: 10px 16px; font-weight: 700; font-size: 14px; }
 .cs-bots { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; max-width: 92vw; }
@@ -903,6 +908,40 @@ const SFX = {
     SFX.coin(2 + Math.min(3, k), 0.12);  // 금화 찰랑
     [1, 2.41, 3.93, 5.62].forEach((m, i) => osc('sine', base * m, t + 0.05, 0.5 - i * 0.08, 0.1 / (i + 1)));  // 캉
   },
+  // 마림바 한 음 (Bosses of Our World js/audio.js의 marimba 그대로: 기음 + 4배음 + 짧은 타격음)
+  marimba: (f, at, vol = 0.24, len = 0.45) => {
+    const t = ac.currentTime + at;
+    for (const [m, v, dur] of [[1, 1, len], [3.93, 0.3, 0.12], [9.2, 0.08, 0.04]]) osc('sine', f * m, t, dur, vol * v);
+  },
+  // 성조기 맞춤: 미국 국가 첫 구절 (Bosses of Our World의 special_anthem 그대로) "솔~미 | 도 미 솔 | 도~~"
+  anthem: () => {
+    if (!audio() || SFX._busy('anthem', 3200)) return;
+    const q = 0.5;
+    let t = 0.05;
+    for (const [f, beats, v] of [[784, 0.75, 0.26], [659, 0.25, 0.22], [523, 1, 0.34], [659, 1, 0.26], [784, 1, 0.28], [1047, 2, 0.34]]) {
+      const d = beats * q;
+      SFX.marimba(f, t, v, Math.min(0.9, d * 0.9 + 0.08));
+      t += d;
+    }
+  },
+  // 태극기 맞춤: 옹헤야 가락 "도라도라미라라" (장구 덩·쿵에 맞춰 좀 우스꽝스럽게)
+  onghaeya: () => {
+    if (!audio() || SFX._busy('onghaeya', 2400)) return;
+    const t = ac.currentTime, q = 0.22;
+    const D = 523, L = 440, M = 659;
+    [[D, 1], [L, 1], [D, 1], [L, 1], [M, 1], [L, 1], [L, 2]].reduce((at, [f, b]) => {
+      const d = b * q;
+      // 해금처럼 살짝 흔들리는 톱니 + 마림바
+      const o = osc('sawtooth', f, t + at, d * 0.95, 0.05);
+      const v = ac.createOscillator(), vg = ac.createGain(); v.frequency.value = 7; vg.gain.value = f * 0.02; v.connect(vg).connect(o.frequency); v.start(t + at); v.stop(t + at + d);
+      SFX.marimba(f, at, 0.2, d * 0.8);
+      return at + d;
+    }, 0.02);
+    // 장구: 덩(낮게) 쿵(더 낮게)
+    [0, 2, 4, 6].forEach(k => { osc('sine', k % 4 === 0 ? 110 : 80, t + 0.02 + k * q, 0.18, 0.18, 55); nz(t + 0.02 + k * q, 0.05, 0.05, 'bandpass', 1200, 2); });
+  },
+  _last: {},
+  _busy: (k, ms) => { const now = performance.now(); if (now - (SFX._last[k] || 0) < ms) return true; SFX._last[k] = now; return false; },
   // 금화 찰랑: 짧은 동전 두세 개가 부딪는 소리 (매치·부품 붙을 때마다)
   coin: (n = 3, at = 0) => {
     if (!audio()) return;
@@ -1784,6 +1823,8 @@ async function resolve() {
     // 히트스톱: 연쇄나 4개 이상이면 터지기 직전 아주 잠깐 멈춤
     if (JUICE > 0 && (chain >= 2 || bigGroups.length)) await wait(35 * JUICE);
     SFX.match(chain - 1); vibrate(10);
+    if (m.groups.some(g => g.type === 'made')) SFX.anthem();
+    if (m.groups.some(g => g.type === 'korea')) SFX.onghaeya();
     let sx = 0, sy = 0;
     for (const i of m.matched) { const [r, c] = S.board.rc(i); sx += cx(c); sy += cy(r); }
     if (chain >= 2) { fxText(sx / m.matched.size, sy / m.matched.size, `x${chain}`, 30 + chain * 8, '#FFD84A'); $('chain').textContent = `연쇄 ×${chain}`; }
@@ -1972,6 +2013,13 @@ function levelClear() {
 
 // ───────── 오버레이 ─────────
 const litSectors = () => new Set([...S.dex].map(id => secKey(O[id])));
+// 이번 게임에서 납품한 로봇 목록 (같은 로봇은 대수로 묶어서, 많이 만든 순)
+function builtHtml() {
+  const m = new Map();
+  for (const id of S.runServed) { const o = O[id]; const k = robotLabel(o); if (!m.has(k)) m.set(k, { o, n: 0 }); m.get(k).n += o.n || 1; }
+  if (!m.size) return `<p>아직 납품한 로봇이 없어요.</p>`;
+  return `<div class="built">${[...m.entries()].sort((a, b) => b[1].n - a[1].n).map(([k, { o, n }]) => `<div class="b-item"><span class="b-ic">${o.robotIcon || ROBOTS[o.want].icon}</span><span class="b-nm">${k}</span><b>×${n}</b></div>`).join('')}</div>`;
+}
 const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.ind}${o.who ? ' · ' + o.who : ''} ${ROBOTS[o.want].icon} ${robotLabel(o)}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
 const mapHtml = () => { const lit = litSectors(); return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`; };
 const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon + (p === 'hum' ? '×3' : '')).join(' ')} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
@@ -2003,8 +2051,7 @@ function summaryHtml() {
     <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
     <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 1단계부터 다시</button></div>
     <span class="lbl">조합표</span>${recipesHtml()}
-    <span class="lbl">현장 도감 ${S.dex.size}/${ORDERS.length}</span>
-    <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o) : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
+    <span class="lbl">내가 만든 로봇 ${S.runServed.reduce((a, id) => a + (O[id].n || 1), 0)}대</span>${builtHtml()}
     <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21). 매치3 보드 로직은 Bosses of Our World에서 가져왔어요.</p>`;
 }
 $('sheet').addEventListener('click', e => {
