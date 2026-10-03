@@ -1,3 +1,3 @@
-robot-quad,robot-qarm,robot-centaur,tile-hum,tile-arm,robot-cobot,robot-mm,robot-cobot-weld,robot-cobot-cook
+robot-cobot,robot-mm
 medium
-run 41 (b frames)
+run 42 (retry faded)

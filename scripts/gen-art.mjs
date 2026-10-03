@@ -16,6 +16,7 @@
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'assets');
@@ -186,6 +187,13 @@ const frameB = move => [
   'Fully transparent background. No text.',
 ].join(' ');
 
+// PNG의 불투명 픽셀 중 검은 선 비율 (python+pillow로 계산, 없으면 null)
+async function darkRatio(png) {
+  try {
+    const out = execFileSync('python3', ['-c', "import sys,io;from PIL import Image;im=Image.open(io.BytesIO(sys.stdin.buffer.read())).convert('RGBA').resize((256,256));px=[p for p in im.getdata() if p[3]>128];print(sum(1 for r,g,b,a in px if .299*r+.587*g+.114*b<60)/max(1,len(px)))"], { input: png });
+    return parseFloat(out.toString());
+  } catch (e) { return null; }
+}
 async function make(item) {
   const a = join(OUT, item.kind === 'still' ? `${item.name}.png` : `${item.name}-a.png`);
   // ref가 있으면 그 그림을 첫 참고 이미지로 넣어서 같은 인물로 그림
@@ -197,7 +205,15 @@ async function make(item) {
     console.log('✓', a.replace(ROOT + '/', ''));
   }
   if (item.kind === 'anim' && item.move !== undefined && (FORCE || FORCE_B || !(await exists(b)))) {
-    await writeFile(b, await edit([a], frameB(item.move)));
+    // 가끔 테두리가 빠져 흐릿하게 나옴: 검은 테두리 양이 a의 절반 미만이면 다시 그림 (최대 3번)
+    let buf;
+    for (let k = 0; k < 3; k++) {
+      buf = await edit([a], frameB(item.move));
+      const ra = await darkRatio(await readFile(a)), rb = await darkRatio(buf);
+      if (ra == null || rb == null || rb >= ra * 0.6) break;
+      console.log(`  흐릿함(${rb.toFixed(2)} < ${ra.toFixed(2)}), 다시`);
+    }
+    await writeFile(b, buf);
     console.log('✓', b.replace(ROOT + '/', ''));
   }
 }
