@@ -41,7 +41,7 @@ const ROBOT = 'A cute industrial robot character with a small friendly face (two
 // 업종 아이콘: 그 업종을 떠올리게 하는 상징물 하나
 const ROBOTS_COOK = `${ROBOT} A cooking collaborative robot arm on a round base, the face on the base. Instead of a gripper, the end of the arm holds a deep-fryer basket (a wire mesh frying basket with a handle) full of golden fried food. No glow or light burst behind it.`;
 const PLACE = 'A cute icon representing an industry or workplace, drawn as one simple symbolic object or tiny building. It may have a tiny friendly face.';
-const FACE = 'A round yellow emoji-like customer face, cute cartoon style, thick black outline, no body.';
+const CLIENT = 'A funny chibi cartoon client character, full body, very big head (about half of the total height) and a small body, drawn in the same cute style as the reference humanoid/drone: a middle-aged Korean company manager in a navy suit and red tie, round glasses, a comb-over hairstyle, very exaggerated, comical facial expression.';
 
 // ───────── 그림 목록 ─────────
 // kind: 'anim' = a·b 2프레임, 'still' = 한 장
@@ -54,7 +54,7 @@ const ITEMS = [
   { name: 'tile-tool', kind: 'anim', prompt: `${PART} A two-finger robot gripper (end effector) with a wrist mount on top, fingers open, pointing down.` },
   { name: 'tile-legs', kind: 'anim', prompt: `${PART} A single robot leg with a thigh, knee joint and a rounded foot, like a quadruped robot leg.` },
   { name: 'tile-hum', kind: 'anim', prompt: `A cute small humanoid robot standing, full body, white and light gray with a dark visor face showing two glowing eyes. Special golden glow outline.` },
-  { name: 'tile-union', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A handshake over a signed paper agreement with a red wax seal, meaning a labor-management agreement.` },
+  { name: 'tile-union', kind: 'anim', prompt: `A funny chibi cartoon labor union activist, full body, very big head and small body, same cute style as the references: a Korean worker in work clothes wearing a red protest headband (meoridtti) tied around the forehead, one fist raised, holding a signed agreement paper with a red seal in the other hand, determined but friendly expression.` },
   { name: 'tile-made', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A cardboard shipping box with a small United States flag sticker and an export arrow, meaning overseas export to the USA.` },
   { name: 'tile-korea', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A small factory building with a South Korean flag (taegukgi) on top, meaning made in Korea.` },
 
@@ -87,13 +87,13 @@ const ITEMS = [
   { name: 'ind-fire', kind: 'anim', prompt: `${PLACE} Firefighting: a firefighter helmet with a fire extinguisher. (소방)` },
   { name: 'ind-auto', kind: 'anim', prompt: `${PLACE} A car factory: a small car on an assembly line. (자동차 공장)` },
 
-  // 손님 얼굴 6 (한 장씩, 애니메이션 없음)
-  { name: 'face-smile', kind: 'still', prompt: `${FACE} Happy, gentle closed-eye smile with rosy cheeks.` },
-  { name: 'face-neutral', kind: 'still', prompt: `${FACE} Neutral, flat mouth, slightly bored eyes.` },
-  { name: 'face-frown', kind: 'still', prompt: `${FACE} Annoyed frown, eyebrows down, small sweat drop.` },
-  { name: 'face-angry', kind: 'still', prompt: `${FACE} Very angry, red-orange face, furrowed brows, gritted teeth, steam puffs.` },
-  { name: 'face-delight', kind: 'still', prompt: `${FACE} Delighted, big open grin, sparkling eyes.` },
-  { name: 'face-tear', kind: 'still', prompt: `${FACE} Sad with a single tear rolling down one cheek.` },
+  // 손님 6장 (한 장씩, 애니메이션 없음). 웃는 얼굴을 먼저 그리고, 나머지는 그 그림을 참고해서 같은 사람으로
+  { name: 'face-smile', kind: 'still', prompt: `${CLIENT} Pose and expression: pleased and polite, warm smile, hands clasped in front, waiting happily.` },
+  { name: 'face-neutral', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: bored, flat mouth, half-closed eyes, arms crossed, tapping one foot.` },
+  { name: 'face-frown', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: annoyed frown, eyebrows down, looking at his wristwatch, a sweat drop on his head.` },
+  { name: 'face-angry', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: furious, bright red face, steam puffing from his head, shaking a fist, stomping one foot.` },
+  { name: 'face-delight', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: overjoyed, both arms raised, sparkling eyes, huge open-mouth grin, jumping a little.` },
+  { name: 'face-tear', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: sad, shoulders slumped, one big tear rolling down his cheek, holding a handkerchief.` },
 ];
 
 // ───────── API ─────────
@@ -152,9 +152,12 @@ const FRAME_B = [
 
 async function make(item) {
   const a = join(OUT, item.kind === 'still' ? `${item.name}.png` : `${item.name}-a.png`);
+  // ref가 있으면 그 그림을 첫 참고 이미지로 넣어서 같은 인물로 그림
+  const refs = item.ref && (await exists(join(OUT, `${item.ref}.png`))) ? [join(OUT, `${item.ref}.png`), REFS[0]] : REFS;
   const b = join(OUT, `${item.name}-b.png`);
   if (FORCE || !(await exists(a))) {
-    await writeFile(a, await edit(REFS, `${STYLE}\n\nDraw: ${item.prompt}\n\nUse the reference images only for the art style, not for the subject.`));
+    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : 'The first reference image shows this exact character: keep the same person, face, hair, glasses, suit and colors; only change the pose and expression. Use the other image only for the art style.';
+    await writeFile(a, await edit(refs, `${STYLE}\n\nDraw: ${item.prompt}\n\n${how}`));
     console.log('✓', a.replace(ROOT + '/', ''));
   }
   if (item.kind === 'anim' && (FORCE || !(await exists(b)))) {
