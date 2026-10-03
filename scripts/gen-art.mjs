@@ -29,7 +29,7 @@ if (!KEY) { console.error('OPENAI_API_KEY가 없어요.'); process.exit(1); }
 
 // ───────── 공통 스타일 ─────────
 const STYLE = [
-  'Cute, simple cartoon sticker style, matching the reference images:',
+  'Cute, simple cartoon sticker style, matching the reference images, with thick solid black outlines and fully opaque colors (never pale or see-through):',
   'bold thick black outlines, flat colors with soft cel shading, chunky rounded shapes, friendly and playful.',
   'Exactly one subject, centered, filling about 80% of the canvas with even padding.',
   'No text, no letters, no numbers, no logos, no background scenery, no drop shadow on the ground, no glow, no light halo or white light behind the subject.',
@@ -180,6 +180,7 @@ const frameB = move => [
   'Second frame of a 2-frame idle loop animation.',
   'Redraw the EXACT same subject from the input image: same design, same colors, same outline thickness, the SAME size, the SAME proportions and the SAME position in the canvas.',
   'Do NOT squash, stretch, tilt, rotate or scale the whole subject.',
+  'Keep the same thick BLACK outlines and the same solid, fully opaque colors as the input (do not make it pale, faded, washed out or see-through).',
   `Only change this: ${move || 'one small part moves slightly (a light blinks or a joint moves a little)'}.`,
   'Fully transparent background. No text.',
 ].join(' ');
