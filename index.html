@@ -1988,9 +1988,11 @@ async function resolve() {
     const falls = S.board.collapse();
     // 4개 이상 맞춘 줄마다 휴머노이드가 하나씩 위에서 내려옴
     // 특별 타일은 판마다 다름(휴머노이드 / 터미네이터 / 건담 / 에바)
-    const sp = S.def.special || 'hum', per = 1;
+    // 4개 맞추면 1개, 5개 이상 맞추면 2개
+    const sp = S.def.special || 'hum';
     for (const g of bigGroups) {
       const cols = new Set(g.cells.map(i => S.board.rc(i)[1]));
+      const per = g.cells.length >= 5 ? 2 : 1;
       for (let n = 0; n < per; n++) {
         const cand = falls.filter(f => f.fromY < 0 && !isSpec(f.tile.type) && cols.has(f.c));
         const pick = (cand.length ? cand : falls.filter(f => f.fromY < 0 && !isSpec(f.tile.type)))[0];
@@ -1999,7 +2001,7 @@ async function resolve() {
         if (n === 0) {
           SFX.hum();
           const W = $('board').clientWidth;
-          fxText(Math.min(Math.max(cx(pick.c), 90), W - 90), cy(0) + 10, `${TILES[sp].name} 투입!`, 18, '#FFD84A');
+          fxText(Math.min(Math.max(cx(pick.c), 90), W - 90), cy(0) + 10, `${TILES[sp].name} ${per > 1 ? '×2 ' : ''}투입!`, 18, '#FFD84A');
         }
       }
     }
@@ -2128,7 +2130,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-134919';
+const BUILD_V = '1003-135250';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
