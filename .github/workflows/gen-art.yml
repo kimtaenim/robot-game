@@ -1,8 +1,14 @@
 # 그림 생성: GitHub 저장소 Secret에 넣은 OPENAI_API_KEY로 scripts/gen-art.mjs를 돌리고, 생긴 assets/를 커밋
-# Actions 탭 → "Generate art" → Run workflow
+# 실행 방법 두 가지
+#   1) assets/request.txt를 고쳐서 푸시 → 자동 실행 (main에 없어도 됨)
+#        1번째 줄: 이름 필터 (비우면 전부, 예: robot-amr)   2번째 줄: 품질 low / medium / high
+#   2) Actions 탭 → "Generate art" → Run workflow (이 파일이 기본 브랜치에 있을 때만 버튼이 보임)
 name: Generate art
 
 on:
+  push:
+    paths:
+      - assets/request.txt
   workflow_dispatch:
     inputs:
       only:
@@ -17,20 +23,39 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: gen-art-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Read request
+        id: req
+        env:
+          IN_ONLY: ${{ inputs.only }}
+          IN_QUALITY: ${{ inputs.quality }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ -f assets/request.txt ]; then
+            ONLY=$(sed -n '1p' assets/request.txt | tr -cd 'a-z0-9-')
+            QUALITY=$(sed -n '2p' assets/request.txt | tr -cd 'a-z')
+          else
+            ONLY=$(printf '%s' "$IN_ONLY" | tr -cd 'a-z0-9-')
+            QUALITY=$(printf '%s' "$IN_QUALITY" | tr -cd 'a-z')
+          fi
+          echo "only=$ONLY" >> "$GITHUB_OUTPUT"
+          echo "quality=${QUALITY:-medium}" >> "$GITHUB_OUTPUT"
       - name: Generate images
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          QUALITY: ${{ inputs.quality }}
-          ONLY: ${{ inputs.only }}
+          QUALITY: ${{ steps.req.outputs.quality }}
+          ONLY: ${{ steps.req.outputs.only }}
         run: node scripts/gen-art.mjs "$ONLY"
       - name: Commit images
         if: always()
@@ -40,4 +65,5 @@ jobs:
           git add assets
           git diff --cached --quiet && echo "새 그림 없음" && exit 0
           git commit -m "Generated art"
-          git push
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
