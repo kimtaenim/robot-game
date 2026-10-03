@@ -1546,7 +1546,7 @@ function botsToMakeHtml() {
   const list = S.def.robots.filter(r => !isSpec(r)).concat(S.def.robots.filter(isSpec));
   return list.map((r, k) => {
     const R = ROBOTS[r];
-    const parts = R.parts.map(p => `<span class="ss-p">${TILES[p].icon}${isSpec(p) ? '<b>×3</b>' : ''}</span>`).join('<i>+</i>');
+    const parts = R.parts.map(p => `<span class="ss-p">${TILES[p].icon}</span>`).join('<i>+</i>');
     return `<div class="ss-bot" style="animation-delay:${(1.1 + k * 0.12).toFixed(2)}s"><span class="ss-ic">${R.icon}</span><span class="ss-nm">${R.name}</span><span class="ss-parts">${parts}</span></div>`;
   }).join('');
 }
@@ -2135,7 +2135,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-140803';
+const BUILD_V = '1003-154334';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2201,7 +2201,7 @@ function builtHtml() {
 }
 const logItem = o => `<div class="log-item"><span class="i">${o.icon}</span><span class="h">${o.ind}${o.who ? ' · ' + o.who : ''} ${ROBOTS[o.want].icon} ${robotLabel(o)}<small>${o.sec}</small></span><span>${o.fact}</span></div>`;
 const mapHtml = () => { const lit = litSectors(); return `<div class="map">${SECTORS.map(s => `<div class="sector${lit.has(s.key) ? ' lit' : ''}"><small>${s.key}</small>${s.icon}</div>`).join('')}</div>`; };
-const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon + (p === 'hum' ? '×3' : '')).join(' ')} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
+const recipesHtml = () => `<div class="recipes">${Object.values(ROBOTS).map(r => `<span>${r.parts.map(p => TILES[p].icon).join(' ')} = ${r.icon} ${r.name}</span>`).join('')}</div>`;
 function openSheet(html, pause) {
   $('sheet').innerHTML = html;
   $('overlay').hidden = false;
