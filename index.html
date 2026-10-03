@@ -1058,7 +1058,7 @@ function addClient(i) {
   const order = pickOrder(i);
   const needs = orderParts(order, S.def.pool);
   const max = (MOODS[order.mood] + needs.length * PART_SEC) * patienceMul(S.lv);
-  const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, noTimer: isHumSlot(i), intro: true };
+  const c = { order, char: pickChar(order, needs), needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, noTimer: isHumSlot(i), intro: true };
   S.slots[i] = c;
   S.spawned++;
   renderClients();
@@ -1213,7 +1213,7 @@ function orderBody(c, big) {
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
-    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c), charOf(o))}</div>`}
+    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c), clientChar(c))}</div>`}
     <div class="rb"><span class="ric">${o.robotIcon || r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
     <div class="needs">${needs}</div>${big ? orderNote(c) : ''}`;
 }
@@ -1274,7 +1274,7 @@ async function leaveShow(c, i, happy) {
   const rob = `<div class="lrobot">${c.order.robotIcon || ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
     ? `<div class="lrays"></div>${rob}<div class="lname">${robotLabel(c.order)}</div><div class="lstamp">납품 완료!</div><div class="lstars">${[0, 1, 2].map(k => `<i class="${k < c.stars ? 'on' : 'off'}" style="animation-delay:${0.35 + k * 0.22}s">${k < c.stars ? '⭐' : '☆'}</i>`).join('')}</div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]} <b>+${c.gain || 0}</b></div>`
-    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢', charOf(c.order)).repeat(3)}</div><div class="lword">계약 취소</div>`;
+    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢', clientChar(c)).repeat(3)}</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
@@ -1321,6 +1321,36 @@ function coinShower(x, y, n) {
   }).join('');
   document.body.appendChild(layer);
   setTimeout(() => layer.remove(), 1400);
+}
+// 칸의 주문서를 누르면 다시 크게 펼쳐 보며 게임이 잠깐 멈춤, 한 번 더 누르면 접히고 바로 다시 시작
+$('rail').addEventListener('pointerdown', e => {
+  const card = e.target.closest('.ocard[data-slot]');
+  if (!card || !S.running || S.paused || S.reading || !stageIdle()) return;
+  const i = +card.dataset.slot, c = S.slots[i];
+  if (!c || c.state !== 'wait' || c.intro) return;
+  peekOrder(c, i, card);
+});
+async function peekOrder(c, i, card) {
+  S.paused = true;
+  const scrim = document.createElement('div');
+  scrim.className = 'readscrim';
+  const el = document.createElement('div');
+  el.className = 'order-card' + (isHumSlot(i) ? ' hum' : '');
+  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '주문서'} · 멈춤</div>${orderBody(c, true)}<div class="oc-tap">눌러서 닫기</div>`;
+  const [x0, y0] = centerOf(card), mx = centerX(), my = innerHeight * 0.46;
+  const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
+  set(x0, y0, 0.5, 0.6);
+  document.body.appendChild(scrim); document.body.appendChild(el);
+  SFX.ticket();
+  const closed = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
+  await tween(260, q => { set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.5 + 0.5 * q, 0.6 + 0.4 * q); scrim.style.opacity = q; }, EASE.outQuad);
+  await closed;
+  S.paused = false;  // 접히기 시작하면 바로 재개
+  scrim.style.pointerEvents = 'none'; el.style.pointerEvents = 'none';
+  const tgt = document.querySelector(`[data-slot="${i}"]`);
+  const [tx, ty] = tgt ? centerOf(tgt) : [x0, y0];
+  await tween(240, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1 - 0.55 * q, 1 - 0.6 * q); scrim.style.opacity = 1 - q; }, EASE.inQuad);
+  el.remove(); scrim.remove();
 }
 // 단계 끝: 불꽃놀이 + 이번 판에 납품한 로봇들이 이름과 함께 3초 동안 춤
 function clearShow(stars) {
@@ -1394,7 +1424,7 @@ function updateBars() {
     const card = document.querySelector(`.ocard[data-slot="${i}"]`);
     if (card) { const u = c.state !== 'wait' || c.intro ? 0 : f < 0.15 ? 3 : f < 0.3 ? 2 : f < 0.5 ? 1 : 0; if (card.dataset.urge !== String(u)) card.dataset.urge = u; }
     const fe = document.querySelector(`[data-face="${i}"]`);
-    if (fe) { const f2 = faceOf(c); if (fe.dataset.f !== f2) { fe.dataset.f = f2; fe.innerHTML = faceHTML(f2, charOf(c.order)); } }
+    if (fe) { const f2 = faceOf(c); if (fe.dataset.f !== f2) { fe.dataset.f = f2; fe.innerHTML = faceHTML(f2, clientChar(c)); } }
   });
 }
 function renderStock() {}
@@ -1582,7 +1612,14 @@ const FACE_KEY = { '😊': 'smile', '😐': 'neutral', '😠': 'frown', '😡': 
 const CHAR_COOK = new Set(['학교 급식실', '치킨집']);
 const CHAR_SUIT = new Set(['물류센터', '경찰', '방위산업', '소방', '직업 교육']);
 const charOf = o => !o ? 'suit' : CHAR_COOK.has(o.ind) ? 'cook' : CHAR_SUIT.has(o.ind) ? 'suit' : 'worker';
-const FACE_ART = { suit: {}, worker: {}, cook: {} };
+// 손님마다 한 번 정함: 미국 수출(해외수출 칸) 주문은 트럼프, 양복 손님은 남녀 부장님이 무작위
+function pickChar(order, needs) {
+  if (needs.includes('made')) return 'trump';
+  const ch = charOf(order);
+  return ch === 'suit' && Math.random() < 0.5 ? 'suitf' : ch;
+}
+const clientChar = c => c.char || charOf(c.order);
+const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="assets/${key}-a.png" alt=""><img class="b" src="assets/${key}-b.png" alt=""></span>`;
@@ -1615,7 +1652,7 @@ async function loadArt() {
       const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
       if (a && b) { applyArt(key, a); any = true; }
     }),
-    ...['suit', 'worker', 'cook'].flatMap(who => Object.entries(FACE_KEY).map(async ([e, k]) => {
+    ...['suit', 'suitf', 'worker', 'cook', 'trump'].flatMap(who => Object.entries(FACE_KEY).map(async ([e, k]) => {
       const f = `assets/face-${who === 'suit' ? '' : who + '-'}${k}.png`;
       if (await loadImg(f)) { FACE_ART[who][e] = `<img class="art face" src="${f}" alt="${e}">`; any = true; }
     })),
