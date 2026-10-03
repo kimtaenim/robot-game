@@ -1,6 +1,6 @@
 {
- "total_usd": 19.5269,
- "images": 175,
+ "total_usd": 19.7447,
+ "images": 177,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -288,6 +288,13 @@
    "quality": "medium",
    "images": 2,
    "usd": 0.2172
+  },
+  {
+   "started": "2026-10-03T07:41:32.440Z",
+   "only": "tile-korea",
+   "quality": "medium",
+   "images": 2,
+   "usd": 0.2178
   }
  ]
 }
