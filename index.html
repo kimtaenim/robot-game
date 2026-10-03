@@ -985,6 +985,16 @@ function brass(f, t, dur, vol) {
   g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.03); g.gain.setValueAtTime(vol, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(f1).connect(g).connect(master); o.start(t); o.stop(t + dur + 0.02);
 }
+// 두꺼운 금관: 톱니 둘을 살짝 어긋나게 겹치고, 긴 음엔 비브라토
+function brass2(f, t, dur, vol) {
+  brass(f * 1.003, t, dur, vol * 0.6); brass(f * 0.997, t, dur, vol * 0.6);
+  if (dur > 0.4) { const v = ac.createOscillator(), vg = ac.createGain(); v.frequency.value = 5.5; vg.gain.value = 0; vg.gain.setValueAtTime(0, t + 0.2); vg.gain.linearRampToValueAtTime(f * 0.012, t + 0.5); v.connect(vg); const o = osc('triangle', f, t, dur, vol * 0.5); vg.connect(o.frequency); v.start(t); v.stop(t + dur); }
+}
+// 심벌 쨍 (길게 사라짐) / 팀파니 둥 / 스네어 / 글로켄 반짝
+const crash = (t, v = 0.12) => { nz(t, 1.6, v, 'highpass', 5000); nz(t, 0.5, v * 0.7, 'bandpass', 8000, 0.7); };
+const timp = (t, v = 0.22) => { osc('sine', 98, t, 0.55, v, 82); osc('sine', 196, t, 0.2, v * 0.3, 160); };
+const snare = (t, v = 0.08) => nz(t, 0.09, v, 'bandpass', 2000, 0.7);
+const glock = (f, t, v = 0.05) => { osc('sine', f, t, 0.5, v); osc('sine', f * 2.76, t, 0.15, v * 0.3); };
 // "아~ 오" 목소리: Bosses of Our World js/audio.js의 vowel()과 헛스왑(miss) 소리를 그대로 옮김
 // 톱니파 + 비브라토를 모음 포먼트 밴드패스 여러 개에 통과시켜 사람 목소리처럼
 function vowel(t, dur, f0, f1, formants, vol) {
@@ -1134,12 +1144,17 @@ const SFX = {
     [2093, 2637, 3136, 4186].forEach((f, i) => osc('sine', f, t + 0.07 + i * 0.015, 0.6, 0.06));
     for (let k = 0; k < 14; k++) { const d = 0.25 + k * 0.045 + Math.random() * 0.03; osc('sine', 2600 + Math.random() * 2400, t + d, 0.12, 0.035); nz(t + d, 0.03, 0.03, 'highpass', 6000); }
   },
-  // 납품 성공: 빵빠레
+  // 납품 성공: 빵빠레 "따따따 따~ 딴!" (스네어 받침 → 큰 화음 + 심벌 + 팀파니 + 글로켄 반짝)
   done: () => {
     if (!audio()) return;
-    const t = ac.currentTime;
-    [[392, 0, 0.11], [523, 0.12, 0.11], [659, 0.24, 0.11], [784, 0.36, 0.2]].forEach(([f, d, l]) => brass(f, t + d, l, 0.07));
-    [523, 659, 784, 1047].forEach(f => brass(f, t + 0.58, 0.55, 0.045));
+    const t = ac.currentTime + 0.02;
+    [[392, 0], [392, 0.09], [392, 0.18]].forEach(([f, d]) => { brass2(f, t + d, 0.07, 0.07); snare(t + d, 0.05); });
+    brass2(523, t + 0.27, 0.24, 0.08); snare(t + 0.27, 0.07);
+    const g = t + 0.54;
+    [523, 659, 784, 1047].forEach(f => brass2(f, g, 0.75, 0.05));
+    brass2(262, g, 0.75, 0.05);
+    crash(g, 0.1); timp(g);
+    [1568, 2093, 2637, 3136].forEach((f, k) => glock(f, g + 0.08 + k * 0.06, 0.035));
   },
   // 손님이 관두고 떠남: "아 오"
   leave: () => { if (!audio()) return; voiceAwOh(ac.currentTime); },
@@ -1199,12 +1214,22 @@ const SFX = {
       for (let j = 0; j < 4; j++) osc('sine', 3000 + Math.random() * 3000, t + d + 0.15 + j * 0.06, 0.1, 0.02);
     }
   },
-  // 단계 클리어: 긴 빵빠레
+  // 단계 클리어: 큰 빵빠레. 스네어 롤이 커지다가 → "따따따 따~ 따다 딴~!" → 한 음 올라간 큰 화음 + 심벌·팀파니 롤 + 글로켄
   clear: () => {
     if (!audio()) return;
-    const t = ac.currentTime;
-    [[523, 0], [523, 0.1], [523, 0.2], [659, 0.3], [784, 0.5]].forEach(([f, d]) => brass(f, t + d, 0.16, 0.07));
-    [523, 659, 784, 1047, 1319].forEach(f => brass(f, t + 0.75, 0.9, 0.04));
+    const t = ac.currentTime + 0.02;
+    for (let k = 0; k < 14; k++) snare(t + k * 0.045, 0.02 + k * 0.005);   // 드럼 롤
+    const s0 = t + 0.66;
+    crash(s0, 0.08); timp(s0);
+    [[523, 0, 0.08], [523, 0.1, 0.08], [523, 0.2, 0.08], [659, 0.3, 0.26], [587, 0.6, 0.1], [659, 0.72, 0.1], [784, 0.84, 0.4]].forEach(([f, d, l]) => { brass2(f, s0 + d, l, 0.08); brass2(f / 2, s0 + d, l, 0.035); snare(s0 + d, 0.05); });
+    const g = s0 + 1.3;
+    // 마지막 화음: 한 음 올려서(D장조) 더 화려하게
+    [587, 740, 880, 1175, 1480].forEach(f => brass2(f, g, 1.3, 0.045));
+    brass2(147, g, 1.3, 0.06); brass2(294, g, 1.3, 0.04);
+    crash(g, 0.14);
+    for (let k = 0; k < 8; k++) timp(g + k * 0.06, 0.06 + k * 0.012);   // 팀파니 롤
+    timp(g + 0.5, 0.25);
+    [1175, 1480, 1760, 2349, 2960, 3520].forEach((f, k) => glock(f, g + 0.1 + k * 0.07, 0.04));
   },
 };
 // ───────── 공장 배경음: 낮은 기계 웅웅 + 프레스 쿵·공기 치익 + 시계 똑딱 (누가 폭발 직전이면 두 배 빠르게) ─────────
@@ -2263,7 +2288,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-170954';
+const BUILD_V = '1003-171848';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
