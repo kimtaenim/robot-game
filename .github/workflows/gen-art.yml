@@ -43,10 +43,10 @@ jobs:
           IN_QUALITY: ${{ inputs.quality }}
         run: |
           if [ "${{ github.event_name }}" = "push" ] && [ -f assets/request.txt ]; then
-            ONLY=$(sed -n '1p' assets/request.txt | tr -cd 'a-z0-9-')
+            ONLY=$(sed -n '1p' assets/request.txt | tr -cd 'a-z0-9,-')
             QUALITY=$(sed -n '2p' assets/request.txt | tr -cd 'a-z')
           else
-            ONLY=$(printf '%s' "$IN_ONLY" | tr -cd 'a-z0-9-')
+            ONLY=$(printf '%s' "$IN_ONLY" | tr -cd 'a-z0-9,-')
             QUALITY=$(printf '%s' "$IN_QUALITY" | tr -cd 'a-z')
           fi
           echo "only=$ONLY" >> "$GITHUB_OUTPUT"

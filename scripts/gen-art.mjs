@@ -46,7 +46,7 @@ const FACE = 'A round yellow emoji-like customer face, cute cartoon style, thick
 // kind: 'anim' = a·b 2프레임, 'still' = 한 장
 const ITEMS = [
   // 부품 타일 10
-  { name: 'tile-wheel', kind: 'anim', prompt: `${PART} A chunky robot wheel with a thick dark rubber tire and a light gray hub.` },
+  { name: 'tile-wheel', kind: 'anim', prompt: `${PART} A small chunky robot drive wheel like on a toy robot or an AMR: a big round light gray hub with a few round bolts and a thin smooth dark gray rim. NOT a car tire: no tread pattern, no rim spokes, no car wheel look.` },
   { name: 'tile-auto', kind: 'anim', prompt: `${PART} An autonomous driving sensor module: a small lidar puck on a base with a glowing blue scan ring.` },
   { name: 'tile-floor', kind: 'anim', prompt: `${PART} A floor guidance square: a small floor tile with a yellow-black magnetic guide tape stripe and a QR code sticker.` },
   { name: 'tile-arm', kind: 'anim', prompt: `${PART} A bare collaborative robot arm (cobot) with a round base, two links and three joints, ending in an empty tool flange. No gripper, no hand.` },
@@ -62,8 +62,8 @@ const ITEMS = [
   { name: 'robot-agv', kind: 'anim', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
   { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base. Plain transparent background around it: absolutely no white glow or light burst behind the arm.` },
   { name: 'robot-mm', kind: 'anim', prompt: `${ROBOT} A mobile manipulator: a flat wheeled AMR base with a collaborative robot arm and gripper mounted on top.` },
-  { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot: one rounded box-shaped body on four mechanical legs. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand straight down under the body, not splayed out like a spider; each leg has an upper segment angled down and forward and a lower segment angled down and backward, so every knee points backward like a dog's hind legs, with small round feet.` },
-  { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot with a robot arm and gripper mounted on top of its body, the arm reaching forward. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand straight down under the body, not splayed out like a spider; each leg has an upper segment angled down and forward and a lower segment angled down and backward, so every knee points backward like a dog's hind legs, with small round feet.` },
+  { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot: one rounded box-shaped body on four mechanical legs. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand under the body, not splayed out like a spider. Every knee bends BACKWARD: the knee joint sticks out toward the rear (tail side) of the robot, the upper leg goes down and back from the body to the knee, and the lower leg goes down and forward from the knee to a small round foot. No knee may point toward the front (face side).` },
+  { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot with a robot arm and gripper mounted on top of its body, the arm reaching forward. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand under the body, not splayed out like a spider. Every knee bends BACKWARD: the knee joint sticks out toward the rear (tail side) of the robot, the upper leg goes down and back from the body to the knee, and the lower leg goes down and forward from the knee to a small round foot. No knee may point toward the front (face side).` },
   { name: 'robot-centaur', kind: 'anim', prompt: `${ROBOT} A centaur robot: a four-legged robot body with a humanoid robot upper torso, two arms and head on top.` },
 
   // 업종 아이콘 16 (게임의 업종 이름과 같은 순서)
@@ -111,11 +111,30 @@ async function edit(images, prompt) {
     fd.append('input_fidelity', 'high');
     for (const [i, p] of images.entries()) fd.append('image[]', await pngBlob(p), `ref${i}.png`);
     const res = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { Authorization: `Bearer ${KEY}` }, body: fd });
-    if (res.ok) return Buffer.from((await res.json()).data[0].b64_json, 'base64');
+    if (res.ok) { const j = await res.json(); addCost(j.usage); return Buffer.from(j.data[0].b64_json, 'base64'); }
     const msg = await res.text();
     if ((res.status === 429 || res.status >= 500) && attempt < 5) { await sleep(2000 * 2 ** attempt); continue; }
     throw new Error(`${res.status} ${msg.slice(0, 300)}`);
   }
+}
+
+// ───────── 비용 기록: API가 알려 주는 토큰 사용량으로 계산해서 assets/cost-log.json에 누적 ─────────
+// gpt-image-1 가격(1M 토큰당): 글자 입력 $5, 그림 입력 $10, 그림 출력 $40
+const PRICE = { text: 5 / 1e6, image: 10 / 1e6, out: 40 / 1e6 };
+const COST_FILE = join(OUT, 'cost-log.json');
+let costLog = { total_usd: 0, images: 0, runs: [] };
+try { costLog = JSON.parse(await readFile(COST_FILE, 'utf8')); } catch (e) {}
+const run = { started: new Date().toISOString(), only: ONLY, quality: QUALITY, images: 0, usd: 0 };
+costLog.runs.push(run);
+function addCost(u) {
+  if (!u) return;
+  const d = u.input_tokens_details || {};
+  const text = d.text_tokens ?? 0, image = d.image_tokens ?? Math.max(0, (u.input_tokens || 0) - text);
+  const usd = text * PRICE.text + image * PRICE.image + (u.output_tokens || 0) * PRICE.out;
+  run.images++; run.usd = +(run.usd + usd).toFixed(4);
+  costLog.images++; costLog.total_usd = +(costLog.total_usd + usd).toFixed(4);
+  writeFile(COST_FILE, JSON.stringify(costLog, null, 1)).catch(() => {});
+  console.log(`  $${usd.toFixed(3)} (이번 실행 $${run.usd.toFixed(2)}, 누적 $${costLog.total_usd.toFixed(2)})`);
 }
 
 const REFS = [join(OUT, 'style', 'ref-drone.png'), join(OUT, 'style', 'ref-monster.png')];
@@ -142,7 +161,8 @@ async function make(item) {
 }
 
 await mkdir(OUT, { recursive: true });
-const todo = ITEMS.filter(it => it.name.includes(ONLY));
+// 여러 개는 쉼표로: robot-q,tile-wheel
+const todo = ITEMS.filter(it => ONLY.split(',').some(k => it.name.includes(k)));
 const total = todo.reduce((n, it) => n + (it.kind === 'anim' ? 2 : 1), 0);
 console.log(`그림 ${todo.length}종, 최대 ${total}장 (quality=${QUALITY})`);
 let next = 0, failed = 0;
