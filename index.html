@@ -1803,8 +1803,9 @@ const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977
 const av = f => { const n = f.replace('assets/', ''); return `assets/w/${n.replace(/\.png$/, '.webp')}?v=${ART_HASH[n] || '0'}`; };
 // 업종 아이콘(ind-)은 a프레임만, 로봇·부품은 a·b를 번갈아 (팔이 까딱, 다리가 제자리걸음 등)
 // 두 번째 그림(b)은 잘 나온 것만 씀: 윙크·눈 반짝·바퀴 굴림 등. 몸이 바뀌어 버린 것(켄타우로스, 로봇 팔 타일)과 업종 아이콘은 한 장만
-const A_ONLY = new Set(['robot-centaur', 'tile-arm']);
-const oneFrame = key => key.startsWith('ind-') || A_ONLY.has(key);
+// 두 번째 그림이 분명히 잘 나온 것만 번갈아 씀 (윙크·선글라스·눈 반짝·포효·구호·불빛)
+const AB_OK = new Set(['robot-amr', 'robot-agv', 'robot-cobot', 'robot-cobot-cook', 'robot-cobot-weld', 'robot-mm', 'robot-quad', 'robot-qarm', 'tile-hum', 'tile-term', 'tile-gundam', 'tile-eva', 'tile-union', 'tile-auto']);
+const oneFrame = key => !AB_OK.has(key);
 const artHTML = key => `<span class="art bob${oneFrame(key) ? '' : ' swap'}" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt="">${oneFrame(key) ? '' : `<img class="b" src="${av(`assets/${key}-b.png`)}" alt="">`}</span>`;
 // 다 받고 화면에 그릴 준비(decode)까지 끝나야 성공. 실패하면 한 번 더 시도
 const loadOnce = src => new Promise(ok => { const im = new Image(); im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => ok(im)); im.onerror = () => ok(null); im.src = src; });
@@ -2129,7 +2130,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-135347';
+const BUILD_V = '1003-135416';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
