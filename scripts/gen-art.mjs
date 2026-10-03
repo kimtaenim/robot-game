@@ -41,6 +41,8 @@ const ROBOT = 'A cute industrial robot character with a small friendly face (two
 // 업종 아이콘: 그 업종을 떠올리게 하는 상징물 하나
 const ROBOTS_COOK = `${ROBOT} A cooking collaborative robot arm on a round base, the face on the base. Instead of a gripper, the end of the arm holds a deep-fryer basket (a wire mesh frying basket with a handle) full of golden fried food. No glow or light burst behind it.`;
 const PLACE = 'A cute icon representing an industry or workplace, drawn as one simple symbolic object or tiny building. It may have a tiny friendly face.';
+const WORKER = 'A funny chibi cartoon client character, full body, very big head (about half of the total height) and a small body, drawn in the same cute style as the reference humanoid/drone: a Korean factory worker wearing a yellow safety helmet (hard hat), an orange high-visibility safety vest over a gray work uniform, work gloves and safety boots, a bushy mustache, very exaggerated, comical facial expression.';
+const COOK = 'A funny chibi cartoon client character, full body, very big head (about half of the total height) and a small body, drawn in the same cute style as the reference humanoid/drone: a Korean cook (a middle-aged woman) wearing a white cook hat, a white chef uniform and a red apron, holding a ladle, rosy round cheeks, very exaggerated, comical facial expression.';
 const CLIENT = 'A funny chibi cartoon client character, full body, very big head (about half of the total height) and a small body, drawn in the same cute style as the reference humanoid/drone: a middle-aged Korean company manager in a navy suit and red tie, round glasses, a comb-over hairstyle, very exaggerated, comical facial expression.';
 
 // ───────── 그림 목록 ─────────
@@ -85,9 +87,22 @@ const ITEMS = [
   { name: 'ind-police', kind: 'anim', prompt: `${PLACE} Police: a police cap with a badge and a small blue-red siren light. (경찰)` },
   { name: 'ind-defense', kind: 'anim', prompt: `${PLACE} Defense industry: a military helmet with a camouflage pattern and a medal. (방위산업)` },
   { name: 'ind-fire', kind: 'anim', prompt: `${PLACE} Firefighting: a firefighter helmet with a fire extinguisher. (소방)` },
+  { name: 'ind-chicken', kind: 'anim', prompt: `${PLACE} A fried chicken shop: a basket of golden fried chicken drumsticks with a small shop awning. (치킨집)` },
   { name: 'ind-auto', kind: 'anim', prompt: `${PLACE} A car factory: a small car on an assembly line. (자동차 공장)` },
 
   // 손님 6장 (한 장씩, 애니메이션 없음). 웃는 얼굴을 먼저 그리고, 나머지는 그 그림을 참고해서 같은 사람으로
+  { name: 'face-worker-smile', kind: 'still', prompt: `${WORKER} Pose and expression: pleased and polite, warm smile, hands together in front, waiting happily.` },
+  { name: 'face-worker-neutral', kind: 'still', ref: 'face-worker-smile', prompt: `${WORKER} Pose and expression: bored, flat mouth, half-closed eyes, arms crossed, tapping one foot.` },
+  { name: 'face-worker-frown', kind: 'still', ref: 'face-worker-smile', prompt: `${WORKER} Pose and expression: annoyed frown, eyebrows down, looking at a wristwatch, a sweat drop on the head.` },
+  { name: 'face-worker-angry', kind: 'still', ref: 'face-worker-smile', prompt: `${WORKER} Pose and expression: furious, bright red face, steam puffing from the head, shaking a fist, stomping one foot.` },
+  { name: 'face-worker-delight', kind: 'still', ref: 'face-worker-smile', prompt: `${WORKER} Pose and expression: overjoyed, both arms raised, sparkling eyes, huge open-mouth grin, jumping a little.` },
+  { name: 'face-worker-tear', kind: 'still', ref: 'face-worker-smile', prompt: `${WORKER} Pose and expression: sad, shoulders slumped, one big tear rolling down the cheek, holding a handkerchief.` },
+  { name: 'face-cook-smile', kind: 'still', prompt: `${COOK} Pose and expression: pleased and polite, warm smile, hands together in front, waiting happily.` },
+  { name: 'face-cook-neutral', kind: 'still', ref: 'face-cook-smile', prompt: `${COOK} Pose and expression: bored, flat mouth, half-closed eyes, arms crossed, tapping one foot.` },
+  { name: 'face-cook-frown', kind: 'still', ref: 'face-cook-smile', prompt: `${COOK} Pose and expression: annoyed frown, eyebrows down, looking at a wristwatch, a sweat drop on the head.` },
+  { name: 'face-cook-angry', kind: 'still', ref: 'face-cook-smile', prompt: `${COOK} Pose and expression: furious, bright red face, steam puffing from the head, shaking a fist, stomping one foot.` },
+  { name: 'face-cook-delight', kind: 'still', ref: 'face-cook-smile', prompt: `${COOK} Pose and expression: overjoyed, both arms raised, sparkling eyes, huge open-mouth grin, jumping a little.` },
+  { name: 'face-cook-tear', kind: 'still', ref: 'face-cook-smile', prompt: `${COOK} Pose and expression: sad, shoulders slumped, one big tear rolling down the cheek, holding a handkerchief.` },
   { name: 'face-smile', kind: 'still', prompt: `${CLIENT} Pose and expression: pleased and polite, warm smile, hands clasped in front, waiting happily.` },
   { name: 'face-neutral', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: bored, flat mouth, half-closed eyes, arms crossed, tapping one foot.` },
   { name: 'face-frown', kind: 'still', ref: 'face-smile', prompt: `${CLIENT} Pose and expression: annoyed frown, eyebrows down, looking at his wristwatch, a sweat drop on his head.` },
@@ -156,7 +171,7 @@ async function make(item) {
   const refs = item.ref && (await exists(join(OUT, `${item.ref}.png`))) ? [join(OUT, `${item.ref}.png`), REFS[0]] : REFS;
   const b = join(OUT, `${item.name}-b.png`);
   if (FORCE || !(await exists(a))) {
-    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : 'The first reference image shows this exact character: keep the same person, face, hair, glasses, suit and colors; only change the pose and expression. Use the other image only for the art style.';
+    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : 'The first reference image shows this exact character: keep the same person, face, hair, outfit, accessories and colors; only change the pose and expression. Use the other image only for the art style.';
     await writeFile(a, await edit(refs, `${STYLE}\n\nDraw: ${item.prompt}\n\n${how}`));
     console.log('✓', a.replace(ROOT + '/', ''));
   }

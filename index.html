@@ -651,6 +651,10 @@ const ORDERS = [
   { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: '',            task: '선체 용접',          sec: '④ 조선',        label: '용접 협동로봇', fact: '한 조선소는 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공을 구하지 못해 "일을 못 받는다"는 현장이에요.' },
   { id: 'ship2',    want: 'cobot', n: 1, mood: 'hot',  icon: '🚢', who: '',            task: '고열·분진 속 용접',   sec: '④ 조선',        label: '용접 협동로봇', fact: '조선소는 고열·먼지·용접 스패터 속에서 용접선을 따라 움직여야 해요. 작업자가 말로 지시하면 로봇이 토치 각도와 속도를 정하는 AI 과제도 진행 중이에요.' },
   { id: 'busanEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '부산교육청',  task: '급식 조리',          sec: '⑱ 학교 급식',   label: '조리 협동로봇',   fact: '5개교에 조리로봇을 설치해요. 실증에서 근력 작업 72%가 줄었어요.' },
+  { id: 'seoulEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '서울시교육청', task: '볶음·국·튀김',       sec: '⑱ 학교 급식',   label: '조리 협동로봇',   fact: '숭곡중에 볶음·국탕·튀김 로봇 4대를 들였어요. 사업비 10억원은 한국로봇산업진흥원이 전액 지원했어요.' },
+  { id: 'gyeonggiEdu', want: 'cobot', n: 1, mood: 'calm', icon: '🍱', who: '경기도교육청', task: '거점형 튀김실',    sec: '⑱ 학교 급식',   label: '튀김 협동로봇',   fact: '수원 대평초 거점형 튀김 지원실에서 로봇이 튀긴 음식을 인근 학교로 배송해요.' },
+  { id: 'kyochon',  want: 'cobot', n: 1, mood: 'mid',  icon: '🍗', who: '교촌에프앤비', task: '치킨 튀김',          sec: '⑲ 외식',        label: '튀김 협동로봇',   fact: '교촌은 뉴로메카와 만든 튀김 로봇 32대를 24개 매장에 들였어요. 구매는 점주 선택이라 1,378개 매장 중 약 1.7%예요.' },
+  { id: 'bhc',      want: 'cobot', n: 1, mood: 'hot',  icon: '🍗', who: 'bhc',         task: '치킨 튀김',          sec: '⑲ 외식',        label: '튀김 협동로봇',   fact: "bhc는 튀김 로봇 '튀봇'을 40개 매장에 들였어요. 점주에게는 로봇 한 대 값이 작은 매장 하나 낼 돈이라는 말도 나와요." },
   { id: 'gwangjin', want: 'cobot', n: 1, mood: 'hot',  icon: '⚙️', who: '광진',        task: '양산 라인 피킹',     sec: '③ 제조 SI',     label: '피킹 협동로봇',     fact: '13억원을 들여 양산 라인에 협동로봇을 넣었어요.' },
   { id: 'polytech', want: 'cobot', n: 1, mood: 'calm', icon: '🎓', who: '폴리텍',      task: '학생 실습',          sec: '① 교육용 로봇', label: '실습용 협동로봇', fact: '두산로보틱스가 실습용 협동로봇 4대를 기증했어요.' },
   { id: 'lg',       want: 'mm',    n: 1, mood: 'mid',  icon: '🔋', who: 'LG엔솔',      task: '다니며 불량 셀 빼기', sec: '⑧ 배터리 공장', fact: 'AMR 위에 협동로봇 팔을 얹은 결합형이 라인을 돌며 불량 셀을 빼고 부품을 공급해요.' },
@@ -668,7 +672,7 @@ const ORDERS = [
 // 업종: 주문서·손님 자리에 회사 이름보다 크게 보여 줌
 const IND = {
   port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', ecopro: '배터리 소재 공장',
-  mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
+  mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', seoulEdu: '학교 급식실', gyeonggiEdu: '학교 급식실', kyochon: '치킨집', bhc: '치킨집', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
   posco: '제철소', posco2: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
 };
 ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
@@ -725,8 +729,11 @@ function levelDef(lv) {
   return tryPick(want, 4, true) || tryPick(2, 3, true) || tryPick(1, 1, false) || { lv, tiles: ['wheel', 'auto', 'arm', 'tool'], robots: ['amr', 'cobot', 'mm', 'hum'], pool, fresh };
 }
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음)
-// 1단계 10명, 단계마다 +1명, 최대 20명
-const levelTarget = lv => Math.min(20, 10 + (lv - 1));
+// 1단계 5명, 단계마다 +1명, 최대 20명
+const levelTarget = lv => Math.min(20, 4 + lv);
+// 템포: 처음엔 느리게(읽으며 배우게), 판마다 조금씩 빨라져서 12단계부터 지금 속도
+// 주문서가 뜨고 사라지는 연출·손님이 오는 간격에 곱함 (1단계 2.3배 → 6단계 1.7배 → 12단계 1배)
+const pace = lv => lv >= 12 ? 1 : 1 + 1.3 * (12 - lv) / 11;
 // RU$H TIME: 연속 납품(다음 납품까지 12초 이내) 3번이면 10초 동안 점수 2배·기다림 바 절반 속도, 납품할 때마다 3초 연장
 const RUSH_GAP = 12, RUSH_NEED = 3, RUSH_SEC = 10, RUSH_ADD = 3;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
@@ -1056,7 +1063,7 @@ function spawnTick(dt) {
   if (free === undefined) return;
   if ((S.spawnT -= dt) <= 0 || !waitingNormal().length) {
     addClient(free);
-    S.spawnT = Math.max(1.2, 2.4 - S.lv * 0.1);
+    S.spawnT = Math.max(1.2, 2.4 - S.lv * 0.1) * pace(S.lv) * 1.3;
   }
 }
 // 이 부품을 받을 주문 칸 찾기 (가장 급한 주문부터)
@@ -1083,9 +1090,7 @@ function complete(i) {
   c.gain = gain;
   floatText(el, `+${gain}${rushOn() ? ' ×2' : ''}`, 'big');
   vibrate([30, 50, 30]);
-  const lit = [...S.dex].some(id => secKey(O[id]) === secKey(c.order));
   S.dex.add(c.order.id); S.runServed.push(c.order.id); save();
-  if (!lit) banner(`${secKey(c.order)}${c.order.emoji || c.order.icon} 점등!`, 2100);
   c.state = 'done'; c.until = DONE_SEC;
   S.done++;
   renderClients(); renderHud();
@@ -1173,7 +1178,7 @@ function orderBody(c, big) {
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
-    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c))}</div>`}
+    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c), charOf(o))}</div>`}
     <div class="rb"><span class="ric">${o.robotIcon || r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
     <div class="needs">${needs}</div>${big ? orderNote(c) : ''}`;
 }
@@ -1205,16 +1210,17 @@ async function orderIntro(c, i) {
   SFX.ticket();
   // 수락: 카드나 어두운 바탕 어디를 눌러도 됨 (뜨는 중에 눌러도 받아 줌)
   const accepted = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
-  await tween(240, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
+  const P = pace(S.lv);
+  await tween(240 * P, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
   await accepted;
   // 누르면 살짝 커졌다가, 자기 칸으로 날아가며 다시 작아짐
   SFX.stamp();
-  await tween(280, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outBack);
-  await wait(160);
+  await tween(280 * P, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outBack);
+  await wait(160 * P);
   const target = document.querySelector(`[data-slot="${i}"]`);
   const [tx, ty] = target ? centerOf(target) : [mx, 80];
   const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width * 1.15 : 0.4;
-  await tween(700, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inOutQuad);
+  await tween(700 * P, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inOutQuad);
   el.remove(); scrim.remove();
   S.reading = false;
   c.intro = false;
@@ -1230,7 +1236,7 @@ async function leaveShow(c, i, happy) {
   const rob = `<div class="lrobot">${c.order.robotIcon || ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
     ? `<div class="lrays"></div>${rob}<div class="lname">${robotLabel(c.order)}</div><div class="lstamp">납품 완료!</div><div class="lstars">${[0, 1, 2].map(k => `<i class="${k < c.stars ? 'on' : 'off'}" style="animation-delay:${0.35 + k * 0.22}s">${k < c.stars ? '⭐' : '☆'}</i>`).join('')}</div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]} <b>+${c.gain || 0}</b></div>`
-    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢').repeat(3)}</div><div class="lword">계약 취소</div>`;
+    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢', charOf(c.order)).repeat(3)}</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
@@ -1327,7 +1333,7 @@ function updateBars() {
     const card = document.querySelector(`.ocard[data-slot="${i}"]`);
     if (card) { const u = c.state !== 'wait' || c.intro ? 0 : f < 0.15 ? 3 : f < 0.3 ? 2 : f < 0.5 ? 1 : 0; if (card.dataset.urge !== String(u)) card.dataset.urge = u; }
     const fe = document.querySelector(`[data-face="${i}"]`);
-    if (fe) { const f2 = faceOf(c); if (fe.dataset.f !== f2) { fe.dataset.f = f2; fe.innerHTML = faceHTML(f2); } }
+    if (fe) { const f2 = faceOf(c); if (fe.dataset.f !== f2) { fe.dataset.f = f2; fe.innerHTML = faceHTML(f2, charOf(c.order)); } }
   });
 }
 function renderStock() {}
@@ -1508,11 +1514,15 @@ function clearBoardEls() { tileEls.forEach(e => e.remove()); tileEls.clear(); }
 const IND_KEY = {
   '항만': 'port', '항공기 제조': 'aircraft', '물류센터': 'logistics', '자동차 부품 공장': 'autoparts', '배터리(ESS) 공장': 'ess',
   '배터리 소재 공장': 'material', '조선소': 'shipyard', '학교 급식실': 'school', '제조 공장': 'factory', '직업 교육': 'training',
-  '배터리 공장': 'battery', '제철소': 'steel', '경찰': 'police', '방위산업': 'defense', '소방': 'fire', '자동차 공장': 'auto',
+  '배터리 공장': 'battery', '제철소': 'steel', '경찰': 'police', '방위산업': 'defense', '소방': 'fire', '자동차 공장': 'auto', '치킨집': 'chicken',
 };
 const FACE_KEY = { '😊': 'smile', '😐': 'neutral', '😠': 'frown', '😡': 'angry', '😄': 'delight', '😢': 'tear' };
-const FACE_ART = {};
-const faceHTML = e => FACE_ART[e] || e;
+// 손님 캐릭터: 현장에 따라 안전모 쓴 노동자 / 앞치마 두른 조리사 / 양복 입은 담당자
+const CHAR_COOK = new Set(['학교 급식실', '치킨집']);
+const CHAR_SUIT = new Set(['물류센터', '경찰', '방위산업', '소방', '직업 교육']);
+const charOf = o => !o ? 'suit' : CHAR_COOK.has(o.ind) ? 'cook' : CHAR_SUIT.has(o.ind) ? 'suit' : 'worker';
+const FACE_ART = { suit: {}, worker: {}, cook: {} };
+const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="assets/${key}-a.png" alt=""><img class="b" src="assets/${key}-b.png" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1531,7 +1541,7 @@ function applyArt(key, imA) {
   }
 }
 // 손끝 도구가 다른 협동로봇: 주문마다 따로 그린 그림 (용접기, 튀김바구니)
-const ORDER_ROBOT = { 'robot-cobot-weld': ['mipo', 'ship2'], 'robot-cobot-cook': ['busanEdu'] };
+const ORDER_ROBOT = { 'robot-cobot-weld': ['mipo', 'ship2'], 'robot-cobot-cook': ['busanEdu', 'seoulEdu', 'gyeonggiEdu', 'kyochon', 'bhc'] };
 async function loadArt() {
   const anim = [...Object.keys(TILES).map(k => 'tile-' + k), ...Object.keys(ROBOTS).filter(r => r !== 'hum').map(r => 'robot-' + r), ...Object.values(IND_KEY).map(k => 'ind-' + k)];
   let any = false;
@@ -1544,9 +1554,10 @@ async function loadArt() {
       const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
       if (a && b) { applyArt(key, a); any = true; }
     }),
-    ...Object.entries(FACE_KEY).map(async ([e, k]) => {
-      if (await loadImg(`assets/face-${k}.png`)) { FACE_ART[e] = `<img class="art face" src="assets/face-${k}.png" alt="${e}">`; any = true; }
-    }),
+    ...['suit', 'worker', 'cook'].flatMap(who => Object.entries(FACE_KEY).map(async ([e, k]) => {
+      const f = `assets/face-${who === 'suit' ? '' : who + '-'}${k}.png`;
+      if (await loadImg(f)) { FACE_ART[who][e] = `<img class="art face" src="${f}" alt="${e}">`; any = true; }
+    })),
   ]);
   if (any && S.slots) renderClients();
 }

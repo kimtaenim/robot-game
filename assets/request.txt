@@ -1,3 +1,3 @@
-face-
+face-worker-smile,face-cook-smile,ind-chicken
 medium
-run 10
+run 11
