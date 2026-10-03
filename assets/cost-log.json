@@ -1,6 +1,6 @@
 {
- "total_usd": 17.3977,
- "images": 153,
+ "total_usd": 17.5711,
+ "images": 155,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -246,6 +246,13 @@
    "quality": "medium",
    "images": 9,
    "usd": 0.78
+  },
+  {
+   "started": "2026-10-03T04:40:47.314Z",
+   "only": "robot-cobot,robot-mm",
+   "quality": "medium",
+   "images": 2,
+   "usd": 0.1734
   }
  ]
 }
