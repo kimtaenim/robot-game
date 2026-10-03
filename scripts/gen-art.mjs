@@ -31,7 +31,7 @@ const STYLE = [
   'Cute, simple cartoon sticker style, matching the reference images:',
   'bold thick black outlines, flat colors with soft cel shading, chunky rounded shapes, friendly and playful.',
   'Exactly one subject, centered, filling about 80% of the canvas with even padding.',
-  'No text, no letters, no numbers, no logos, no background scenery, no drop shadow on the ground.',
+  'No text, no letters, no numbers, no logos, no background scenery, no drop shadow on the ground, no glow, no light halo or white light behind the subject.',
   'Fully transparent background.',
 ].join(' ');
 // 타일 그림은 색 있는 타일 위에 올라감 → 물체만, 밝은 회색 금속 위주
@@ -60,7 +60,7 @@ const ITEMS = [
   // 완성 로봇 7
   { name: 'robot-amr', kind: 'anim', prompt: `${ROBOT} An AMR: a low flat four-wheeled autonomous mobile robot carrying a small box on top. Nothing on top except the box: no lidar dome, no sensor, no antenna.` },
   { name: 'robot-agv', kind: 'anim', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
-  { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base.` },
+  { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base. Plain transparent background around it: absolutely no white glow or light burst behind the arm.` },
   { name: 'robot-mm', kind: 'anim', prompt: `${ROBOT} A mobile manipulator: a flat wheeled AMR base with a collaborative robot arm and gripper mounted on top.` },
   { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot: one rounded box-shaped body on four mechanical legs. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box.` },
   { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot with a robot arm and gripper mounted on top of its body, the arm reaching forward. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box.` },
