@@ -704,8 +704,8 @@ const ROBOTS = {
   centaur: { icon: '🏇', name: '켄타우로스 로봇',  parts: ['legs', 'legs', 'hum', 'tool'] },
   hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum', 'tool'] },
   term:   { icon: '💀', name: '터미네이터',         parts: ['term', 'tool'] },
-  gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'gundam', 'tool'] },
-  eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'eva', 'tool'] },
+  gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool'] },
+  eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'tool'] },
 };
 
 // ───────── 클라이언트 (로봇 스터디 2차 발제 자료, 2026.09.21에서 로봇 종류를 밝힌 현장) ─────────
@@ -1763,7 +1763,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790997782';
+const ART_V = '1790997813';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1941,8 +1941,8 @@ async function resolve() {
     renderHud();
     const falls = S.board.collapse();
     // 4개 이상 맞춘 줄마다 휴머노이드가 하나씩 위에서 내려옴
-    // 특별 타일은 판마다 다름(휴머노이드 / 터미네이터 / 건담 / 에바). 건담·에바는 두 개가 필요해서 한 번에 2개씩
-    const sp = S.def.special || 'hum', per = sp === 'gundam' || sp === 'eva' ? 2 : 1;
+    // 특별 타일은 판마다 다름(휴머노이드 / 터미네이터 / 건담 / 에바)
+    const sp = S.def.special || 'hum', per = 1;
     for (const g of bigGroups) {
       const cols = new Set(g.cells.map(i => S.board.rc(i)[1]));
       for (let n = 0; n < per; n++) {
