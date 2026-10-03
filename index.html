@@ -1090,27 +1090,27 @@ const SFX = {
     dung(0); kung(3); deok(6); deok(8); kung(9);
   },
   // 에바 타일 맞춤: 에반게리온 주제가 첫 소절 "라도레도레레레솔파미레미" (미국 국가처럼 마림바)
-  // 에바 맞춤: 엔딩곡 "Fly Me to the Moon" 첫 소절 "도시라솔파~ 솔라도 시라솔파미~" (4/4, 가사 박자대로 "moon"·"stars"는 4박 뒷박에서 당겨 길게)
-  // 마림바 가락 + 베이스(Am7 → Dm7 → G7 → Cmaj7 근음·5음) + 브러시 느낌 하이햇
+  // 에바 맞춤: 엔딩곡 "Fly Me to the Moon" 첫 소절 "도시라솔 파~솔라 도시라솔 파미~" (엇박 없이 모든 음이 정박, 약 5초)
+  // 마림바 가락 + 베이스(Am7 → Dm7 → G7 → Cmaj7 근음·5음) + 정박 킥·브러시·하이햇
   evaTheme: () => {
-    if (!audio() || SFX._busy('eva', 6200)) return;
-    const B = 0.42, t0 = ac.currentTime + 0.05;
+    if (!audio() || SFX._busy('eva', 5200)) return;
+    const B = 0.33, t0 = ac.currentTime + 0.05;
     const C5 = 523, B4 = 494, A4 = 440, G4 = 392, F4 = 349, E4 = 330;
-    // [음, 시작 박, 길이 박]  Fly(1.5) me(.5) to(1) the(.5) moon(2.5) | and(.5) let(.5) me(1) | play(1.5) a(.5) mong(1) the(.5) stars(2.5)
-    for (const [f, at, len, v] of [[C5, 0, 1.5, .28], [B4, 1.5, .5, .24], [A4, 2, 1, .26], [G4, 3, .5, .24], [F4, 3.5, 2.5, .28],
-      [G4, 6, .5, .24], [A4, 6.5, .5, .24], [C5, 7, 1, .28], [B4, 8, 1.5, .27], [A4, 9.5, .5, .24], [G4, 10, 1, .26], [F4, 11, .5, .24], [E4, 11.5, 2.5, .3]]) {
-      SFX.marimba(f, 0.05 + at * B, v, Math.min(1.6, len * B * 0.95 + 0.1));
+    // [음, 시작 박, 길이 박]  Fly me to the | moon~ and let | me play a-mong | the stars~
+    for (const [f, at, len, v] of [[C5, 0, 1, .28], [B4, 1, 1, .25], [A4, 2, 1, .26], [G4, 3, 1, .25], [F4, 4, 2, .28], [G4, 6, 1, .24], [A4, 7, 1, .25],
+      [C5, 8, 1, .28], [B4, 9, 1, .26], [A4, 10, 1, .25], [G4, 11, 1, .25], [F4, 12, 1, .25], [E4, 13, 2, .3]]) {
+      SFX.marimba(f, 0.05 + at * B, v, Math.min(1.2, len * B * 0.95 + 0.1));
       osc('triangle', f, t0 + at * B, len * B * 0.9, v * 0.14);
     }
     // 베이스: 마디마다 근음(1박)·5음(3박)
     [[110, 165], [147, 220], [98, 147], [131, 196]].forEach(([r, f5], m) => {
-      osc('triangle', r, t0 + m * 4 * B, B * 1.8, 0.16); osc('triangle', f5, t0 + (m * 4 + 2) * B, B * 1.6, 0.12);
+      osc('triangle', r, t0 + m * 4 * B, B * 1.8, 0.16); if (m < 3) osc('triangle', f5, t0 + (m * 4 + 2) * B, B * 1.6, 0.12);
     });
-    for (let k = 0; k < 14; k++) {
+    for (let k = 0; k < 15; k++) {
       const t = t0 + k * B;
-      if (k % 4 === 0) osc('sine', 110, t, 0.14, 0.12, 50);                 // 킥: 마디 첫 박
-      if (k % 2 === 1) nz(t, 0.1, 0.035, 'bandpass', 3000, 0.6);           // 브러시: 2·4박
-      nz(t, 0.025, 0.018, 'highpass', 7000); nz(t + B * 0.66, 0.025, 0.014, 'highpass', 7000);  // 스윙 하이햇
+      if (k % 4 === 0) osc('sine', 110, t, 0.14, 0.12, 50);       // 킥: 마디 첫 박
+      if (k % 2 === 1) nz(t, 0.1, 0.035, 'bandpass', 3000, 0.6); // 브러시: 2·4박
+      nz(t, 0.025, 0.018, 'highpass', 7000);                      // 하이햇: 정박만
     }
   },
   _last: {},
@@ -2364,7 +2364,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-173456';
+const BUILD_V = '1003-173658';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
