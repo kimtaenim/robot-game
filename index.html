@@ -96,12 +96,18 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .title .rule.r { background: linear-gradient(270deg, transparent, #e0a21f); }
 @keyframes star-twinkle { 0%, 80%, 100% { transform: rotate(0) scale(1); } 90% { transform: rotate(36deg) scale(1.15); } }
 .tools { display: flex; gap: 6px; }
+/* 좁은 폰: 계기판 간격을 줄여 버튼까지 한 줄에 */
+@media (max-width: 380px) { .hud { gap: 4px; padding: 6px 5px; font-size: 12px; } .mute { padding: 4px 3px 4px 5px; } .lv { font-size: 14px; } }
+/* 처음부터 버튼: 빨간 바탕에 흰 화살표 */
+.restart { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; background: #D7263D; padding: 4px; box-shadow: 0 2px 0 rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; }
+.restart svg { width: 100%; height: 100%; }
+.restart:active { transform: scale(.92); }
 .tool { background: rgba(255, 255, 255, 0.12); border: 0; color: var(--hud-ink); border-radius: 12px; width: 30px; height: 24px; font-size: 13px; padding: 0; flex: none; }
-.hud { display: flex; align-items: center; gap: 7px; background: var(--bg-deep); border: 1px solid var(--hud-line); border-radius: 12px; padding: 6px 7px; font-size: 13px; position: relative; }
+.hud { display: flex; align-items: center; gap: 6px; background: var(--bg-deep); border: 1px solid var(--hud-line); border-radius: 12px; padding: 6px 7px; font-size: 13px; position: relative; }
 .lv { font-family: var(--font-display); font-size: 16px; color: var(--gold); white-space: nowrap; }
 .hud .stat { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
 .hud .stat b { font-size: 13px; }
-.goal { flex: 1; min-width: 20px; height: 8px; background: rgba(0, 0, 0, .3); border-radius: 6px; overflow: hidden; }
+.goal { flex: 1; min-width: 0; height: 8px; background: rgba(0, 0, 0, .3); border-radius: 6px; overflow: hidden; }
 .goal i { display: block; height: 100%; width: 0; background: var(--gold); }
 /* RU$H TIME 배지: 주문서와 보드 사이 노란 줄무늬 위 가운데 */
 .boardwrap { position: relative; }
@@ -412,7 +418,8 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
     <span class="stat" aria-label="만족시킨 손님">😊<b class="num" id="prog">0/20</b></span>
     <span class="stat num" aria-label="번 돈">💰<b id="score">0</b></span>
     <span class="stat num" aria-label="받은 별">⭐<b id="stars">0</b></span>
-    <button class="tool" id="btnPause" type="button" aria-label="일시정지와 도감">⏸</button>
+    <button class="tool" id="btnPause" type="button" aria-label="일시정지">⏸</button>
+    <button class="restart" id="btnRestart" type="button" aria-label="처음부터 다시"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12a7 7 0 1 1-2.05-4.95" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M20 3.5v5.2h-5.2" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <span class="chain" id="chain"></span><span class="left" id="left"></span>
   </div>
 
@@ -2115,7 +2122,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-133244';
+const BUILD_V = '1003-133417';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2216,7 +2223,7 @@ function summaryHtml() {
   return `
     <h2>⏸ ${S.lv}단계</h2>
     <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
-    <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 처음부터</button></div>
+    <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button></div>
     <small class="ver">버전 ${BUILD_V}</small>`;
 }
 $('sheet').addEventListener('click', e => {
@@ -2227,6 +2234,10 @@ $('sheet').addEventListener('click', e => {
     restartGame();
   }
   else if (act === 'begin') startLevel();
+});
+$('btnRestart').addEventListener('click', () => {
+  const was = S.paused; S.paused = true;
+  if (confirm('처음부터 다시 할까요? 1단계, 0점부터 시작해요.')) restartGame(); else S.paused = was;
 });
 $('btnPause').addEventListener('click', () => { if ($('overlay').hidden && S.running) openSheet(summaryHtml(), true); });
 const syncSound = () => { $('btnSound').innerHTML = `sound <b class="${S.sound ? 'on' : 'off'}">${S.sound ? 'O' : 'X'}</b>`; $('btnSound').setAttribute('aria-pressed', S.sound ? 'true' : 'false'); };
