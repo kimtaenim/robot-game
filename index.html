@@ -1173,7 +1173,7 @@ function orderBody(c, big) {
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
     ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c))}</div>`}
-    <div class="rb"><span class="ric">${r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
+    <div class="rb"><span class="ric">${o.robotIcon || r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
     <div class="needs">${needs}</div>${big ? orderNote(c) : ''}`;
 }
 // 새 주문서에 붙는 조건 설명 (발제 자료 내용)
@@ -1226,7 +1226,7 @@ async function leaveShow(c, i, happy) {
   const [x0, y0] = centerOf(src);
   const el = document.createElement('div');
   el.className = 'leave' + (happy ? ' happy' : ' angry');
-  const rob = `<div class="lrobot">${ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
+  const rob = `<div class="lrobot">${c.order.robotIcon || ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
     ? `<div class="lrays"></div>${rob}<div class="lname">${robotLabel(c.order)}</div><div class="lstamp">납품 완료!</div><div class="lstars">${[0, 1, 2].map(k => `<i class="${k < c.stars ? 'on' : 'off'}" style="animation-delay:${0.35 + k * 0.22}s">${k < c.stars ? '⭐' : '☆'}</i>`).join('')}</div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]} <b>+${c.gain || 0}</b></div>`
     : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢').repeat(3)}</div><div class="lword">계약 취소</div>`;
@@ -1529,10 +1529,16 @@ function applyArt(key, imA) {
     ORDERS.forEach(o => { if (IND_KEY[o.ind] === name) { o.emoji = o.emoji || o.icon; o.icon = artHTML(key); } });
   }
 }
+// 손끝 도구가 다른 협동로봇: 주문마다 따로 그린 그림 (용접기, 튀김바구니)
+const ORDER_ROBOT = { 'robot-cobot-weld': ['mipo', 'ship2'], 'robot-cobot-cook': ['busanEdu'] };
 async function loadArt() {
   const anim = [...Object.keys(TILES).map(k => 'tile-' + k), ...Object.keys(ROBOTS).filter(r => r !== 'hum').map(r => 'robot-' + r), ...Object.values(IND_KEY).map(k => 'ind-' + k)];
   let any = false;
   await Promise.all([
+    ...Object.entries(ORDER_ROBOT).map(async ([key, ids]) => {
+      const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
+      if (a && b) { ids.forEach(id => { if (O[id]) O[id].robotIcon = artHTML(key); }); any = true; }
+    }),
     ...anim.map(async key => {
       const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
       if (a && b) { applyArt(key, a); any = true; }
