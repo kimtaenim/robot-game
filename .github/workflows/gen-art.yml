@@ -57,6 +57,19 @@ jobs:
           QUALITY: ${{ steps.req.outputs.quality }}
           ONLY: ${{ steps.req.outputs.only }}
         run: node scripts/gen-art.mjs "$ONLY"
+      - name: Shrink to 256px
+        if: always()
+        run: |
+          pip install -q pillow
+          python3 - <<'PY'
+          import glob
+          from PIL import Image
+          for f in glob.glob('assets/*.png'):
+              im = Image.open(f)
+              if im.width > 256:
+                  im.resize((256, 256), Image.LANCZOS).save(f, optimize=True)
+                  print('shrunk', f)
+          PY
       - name: Commit images
         if: always()
         run: |

@@ -58,7 +58,7 @@ const ITEMS = [
   { name: 'tile-korea', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A small factory building with a South Korean flag (taegukgi) on top, meaning made in Korea.` },
 
   // 완성 로봇 7
-  { name: 'robot-amr', kind: 'anim', prompt: `${ROBOT} An AMR: a low flat four-wheeled autonomous mobile robot carrying a small box on top, with a lidar dome.` },
+  { name: 'robot-amr', kind: 'anim', prompt: `${ROBOT} An AMR: a low flat four-wheeled autonomous mobile robot carrying a small box on top. Nothing on top except the box: no lidar dome, no sensor, no antenna.` },
   { name: 'robot-agv', kind: 'anim', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
   { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base.` },
   { name: 'robot-mm', kind: 'anim', prompt: `${ROBOT} A mobile manipulator: a flat wheeled AMR base with a collaborative robot arm and gripper mounted on top.` },
@@ -122,7 +122,9 @@ const REFS = [join(OUT, 'style', 'ref-drone.png'), join(OUT, 'style', 'ref-monst
 const FRAME_B = [
   'Second frame of a 2-frame idle "bobbing" loop animation.',
   'Redraw the EXACT same subject from the input image: same design, same colors, same outline thickness, same size and same position in the canvas.',
-  'Only change the pose slightly: tilt the whole subject about 8 degrees to the right and squash it a little vertically, as if it is bouncing.',
+  'Change the pose clearly so the two frames read as a lively bobbing dance: tilt the whole subject about 15 degrees to the right,',
+  'squash it about 12% vertically and stretch it slightly wider (squash-and-stretch), as if it just landed from a little hop.',
+  'If it has a face, make it look a bit more excited.',
   'Fully transparent background. No text.',
 ].join(' ');
 
