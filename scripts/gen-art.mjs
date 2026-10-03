@@ -22,6 +22,7 @@ const OUT = join(ROOT, 'assets');
 const KEY = process.env.OPENAI_API_KEY;
 const QUALITY = process.env.QUALITY || 'medium';
 const FORCE = !!process.env.FORCE;
+const FORCE_B = !!process.env.FORCE_B;  // b프레임만 다시 그림
 const ONLY = process.argv[2] || '';
 const CONCURRENCY = 3;
 if (!KEY) { console.error('OPENAI_API_KEY가 없어요.'); process.exit(1); }
@@ -51,31 +52,31 @@ const CLIENT = 'A funny chibi cartoon client character, full body, very big head
 // kind: 'anim' = a·b 2프레임, 'still' = 한 장
 const ITEMS = [
   // 부품 타일 10
-  { name: 'tile-wheel', kind: 'anim', prompt: `${PART} A small chunky robot drive wheel like on a toy robot or an AMR: a big round light gray hub with a few round bolts and a thin smooth dark gray rim. NOT a car tire: no tread pattern, no rim spokes, no car wheel look.` },
-  { name: 'tile-auto', kind: 'anim', prompt: `${PART} An autonomous driving sensor module: a small lidar puck on a base with a glowing blue scan ring.` },
-  { name: 'tile-floor', kind: 'anim', prompt: `${PART.replace('machine part', 'floor work')} Floor installation for an AGV path: a roll of yellow-and-black striped magnetic guide tape unrolling across a small square of gray factory floor, laying down a straight guide line that ends in a little arrow, with a small paint roller beside it. It should clearly read as 'laying a guide line on the floor'.` },
-  { name: 'tile-arm', kind: 'anim', prompt: `${PART} A bare collaborative robot arm (cobot) with a round base, two links and three joints, ending in an empty tool flange. No gripper, no hand.` },
-  { name: 'tile-tool', kind: 'anim', prompt: `${PART} A two-finger robot gripper (end effector) with a wrist mount on top, fingers open, pointing down.` },
-  { name: 'tile-legs', kind: 'anim', prompt: `${PART} A single robot leg with a thigh, knee joint and a rounded foot, like a quadruped robot leg.` },
-  { name: 'tile-hum', kind: 'anim', prompt: `A cute small humanoid robot standing, full body, white and light gray with a dark visor face showing two glowing eyes. Special golden glow outline.` },
+  { name: 'tile-wheel', kind: 'anim', move: 'the wheel is rotated a quarter turn (the bolts are in a different place), as if rolling', prompt: `${PART} A small chunky robot drive wheel like on a toy robot or an AMR: a big round light gray hub with a few round bolts and a thin smooth dark gray rim. NOT a car tire: no tread pattern, no rim spokes, no car wheel look.` },
+  { name: 'tile-auto', kind: 'anim', move: 'the blue scan ring glows brighter and the lidar top is turned a little, as if scanning', prompt: `${PART} An autonomous driving sensor module: a small lidar puck on a base with a glowing blue scan ring.` },
+  { name: 'tile-floor', kind: 'anim', move: 'the tape roll has unrolled a bit further and the guide line is a little longer', prompt: `${PART.replace('machine part', 'floor work')} Floor installation for an AGV path: a roll of yellow-and-black striped magnetic guide tape unrolling across a small square of gray factory floor, laying down a straight guide line that ends in a little arrow, with a small paint roller beside it. It should clearly read as 'laying a guide line on the floor'.` },
+  { name: 'tile-arm', kind: 'anim', move: 'the arm is bent at the elbow joint so the end flange points DOWN, as if nodding down (the base stays still)', prompt: `${PART} A bare collaborative robot arm (cobot) with a round base, two links and three joints, ending in an empty tool flange. No gripper, no hand.` },
+  { name: 'tile-tool', kind: 'anim', move: 'the two gripper fingers are CLOSED together, as if grabbing', prompt: `${PART} A two-finger robot gripper (end effector) with a wrist mount on top, fingers open, pointing down.` },
+  { name: 'tile-legs', kind: 'anim', move: 'the knee is bent more and the foot is lifted a little, as if taking a step', prompt: `${PART} A single robot leg with a thigh, knee joint and a rounded foot, like a quadruped robot leg.` },
+  { name: 'tile-hum', kind: 'anim', move: 'the humanoid face shows a different expression (eyes closed in a happy smile) and one hand is waving', prompt: `A cute small humanoid robot standing, full body, white and light gray with a dark visor face showing two glowing eyes. Special golden glow outline.` },
   // 특별 타일 (4단계 이후 가끔 휴머노이드 대신): 머리만, 귀여운 카툰
-  { name: 'tile-term', kind: 'anim', prompt: `A cute chibi cartoon HEAD ONLY of a chrome robot skeleton cyborg: a shiny silver metal skull-like robot face with two glowing red eyes, metal teeth grin, a few cables at the neck, like a sci-fi killer robot from 1980s movies but made cute and funny. Head only, no body. Special golden glow outline.` },
-  { name: 'tile-gundam', kind: 'anim', prompt: `A cute chibi cartoon HEAD ONLY of a classic Japanese anime mecha giant robot: white helmet-shaped head with a big yellow V-shaped antenna crest on the forehead, red chin piece, blue face vents, two green-yellow eyes. Head only, no body. Special golden glow outline.` },
-  { name: 'tile-eva', kind: 'anim', prompt: `A cute chibi cartoon HEAD ONLY of a purple biomechanical anime giant robot: dark purple armored head with a single long horn on the forehead, bright lime-green accents, glowing yellow-green eyes, open jaw with teeth, slightly scary but cute. Head only, no body. Special golden glow outline.` },
-  { name: 'tile-union', kind: 'anim', prompt: `A funny chibi cartoon labor union activist, full body, very big head and small body, same cute style as the references: a Korean worker in work clothes wearing a red protest headband (meoridtti) tied around the forehead, one fist raised, holding a signed agreement paper with a red seal in the other hand, determined but friendly expression.` },
-  { name: 'tile-made', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A cardboard shipping box with a small United States flag sticker and an export arrow, meaning overseas export to the USA.` },
-  { name: 'tile-korea', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A small factory building with a South Korean flag (taegukgi) waving on a pole on top, meaning made in Korea. The flag must have an OPAQUE solid pure white background filled in white (not transparent, not see-through), with a thick black outline around the flag, the red-blue taegeuk circle in the middle and the four black trigrams.` },
+  { name: 'tile-term', kind: 'anim', move: 'one red eye winks (closed) and the jaw is open a little, as if laughing', prompt: `A cute chibi cartoon HEAD ONLY of a chrome robot skeleton cyborg: a shiny silver metal skull-like robot face with two glowing red eyes, metal teeth grin, a few cables at the neck, like a sci-fi killer robot from 1980s movies but made cute and funny. Head only, no body. Special golden glow outline.` },
+  { name: 'tile-gundam', kind: 'anim', move: 'the eyes glow brighter green and the face vents puff out a little steam', prompt: `A cute chibi cartoon HEAD ONLY of a classic Japanese anime mecha giant robot: white helmet-shaped head with a big yellow V-shaped antenna crest on the forehead, red chin piece, blue face vents, two green-yellow eyes. Head only, no body. Special golden glow outline.` },
+  { name: 'tile-eva', kind: 'anim', move: 'the jaw is wide open as if roaring, eyes glowing brighter', prompt: `A cute chibi cartoon HEAD ONLY of a purple biomechanical anime giant robot: dark purple armored head with a single long horn on the forehead, bright lime-green accents, glowing yellow-green eyes, open jaw with teeth, slightly scary but cute. Head only, no body. Special golden glow outline.` },
+  { name: 'tile-union', kind: 'anim', move: 'the raised fist is pumped higher and the mouth is open shouting', prompt: `A funny chibi cartoon labor union activist, full body, very big head and small body, same cute style as the references: a Korean worker in work clothes wearing a red protest headband (meoridtti) tied around the forehead, one fist raised, holding a signed agreement paper with a red seal in the other hand, determined but friendly expression.` },
+  { name: 'tile-made', kind: 'anim', move: 'the box flaps are open a little and the export arrow points further', prompt: `${PART.replace('machine part', 'symbol')} A cardboard shipping box with a small United States flag sticker and an export arrow, meaning overseas export to the USA.` },
+  { name: 'tile-korea', kind: 'anim', move: 'the flag waves the other way in the wind', prompt: `${PART.replace('machine part', 'symbol')} A small factory building with a South Korean flag (taegukgi) waving on a pole on top, meaning made in Korea. The flag must have an OPAQUE solid pure white background filled in white (not transparent, not see-through), with a thick black outline around the flag, the red-blue taegeuk circle in the middle and the four black trigrams.` },
 
   // 완성 로봇 7
-  { name: 'robot-amr', kind: 'anim', prompt: `${ROBOT} An AMR: a low flat four-wheeled autonomous mobile robot carrying a small box on top. Nothing on top except the box: no lidar dome, no sensor, no antenna.` },
-  { name: 'robot-agv', kind: 'anim', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
-  { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base. Plain transparent background around it: absolutely no white glow or light burst behind the arm.` },
-  { name: 'robot-cobot-weld', kind: 'anim', prompt: `${ROBOT} A welding collaborative robot arm on a round base, the face on the base. Instead of a gripper, the end of the arm holds a welding torch (a bent welding gun nozzle) with a small bright welding spark at the tip. No glow or light burst behind it.` },
-  { name: 'robot-cobot-cook', kind: 'anim', prompt: `${ROBOTS_COOK}` },
-  { name: 'robot-mm', kind: 'anim', prompt: `${ROBOT} A mobile manipulator: a low flat box-shaped wheeled AMR base with a collaborative robot arm and gripper mounted directly on top of the base. NO robot head, no helmet, no humanoid torso: the cute face is drawn on the front side of the flat base box.` },
-  { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot: one rounded box-shaped body on four mechanical legs. Legs are white rounded segments with dark gray joints and bright ORANGE round feet (like a cute toy robot). NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand under the body, not splayed out like a spider. Every knee bends BACKWARD: the knee joint sticks out toward the rear (tail side) of the robot, the upper leg goes down and back from the body to the knee, and the lower leg goes down and forward from the knee to a small round foot. No knee may point toward the front (face side).` },
-  { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot with a robot arm and gripper mounted on top of its body, the arm reaching forward. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand under the body, not splayed out like a spider. Every knee bends BACKWARD: the knee joint sticks out toward the rear (tail side) of the robot, the upper leg goes down and back from the body to the knee, and the lower leg goes down and forward from the knee to a small round foot. No knee may point toward the front (face side).` },
-  { name: 'robot-centaur', kind: 'anim', prompt: `${ROBOT} A centaur robot: a four-legged robot body with a humanoid robot upper torso, two arms and head on top.` },
+  { name: 'robot-amr', kind: 'anim', move: 'the wheels are turned and the box on top hops up a little, as if driving', prompt: `${ROBOT} An AMR: a low flat four-wheeled autonomous mobile robot carrying a small box on top. Nothing on top except the box: no lidar dome, no sensor, no antenna.` },
+  { name: 'robot-agv', kind: 'anim', move: 'the wheels are turned and the pallet on top hops up a little, as if driving along the line', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
+  { name: 'robot-cobot', kind: 'anim', move: 'the arm is bent so the gripper points DOWN and the gripper fingers are closed, as if picking something (the base stays still)', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base. Plain transparent background around it: absolutely no white glow or light burst behind the arm.` },
+  { name: 'robot-cobot-weld', kind: 'anim', ref: 'robot-cobot-a', move: 'the arm is bent so the welding torch points DOWN with a bigger spark, as if welding (the base stays still)', prompt: `${ROBOT} A welding collaborative robot arm on a round base, the face on the base. Instead of a gripper, the end of the arm holds a welding torch (a bent welding gun nozzle) with a small bright welding spark at the tip. No glow or light burst behind it.` },
+  { name: 'robot-cobot-cook', kind: 'anim', ref: 'robot-cobot-a', move: 'the arm is bent so the frying basket is lowered DOWN, as if dipping it into oil (the base stays still)', prompt: `${ROBOTS_COOK}` },
+  { name: 'robot-mm', kind: 'anim', move: 'the arm is bent so the gripper reaches DOWN and the wheels are turned, as if picking while moving', prompt: `${ROBOT} A mobile manipulator: a low flat box-shaped wheeled AMR base with a collaborative robot arm and gripper mounted directly on top of the base. NO robot head, no helmet, no humanoid torso: the cute face is drawn on the front side of the flat base box.` },
+  { name: 'robot-quad', kind: 'anim', move: 'one front leg and the opposite back leg are lifted, as if marching in place (the body stays level)', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot: one rounded box-shaped body on four mechanical legs. Legs are white rounded segments with dark gray joints and bright ORANGE round feet (like a cute toy robot). NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand under the body, not splayed out like a spider. Every knee bends BACKWARD: the knee joint sticks out toward the rear (tail side) of the robot, the upper leg goes down and back from the body to the knee, and the lower leg goes down and forward from the knee to a small round foot. No knee may point toward the front (face side).` },
+  { name: 'robot-qarm', kind: 'anim', move: 'one front leg and the opposite back leg are lifted and the arm gripper is closed, as if marching in place', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot with a robot arm and gripper mounted on top of its body, the arm reaching forward. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box. Legs like Boston Dynamics Spot: all four legs stand under the body, not splayed out like a spider. Every knee bends BACKWARD: the knee joint sticks out toward the rear (tail side) of the robot, the upper leg goes down and back from the body to the knee, and the lower leg goes down and forward from the knee to a small round foot. No knee may point toward the front (face side).` },
+  { name: 'robot-centaur', kind: 'anim', move: 'one front leg is lifted and the humanoid upper body waves one arm', prompt: `${ROBOT} A centaur robot: a four-legged robot body with a humanoid robot upper torso, two arms and head on top.` },
 
   // 업종 아이콘 16 (게임의 업종 이름과 같은 순서)
   { name: 'ind-port', kind: 'anim', prompt: `${PLACE} A seaport: a stack of shipping containers with a small harbor crane. (항만)` },
@@ -174,12 +175,12 @@ function addCost(u) {
 }
 
 const REFS = [join(OUT, 'style', 'ref-drone.png'), join(OUT, 'style', 'ref-monster.png')];
-const FRAME_B = [
-  'Second frame of a 2-frame idle "bobbing" loop animation.',
-  'Redraw the EXACT same subject from the input image: same design, same colors, same outline thickness, same size and same position in the canvas.',
-  'Change the pose clearly so the two frames read as a lively bobbing dance: tilt the whole subject about 15 degrees to the right,',
-  'squash it about 12% vertically and stretch it slightly wider (squash-and-stretch), as if it just landed from a little hop.',
-  'If it has a face, make it look a bit more excited.',
+// b프레임: 찌그러뜨리거나 기울이지 않고, 몸의 일부만 움직인 모습 (팔이 위아래로, 얼굴이 바뀌고, 다리가 제자리걸음)
+const frameB = move => [
+  'Second frame of a 2-frame idle loop animation.',
+  'Redraw the EXACT same subject from the input image: same design, same colors, same outline thickness, the SAME size, the SAME proportions and the SAME position in the canvas.',
+  'Do NOT squash, stretch, tilt, rotate or scale the whole subject.',
+  `Only change this: ${move || 'one small part moves slightly (a light blinks or a joint moves a little)'}.`,
   'Fully transparent background. No text.',
 ].join(' ');
 
@@ -189,12 +190,12 @@ async function make(item) {
   const refs = item.ref && (await exists(join(OUT, `${item.ref}.png`))) ? [join(OUT, `${item.ref}.png`), REFS[0]] : REFS;
   const b = join(OUT, `${item.name}-b.png`);
   if (FORCE || !(await exists(a))) {
-    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : 'The first reference image shows this exact character: keep the same person, face, hair, outfit, accessories and colors; only change the pose and expression. Do not add any facial feature that the first image does not have (for example, if it has no nose, do not draw a nose). Use the other image only for the art style.';
+    const how = refs === REFS ? 'Use the reference images only for the art style, not for the subject.' : (item.kind === 'anim' ? 'The first reference image shows the base robot: keep exactly the same robot body, base, colors (white and light gray with orange lights), face and art style; only replace the tool at the end of the arm as described. ' : 'The first reference image shows this exact character: keep the same person, face, hair, outfit, accessories and colors; only change the pose and expression. ') + ' Do not add any facial feature that the first image does not have (for example, if it has no nose, do not draw a nose). Use the other image only for the art style.';
     await writeFile(a, await edit(refs, `${STYLE}\n\nDraw: ${item.prompt}\n\n${how}`));
     console.log('✓', a.replace(ROOT + '/', ''));
   }
-  if (item.kind === 'anim' && (FORCE || !(await exists(b)))) {
-    await writeFile(b, await edit([a], FRAME_B));
+  if (item.kind === 'anim' && item.move !== undefined && (FORCE || FORCE_B || !(await exists(b)))) {
+    await writeFile(b, await edit([a], frameB(item.move)));
     console.log('✓', b.replace(ROOT + '/', ''));
   }
 }
