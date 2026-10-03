@@ -477,7 +477,7 @@ class Board {
   }
 }
 
-// ═════════ 여기부터 로봇 SI 납품소 (위 Board는 kimtaenim/bosses-of-our-world의 js/board.js 그대로) ═════════
+// ═════════ 여기부터 ROBOT RU$H (위 Board는 kimtaenim/bosses-of-our-world의 js/board.js 그대로) ═════════
 
 // 이모지에 없는 부품 그림: 회색 금속 SVG (로봇 집게·협동로봇 공기계)
 const MET = 'fill="#C9CFD5" stroke="#2F3A44" stroke-width="2.6" stroke-linejoin="round"';
@@ -593,11 +593,13 @@ const S = {
   board: null, sel: null, idle: 0, chainMax: 0, dex: new Set(), sound: true, last: 0, runServed: [], clock: 0,
 };
 try {
-  JSON.parse(localStorage.getItem('robotsi.m3.dex') || '[]').forEach(id => O[id] && S.dex.add(id));
-  S.sound = localStorage.getItem('robotsi.sound') !== '0';
-  S.best = +localStorage.getItem('robotsi.m3.best') || 0;
+  // 저장 이름은 robotrush.* (예전 robotsi.* 기록도 이어서 읽음)
+  const ld = k => localStorage.getItem('robotrush.' + k) ?? localStorage.getItem('robotsi.' + (k === 'sound' ? k : 'm3.' + k));
+  JSON.parse(ld('dex') || '[]').forEach(id => O[id] && S.dex.add(id));
+  S.sound = ld('sound') !== '0';
+  S.best = +ld('best') || 0;
 } catch (e) {}
-const save = () => { try { localStorage.setItem('robotsi.m3.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotsi.m3.best', String(S.best)); } catch (e) {} };
+const save = () => { try { localStorage.setItem('robotrush.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotrush.best', String(S.best)); } catch (e) {} };
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
@@ -1515,7 +1517,7 @@ $('btnPause').addEventListener('click', () => { if ($('overlay').hidden && S.run
 const syncSound = () => { $('btnSound').innerHTML = `sound <b class="${S.sound ? 'on' : 'off'}">${S.sound ? 'O' : 'X'}</b>`; $('btnSound').setAttribute('aria-pressed', S.sound ? 'true' : 'false'); };
 $('btnSound').addEventListener('click', () => {
   S.sound = !S.sound; syncSound();
-  try { localStorage.setItem('robotsi.sound', S.sound ? '1' : '0'); } catch (e) {}
+  try { localStorage.setItem('robotrush.sound', S.sound ? '1' : '0'); } catch (e) {}
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S.running && !S.paused) $('btnPause').click(); });
 
