@@ -100,6 +100,18 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .hud .stat b { font-size: 13px; }
 .goal { flex: 1; min-width: 20px; height: 8px; background: rgba(0, 0, 0, .3); border-radius: 6px; overflow: hidden; }
 .goal i { display: block; height: 100%; width: 0; background: var(--gold); }
+/* RU$H TIME 배지: 주문서와 보드 사이 노란 줄무늬 위 가운데 */
+.boardwrap { position: relative; }
+.rushbadge { position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); z-index: 6; pointer-events: none; font-family: var(--font-display); font-size: 14px; color: #FFB347; text-shadow: 0 2px 0 rgba(0,0,0,.45); white-space: nowrap; }
+.rushbadge:not(:empty):not(.on) { background: var(--frame); border: 2px solid #FFB347; border-radius: 999px; padding: 0 10px; }
+.rushbadge.on { display: flex; align-items: center; gap: 6px; color: #1A1400; background: linear-gradient(180deg, #FFE27A, var(--gold)); border: 2px solid #5a3104; border-radius: 999px; padding: 1px 10px 1px 8px; text-shadow: none; animation: rushPulse .5s ease-in-out infinite; }
+.rushbadge.on b { font-weight: 400; font-size: 15px; }
+.rushbadge i { display: block; width: 54px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.25); overflow: hidden; }
+.rushbadge u { display: block; height: 100%; background: #C0392B; transform-origin: left; }
+@keyframes rushPulse { 50% { transform: translate(-50%, -50%) scale(1.08); } }
+/* RU$H TIME 동안 보드 테두리가 금색으로 번쩍 */
+body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 6px rgba(255, 200, 60, .55); animation: rushGlow .6s ease-in-out infinite; }
+@keyframes rushGlow { 50% { box-shadow: 0 0 0 6px #FFE27A, 0 0 0 7px #fff6, 0 0 40px 10px rgba(255, 200, 60, .75); } }
 .hud .chain { position: absolute; left: 50%; top: 100%; transform: translate(-50%, 4px); font-family: var(--font-display); color: var(--gold); font-size: 16px; z-index: 4; text-shadow: 0 2px 0 rgba(0,0,0,.4); pointer-events: none; }
 .hud .left { display: none; }
 
@@ -252,7 +264,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .ocard .co { font-size: 10.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ocard.enter, .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .title .usd, .title .star, .puff { animation: none; }
+  .ocard.enter, .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
   .flyer { transition: none; }
 }
 </style>
@@ -275,7 +287,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   </div>
 
   <section class="rail" id="rail" aria-label="주문서"></section>
-  <div class="boardwrap"><div class="board" id="board" aria-label="부품 보드"><div class="clip" id="clip"></div><canvas class="fxc" id="fxc"></canvas></div></div>
+  <div class="boardwrap"><span class="rushbadge" id="rush"></span><div class="board" id="board" aria-label="부품 보드"><div class="clip" id="clip"></div><canvas class="fxc" id="fxc"></canvas></div></div>
 </div>
 
 <div class="overlay" id="overlay" hidden><div class="sheet" id="sheet"></div></div>
@@ -631,8 +643,11 @@ function levelDef(lv) {
   const want = n >= 5 ? 3 : 2;
   return tryPick(want, 4, true) || tryPick(2, 3, true) || tryPick(1, 1, false) || { lv, tiles: ['wheel', 'auto', 'arm', 'tool'], robots: ['amr', 'cobot', 'mm', 'hum'], pool, fresh };
 }
-// 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음): 1단계 20명, 단계마다 +2명
-const levelTarget = lv => 20 + (lv - 1) * 2;
+// 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음)
+// 한 판을 짧게(2~3분): 1단계 10명, 단계마다 +1명, 최대 20명
+const levelTarget = lv => Math.min(20, 10 + (lv - 1));
+// RU$H TIME: 연속 납품(다음 납품까지 12초 이내) 3번이면 10초 동안 점수 2배·기다림 바 절반 속도, 납품할 때마다 3초 연장
+const RUSH_GAP = 12, RUSH_NEED = 3, RUSH_SEC = 10, RUSH_ADD = 3;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
 // 연출 배율 (Bosses of Our World의 CONFIG.JUICE와 같은 뜻, 그쪽 기본값 2.0). 움직임 줄이기 설정이면 0
 const JUICE = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2.0;
@@ -818,6 +833,14 @@ const SFX = {
     for (let i = 0; i < 6; i++) osc('square', 500 + Math.random() * 900, t + 0.45 + i * 0.055, 0.05, 0.035);
     osc('sawtooth', 300, t + 0.79, 0.25, 0.03, 120);
   },
+  // RU$H TIME 시작: 빠르게 치솟는 금관 + 캐시 소리
+  rush: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    [392, 494, 587, 698, 784, 988].forEach((f, i) => brass(f, t + i * 0.06, 0.12, 0.06));
+    [784, 988, 1175, 1568].forEach(f => brass(f, t + 0.4, 0.6, 0.04));
+    for (let k = 0; k < 10; k++) osc('sine', 2600 + Math.random() * 2400, t + 0.45 + k * 0.04, 0.12, 0.035);
+  },
   // 단계 클리어: 긴 빵빠레
   clear: () => {
     if (!audio()) return;
@@ -843,7 +866,7 @@ function ambient(dt, on) {
   if ((hum.press -= dt) <= 0) { hum.press = 2.4; osc('sine', 75, t, 0.28, 0.06, 38); nz(t, 0.12, 0.03, 'lowpass', 400); nz(t + 0.32, 0.05, 0.015, 'bandpass', 1800, 4); }
   if ((hum.tick -= dt) <= 0) {
     const urgent = S.slots.some(c => c && c.state === 'wait' && c.t / c.max < 0.15);
-    hum.tick = urgent ? 0.5 : 1;
+    hum.tick = urgent || (typeof rushOn === 'function' && rushOn()) ? 0.5 : 1;
     hum.tock = !hum.tock;
     nz(t, 0.025, 0.06, 'highpass', 5000);
     osc('sine', hum.tock ? 1250 : 1800, t, 0.04, urgent ? 0.06 : 0.04);
@@ -892,7 +915,7 @@ function clientTick(dt) {
     if (!c) return;
     if (c.state === 'wait') {
       if (c.intro || c.noTimer) return;  // 주문서를 읽는 동안·휴머노이드 손님은 기다림 바가 흐르지 않음
-      if ((c.t -= dt) > 0) return;
+      if ((c.t -= dt * (rushOn() ? 0.5 : 1)) > 0) return;  // RU$H TIME에는 기다림 바가 절반 속도
       // 너무 늦음: 계약 취소. 우는 얼굴이 뜨고 피식 사라짐
       c.state = 'gone'; c.until = GONE_SEC;
       vibrate([40, 40, 40]);
@@ -941,9 +964,10 @@ function complete(i) {
   const f = c.noTimer ? 1 : c.t / c.max;
   c.stars = f >= 0.6 ? 3 : f >= 0.3 ? 2 : 1;
   S.stars += c.stars;
-  const gain = 80 * c.needs.length + tip + (c.order.want === 'hum' ? 400 : 0);
+  rushDeliver();
+  const gain = (80 * c.needs.length + tip + (c.order.want === 'hum' ? 400 : 0)) * rushMul();
   S.score += gain; S.best = Math.max(S.best, S.score);
-  floatText(el, `+${gain}`, 'big');
+  floatText(el, `+${gain}${rushOn() ? ' ×2' : ''}`, 'big');
   vibrate([30, 50, 30]);
   const lit = [...S.dex].some(id => secKey(O[id]) === secKey(c.order));
   S.dex.add(c.order.id); S.runServed.push(c.order.id); save();
@@ -955,6 +979,37 @@ function complete(i) {
   onStage(() => leaveShow(c, i, true)).then(() => { c.showing = false; });
 }
 const centerX = () => innerWidth / 2;
+
+// ───────── RU$H TIME: 빨리 연속 납품하면 점수 2배 ─────────
+const rushOn = () => S.clock < S.rushUntil;
+const rushMul = () => rushOn() ? 2 : 1;
+function rushDeliver() {
+  if (rushOn()) { S.rushUntil += RUSH_ADD; S.streak++; renderRush(); return; }
+  S.streak = S.clock - S.lastDone <= RUSH_GAP ? S.streak + 1 : 1;
+  S.lastDone = S.clock;
+  if (S.streak >= RUSH_NEED) {
+    S.rushUntil = S.clock + RUSH_SEC;
+    banner('RU$H TIME! ×2');
+    SFX.rush();
+    vibrate([20, 30, 20, 30, 60]);
+  }
+  renderRush();
+}
+// 계기판 아래 배지: 연속 납품 수(🔥2) → RU$H TIME 남은 시간 바
+function renderRush() {
+  const el = $('rush'), on = rushOn();
+  const streakOn = !on && S.streak >= 1 && S.clock - S.lastDone <= RUSH_GAP && S.running;
+  if (!on && !streakOn) S.streak = 0;
+  const key = on ? 'on' : streakOn ? 's' + S.streak : '';
+  // 매 프레임 불리므로 내용이 바뀔 때만 다시 그림
+  if (el.dataset.k !== key) {
+    el.dataset.k = key;
+    document.body.classList.toggle('rush', on);
+    el.className = 'rushbadge' + (on ? ' on' : '');
+    el.innerHTML = on ? `<b>RU$H ×2</b><i><u></u></i>` : streakOn ? `🔥 연속 ${S.streak}/${RUSH_NEED}` : '';
+  }
+  if (on) el.querySelector('u').style.transform = `scaleX(${Math.min(1, Math.max(0, S.rushUntil - S.clock) / RUSH_SEC)})`;
+}
 // 부품이 붙을 때 그 주문서가 살짝 튐
 function cheer(c) {
   const i = S.slots.indexOf(c);
@@ -1399,7 +1454,7 @@ async function resolve() {
       const midEl = tileEls.get(S.board.cells[mid]);
       const [x0, y0] = midEl ? centerOf(midEl) : [innerWidth / 2, innerHeight / 2];
       for (let k = 0; k < gain; k++) showcase(g.type, x0, y0, (order++) * 140);
-      const pts = 10 * g.cells.length * chain;
+      const pts = 10 * g.cells.length * chain * rushMul();
       S.score += pts;
       let gx = 0, gy = 0;
       g.cells.forEach(i => { const [r, c] = S.board.rc(i); gx += cx(c); gy += cy(r); });
@@ -1520,9 +1575,12 @@ function loop(t) {
   S.last = t;
   if (S.running && !S.paused) {
     S.clock += dt;
+    // 주문서를 읽는 동안은 RU$H 시간과 연속 납품 시간이 흐르지 않음
+    if (S.reading) { S.rushUntil += dt; S.lastDone += dt; }
     clientTick(dt);
     if (S.running) spawnTick(dt);
     updateBars();
+    renderRush();
     if (!S.busy && (S.idle += dt) > 6 && !hintCells.length) showHint();
   }
   ambient(dt, S.running && !S.paused);
@@ -1535,7 +1593,7 @@ function loop(t) {
 function startLevel() {
   S.def = levelDef(S.lv);
   stage.q.length = 0;
-  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0 });
+  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0, streak: 0, lastDone: -99, rushUntil: 0 });
   $('overlay').hidden = true;
   clearBoardEls();
   S.board = new Board(COLS, ROWS, S.def.tiles);
