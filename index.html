@@ -125,7 +125,7 @@ img.art { object-fit: contain; }
 @keyframes artBob { 0%, 100% { rotate: -8deg; translate: 0 0; scale: 1 1; } 25% { rotate: 0deg; translate: 0 -10%; scale: .96 1.06; } 50% { rotate: 8deg; translate: 0 0; scale: 1.08 .9; } 75% { rotate: 0deg; translate: 0 -10%; scale: .96 1.06; } }
 /* 돈벼락 */
 .moneyrain { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
-.moneyrain > span { position: absolute; top: -60px; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); animation: mrFall linear forwards; opacity: 0; }
+.moneyrain > span { position: absolute; top: -60px; line-height: 1; will-change: transform; animation: mrFall linear forwards; opacity: 0; }
 @keyframes mrFall { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(var(--dx), calc(100vh + 120px)) rotate(var(--rot)); opacity: 0; } }
 .mr-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 42%, rgba(255, 236, 140, .85), rgba(255, 190, 40, .35) 40%, rgba(255, 190, 40, 0) 70%); animation: mrFlash 1.2s ease-out forwards; }
 @keyframes mrFlash { 0% { opacity: 0; } 12% { opacity: 1; } 100% { opacity: 0; } }
@@ -899,7 +899,7 @@ const SFX = {
     [523, 784, 988, 1319, 1568].forEach(f => brass(f, t + 0.42, 1.1, 0.04));
     [[0.42, 3800], [0.62, 4200]].forEach(([d, f]) => { nz(t + d, 0.06, 0.18, 'bandpass', f, 2); osc('square', 160, t + d, 0.06, 0.05); });
     // 동전 비: 점점 많아졌다가 잦아듦
-    for (let k = 0; k < 70; k++) {
+    for (let k = 0; k < 36; k++) {
       const d = 0.5 + Math.pow(Math.random(), 0.8) * 2.3, f = 2200 + Math.random() * 3800;
       osc('sine', f, t + d, 0.09 + Math.random() * 0.12, 0.022 + Math.random() * 0.02);
       if (k % 3 === 0) osc('sine', f * 1.5, t + d + 0.01, 0.08, 0.015);
@@ -1080,7 +1080,8 @@ function moneyRain() {
   const layer = document.createElement('div');
   layer.className = 'moneyrain';
   const GLYPHS = ['💵', '💵', '💰', '🪙', '🪙', '💸', '💴', '💶', '💷', '💎'];
-  const W = innerWidth, n = Math.round(Math.min(110, 50 + W / 6));
+  // 너무 많으면 폰에서 화면이 멈춤 → 40개 안팎만, 그림자 효과 없이
+  const W = innerWidth, n = Math.round(Math.min(44, 26 + W / 20));
   let html = '<div class="mr-flash"></div><div class="mr-title"><span>RU$H</span><b>TIME!</b><i>×2</i></div>';
   for (let k = 0; k < n; k++) {
     const g = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -1092,7 +1093,7 @@ function moneyRain() {
   document.body.appendChild(layer);
   // 보드 위에서도 금빛 돈 파편이 몇 번 터짐
   const r = $('board').getBoundingClientRect();
-  for (let k = 0; k < 5; k++) setTimeout(() => fxBurst(r.width * (0.15 + Math.random() * 0.7), r.height * (0.15 + Math.random() * 0.7), '#F0B400', 30, 1.5), 150 + k * 260);
+  for (let k = 0; k < 2; k++) setTimeout(() => fxBurst(r.width * (0.25 + Math.random() * 0.5), r.height * (0.25 + Math.random() * 0.5), '#F0B400', 24, 1.4), 200 + k * 400);
   setTimeout(() => layer.remove(), 3400);
 }
 // 계기판 아래 배지: 연속 납품 수(🔥2) → RU$H TIME 남은 시간 바
@@ -1175,11 +1176,12 @@ async function orderIntro(c, i) {
   await accepted;
   // 누르면 살짝 커졌다가, 자기 칸으로 날아가며 다시 작아짐
   SFX.stamp();
-  await tween(140, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outQuad);
+  await tween(280, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outBack);
+  await wait(160);
   const target = document.querySelector(`[data-slot="${i}"]`);
   const [tx, ty] = target ? centerOf(target) : [mx, 80];
   const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width * 1.15 : 0.4;
-  await tween(320, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.4 * q); scrim.style.opacity = 1 - q; }, EASE.inQuad);
+  await tween(700, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inOutQuad);
   el.remove(); scrim.remove();
   S.reading = false;
   c.intro = false;
@@ -1310,7 +1312,7 @@ const tweens = [];
 function tween(ms, fn, ease = p => p, delay = 0) {
   return new Promise(res => tweens.push({ t: -delay, ms: Math.max(1, ms), fn, ease, res }));
 }
-const EASE = { outQuad: p => 1 - (1 - p) * (1 - p), inQuad: p => p * p };
+const EASE = { outQuad: p => 1 - (1 - p) * (1 - p), inQuad: p => p * p, inOutQuad: p => p < .5 ? 2 * p * p : 1 - 2 * (1 - p) * (1 - p), outBack: p => { const c = 1.7; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); } };
 function updateTweens(dms) {
   for (const tw of tweens.slice()) {
     tw.t += dms;
