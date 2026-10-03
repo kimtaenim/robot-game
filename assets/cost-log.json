@@ -1,6 +1,6 @@
 {
- "total_usd": 4.8322,
- "images": 40,
+ "total_usd": 5.0933,
+ "images": 42,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -64,6 +64,13 @@
    "quality": "medium",
    "images": 5,
    "usd": 0.654
+  },
+  {
+   "started": "2026-10-03T01:58:52.959Z",
+   "only": "face-suitf-smile,face-trump-smile",
+   "quality": "medium",
+   "images": 2,
+   "usd": 0.2611
   }
  ]
 }
