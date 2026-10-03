@@ -41,7 +41,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #7CC63E; --t-tf: #B5262B; --t-korea: #9C7A3C;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-iarm: #474C55; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #7CC63E; --t-tf: #B5262B; --t-korea: #9C7A3C;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -751,6 +751,7 @@ const TILES = {
   auto:  { icon: '🧠', name: '피지컬AI', color: 'var(--t-auto)' },  // 자율주행·판단을 맡는 AI
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
   arm:   { icon: svgIcon('cobot'), img: svgImg('cobot'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
+  iarm:  { icon: '🦾', name: '산업용 팔', color: 'var(--t-iarm)' },  // 바닥에 고정하는 노란 산업용 로봇 팔 (빈손)
   tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
   made:  { icon: '🇺🇸', name: '해외수출', color: 'var(--t-made)' },
@@ -764,14 +765,14 @@ const TILES = {
   tf:     { icon: '🚗', name: '트랜스포머', color: 'var(--t-tf)', special: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
-// AMR = 바퀴+AI / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI) / 산업용 로봇 = 팔+바닥 공사(고정·울타리)+SI
+// AMR = 바퀴+AI / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI) / 산업용 로봇 = 산업용 팔+바닥 공사(고정·울타리)+SI
 // 모바일 매니퓰레이터 = AMR 위에 협동로봇(⑧ LG엔솔) / 4족 = 다리 둘+SI / 휴머노이드 = 특수 타일 3개 맞추기+SI
 // 팔 달린 4족 = 다리 둘+팔+SI / 켄타우로스 = 4족 하체에 휴머노이드 상체+SI
 const ROBOTS = {
   amr:   { icon: '🚚', name: 'AMR',               parts: ['wheel', 'auto'] },
   agv:   { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
   cobot: { icon: '🦾', name: '협동로봇',           parts: ['arm', 'tool'] },
-  indus: { icon: '🏗️', name: '산업용 로봇',        parts: ['arm', 'floor', 'tool'] },  // 팔 + 바닥 공사(고정·안전 울타리) + SI
+  indus: { icon: '🏗️', name: '산업용 로봇',        parts: ['iarm', 'floor', 'tool'] },  // 산업용 팔 + 바닥 공사(고정·안전 울타리) + SI
   mm:    { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'tool'] },
   quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'legs', 'auto'] },  // 다리 둘 + AI
   qarm:  { icon: '🦂', name: '팔 달린 4족로봇',    parts: ['legs', 'legs', 'arm', 'tool'] },
@@ -845,7 +846,7 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 // 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
 // 조건 타일: 6단계부터 노사합의(현대차), 9단계부터 해외수출 성조기(미국 손님), 10단계부터 국내생산 태극기(방위산업)
 const BASE_TILES = ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'];
-const TILE_FROM = { union: 6, made: 9, korea: 10 };
+const TILE_FROM = { union: 6, iarm: 7, made: 9, korea: 10 };
 // 새 로봇이 처음 나오는 단계: 그 전에는 안 나오고, 그 판에는 꼭 나옴 (판 시작에 '새 로봇 등장!' 사례 페이지)
 const ROBOT_FROM = { indus: 7 };
 const robotOpen = (r, lv) => !ROBOT_FROM[r] || lv >= ROBOT_FROM[r];  // 노사합의는 타일이 5종인 6단계부터
@@ -1678,6 +1679,7 @@ const TILE_HELP = {
   auto: '스스로 보고 판단하는 로봇의 두뇌. AMR·4족로봇·휴머노이드에 필요해요.',
   floor: 'AGV가 따라갈 길(자석 테이프·QR)을 까는 공사, 산업용 로봇을 바닥에 고정하고 안전 울타리를 치는 공사예요.',
   arm: '사람 옆에서 같이 일하는 협동로봇의 팔이에요.',
+  iarm: '크고 힘센 산업용 로봇 팔. 바닥 공사(고정·안전 울타리)와 SI를 더하면 산업용 로봇이 돼요. 협동로봇 팔과 달리 사람 곁에 두지 않아요.',
   tool: '용접 토치·집게·튀김 바구니처럼 일에 맞는 도구를 달고 현장에 맞춰 설치(SI)해요.',
   legs: '계단·험한 곳을 걷는 다리. 4족로봇은 다리 타일을 두 번 맞춰야 해요.',
   made: '미국 FCC가 외국에서 만든 첨단 로봇 인증을 막아요. 미국 주문(트럼프 손님)에 이 칸이 붙어요.',
@@ -2021,7 +2023,7 @@ const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
 // 파일마다 내용이 바뀔 때만 새로 받도록 파일 해시를 붙임 (빌드할 때 채움)
-const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "f174149f", "tile-made-a.png": "d557ba97", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "robot-indus-b.png": "2312e70c", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "robot-indus-a.png": "68a90839", "tile-korea-b.png": "ebe1008b", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "d1987f19", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "b64d5546", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-term-a.png": "f86a988f", "tile-eva-a.png": "48055f29", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "indus-ref.png": "2bfe4680", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c8c8a23a", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "7077aabd", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "e23a5198", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
+const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "f174149f", "tile-made-a.png": "d557ba97", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "robot-indus-b.png": "4a7cabef", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "tile-iarm-a.png": "fc127d92", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "robot-indus-a.png": "ba4c70bc", "tile-korea-b.png": "ebe1008b", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "d1987f19", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "tile-iarm-b.png": "f0647318", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "b64d5546", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-term-a.png": "f86a988f", "tile-eva-a.png": "48055f29", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "indus-ref.png": "2bfe4680", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c8c8a23a", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "7077aabd", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "e23a5198", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
 // 게임에서는 가벼운 webp(assets/w/)를 씀. 파일 이름은 png와 같고 확장자만 다름
 const av = f => { const n = f.replace('assets/', ''); return `assets/w/${n.replace(/\.png$/, '.webp')}?v=${ART_HASH[n] || '0'}`; };
 // 업종 아이콘(ind-)은 a프레임만, 로봇·부품은 a·b를 번갈아 (팔이 까딱, 다리가 제자리걸음 등)
@@ -2383,7 +2385,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-195223';
+const BUILD_V = '1003-195930';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
