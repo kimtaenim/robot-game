@@ -1522,6 +1522,6 @@ $('btnSound').addEventListener('click', () => {
 document.addEventListener('visibilitychange', () => { if (document.hidden && S.running && !S.paused) $('btnPause').click(); });
 
 syncSound(); renderHud();
-openSheet(HELP);
+startLevel();  // 안내창 없이 바로 시작 (첫 주문서를 누르면 소리도 켜짐)
 requestAnimationFrame(loop);
 </script>
