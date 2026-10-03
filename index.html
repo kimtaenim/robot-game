@@ -2255,7 +2255,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-164424';
+const BUILD_V = '1003-164552';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2282,7 +2282,7 @@ function startLevel() {
   stage.q.length = 0;
   Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0, levelServed: [], levelMissed: [], streak: 0, lastDone: -99, rushUntil: 0 });
   $('overlay').hidden = true;
-  clearBoardEls();
+  clearHint(); clearBoardEls();
   S.board = new Board(COLS, ROWS, S.def.tiles);
   S.board.randomType = biasedType;
   S.board.fillInitial();
