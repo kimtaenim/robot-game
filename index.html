@@ -109,6 +109,16 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .rushbadge i { display: block; width: 54px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.25); overflow: hidden; }
 .rushbadge u { display: block; height: 100%; background: #C0392B; transform-origin: left; }
 @keyframes rushPulse { 50% { transform: translate(-50%, -50%) scale(1.08); } }
+/* 돈벼락 */
+.moneyrain { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
+.moneyrain > span { position: absolute; top: -60px; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); animation: mrFall linear forwards; opacity: 0; }
+@keyframes mrFall { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 85% { opacity: 1; } 100% { transform: translate(var(--dx), calc(100vh + 120px)) rotate(var(--rot)); opacity: 0; } }
+.mr-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 42%, rgba(255, 236, 140, .85), rgba(255, 190, 40, .35) 40%, rgba(255, 190, 40, 0) 70%); animation: mrFlash 1.2s ease-out forwards; }
+@keyframes mrFlash { 0% { opacity: 0; } 12% { opacity: 1; } 100% { opacity: 0; } }
+.mr-title { position: absolute; left: 50%; top: 40%; display: flex; flex-direction: column; align-items: center; line-height: .9; transform: translate(-50%, -50%) scale(.2); animation: mrTitle 2.6s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+.mr-title span, .mr-title b { font-family: var(--font-title); font-weight: 400; font-size: 64px; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 4px 0 #5a3104, 0 0 24px rgba(255, 200, 60, .9); letter-spacing: 2px; }
+.mr-title i { font-style: normal; font-family: var(--font-display); font-size: 44px; color: #fff; background: #C0392B; border: 3px solid #5a3104; border-radius: 14px; padding: 0 14px; margin-top: 6px; transform: rotate(-6deg); }
+@keyframes mrTitle { 0% { transform: translate(-50%, -50%) scale(.2) rotate(-8deg); opacity: 0; } 18% { transform: translate(-50%, -50%) scale(1.15) rotate(3deg); opacity: 1; } 30% { transform: translate(-50%, -50%) scale(1) rotate(0); } 80% { opacity: 1; } 100% { transform: translate(-50%, -62%) scale(1.05); opacity: 0; } }
 /* RU$H TIME 동안 보드 테두리가 금색으로 번쩍 */
 body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 6px rgba(255, 200, 60, .55); animation: rushGlow .6s ease-in-out infinite; }
 @keyframes rushGlow { 50% { box-shadow: 0 0 0 6px #FFE27A, 0 0 0 7px #fff6, 0 0 40px 10px rgba(255, 200, 60, .75); } }
@@ -834,12 +844,22 @@ const SFX = {
     osc('sawtooth', 300, t + 0.79, 0.25, 0.03, 120);
   },
   // RU$H TIME 시작: 빠르게 치솟는 금관 + 캐시 소리
+  // 돈벼락: 치솟는 금관 팡파르 → 계산대 철컥 두 번 → 동전이 2초 넘게 우수수
   rush: () => {
     if (!audio()) return;
     const t = ac.currentTime;
-    [392, 494, 587, 698, 784, 988].forEach((f, i) => brass(f, t + i * 0.06, 0.12, 0.06));
-    [784, 988, 1175, 1568].forEach(f => brass(f, t + 0.4, 0.6, 0.04));
-    for (let k = 0; k < 10; k++) osc('sine', 2600 + Math.random() * 2400, t + 0.45 + k * 0.04, 0.12, 0.035);
+    [392, 494, 587, 698, 784, 988, 1175].forEach((f, i) => brass(f, t + i * 0.055, 0.12, 0.065));
+    [523, 784, 988, 1319, 1568].forEach(f => brass(f, t + 0.42, 1.1, 0.04));
+    [[0.42, 3800], [0.62, 4200]].forEach(([d, f]) => { nz(t + d, 0.06, 0.18, 'bandpass', f, 2); osc('square', 160, t + d, 0.06, 0.05); });
+    // 동전 비: 점점 많아졌다가 잦아듦
+    for (let k = 0; k < 70; k++) {
+      const d = 0.5 + Math.pow(Math.random(), 0.8) * 2.3, f = 2200 + Math.random() * 3800;
+      osc('sine', f, t + d, 0.09 + Math.random() * 0.12, 0.022 + Math.random() * 0.02);
+      if (k % 3 === 0) osc('sine', f * 1.5, t + d + 0.01, 0.08, 0.015);
+      if (k % 4 === 0) nz(t + d, 0.02, 0.02, 'highpass', 7000);
+    }
+    // 낮게 울리는 축하 북
+    [0.42, 0.9, 1.38].forEach(d => osc('sine', 110, t + d, 0.3, 0.12, 50));
   },
   // 단계 클리어: 긴 빵빠레
   clear: () => {
@@ -989,11 +1009,32 @@ function rushDeliver() {
   S.lastDone = S.clock;
   if (S.streak >= RUSH_NEED) {
     S.rushUntil = S.clock + RUSH_SEC;
-    banner('RU$H TIME! ×2');
+    moneyRain();
     SFX.rush();
     vibrate([20, 30, 20, 30, 60]);
   }
   renderRush();
+}
+// 돈벼락: 화면 전체에 지폐·동전·돈다발이 쏟아지고 금빛 번쩍 + 큰 RU$H TIME 글자
+function moneyRain() {
+  if (JUICE <= 0) { banner('RU$H TIME! ×2'); return; }
+  const layer = document.createElement('div');
+  layer.className = 'moneyrain';
+  const GLYPHS = ['💵', '💵', '💰', '🪙', '🪙', '💸', '💴', '💶', '💷', '💎'];
+  const W = innerWidth, n = Math.round(Math.min(110, 50 + W / 6));
+  let html = '<div class="mr-flash"></div><div class="mr-title"><span>RU$H</span><b>TIME!</b><i>×2</i></div>';
+  for (let k = 0; k < n; k++) {
+    const g = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+    const size = 22 + Math.random() * 30, x = Math.random() * 100, delay = Math.random() * 1.6, dur = 1.3 + Math.random() * 1.2;
+    const drift = (Math.random() - 0.5) * 120, spin = (Math.random() - 0.5) * 900;
+    html += `<span style="left:${x}%;font-size:${size}px;animation-delay:${delay}s;animation-duration:${dur}s;--dx:${drift}px;--rot:${spin}deg">${g}</span>`;
+  }
+  layer.innerHTML = html;
+  document.body.appendChild(layer);
+  // 보드 위에서도 금빛 돈 파편이 몇 번 터짐
+  const r = $('board').getBoundingClientRect();
+  for (let k = 0; k < 5; k++) setTimeout(() => fxBurst(r.width * (0.15 + Math.random() * 0.7), r.height * (0.15 + Math.random() * 0.7), '#F0B400', 30, 1.5), 150 + k * 260);
+  setTimeout(() => layer.remove(), 3400);
 }
 // 계기판 아래 배지: 연속 납품 수(🔥2) → RU$H TIME 남은 시간 바
 function renderRush() {
