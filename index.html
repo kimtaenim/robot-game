@@ -228,6 +228,10 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .float.bad { color: var(--bad); }
 .float.big { font-size: 30px; color: var(--accent); }
 @keyframes floatUp { to { transform: translate(-50%, -54px); opacity: 0; } }
+.shufflenote { position: fixed; z-index: 45; pointer-events: none; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; background: rgba(19, 32, 42, .88); border: 3px solid var(--gold); border-radius: 18px; padding: 10px 26px 12px; animation: noteIn 1.5s ease forwards; white-space: nowrap; }
+.shufflenote small { font-family: var(--font-display); font-size: 17px; color: #fff; }
+.shufflenote b { font-family: var(--font-title); font-weight: 400; font-size: 44px; color: #FFE27A; -webkit-text-stroke: 1px #5a3104; text-shadow: 0 3px 0 #5a3104; }
+@keyframes noteIn { 0% { transform: translate(-50%, -50%) scale(.3); opacity: 0; } 12% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 20% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 .banner { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
 @keyframes banner { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
 
@@ -1729,7 +1733,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790996417';
+const ART_V = '1790996478';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1925,7 +1929,14 @@ async function resolve() {
 // "리셔플!"을 먼저 띄우고 타일들이 부들부들 떨다가, 가운데로 빨려 들었다가 빙글빙글 새 자리로 흩어짐
 async function shuffleBoard() {
   clearHint();
-  banner('리셔플!');
+  // 보드 한가운데에 큰 알림: 왜 섞는지 먼저 알려 주고 섞음
+  const note = document.createElement('div');
+  note.className = 'shufflenote';
+  note.innerHTML = '<small>더 맞출 게 없어요!</small><b>리셔플!</b>';
+  const br = $('board').getBoundingClientRect();
+  Object.assign(note.style, { left: br.left + br.width / 2 + 'px', top: br.top + br.height / 2 + 'px' });
+  document.body.appendChild(note);
+  setTimeout(() => note.remove(), 1500);
   SFX.reshuffle();
   vibrate(20);
   const J = Math.min(JUICE, 1.5);
@@ -2034,7 +2045,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1200';
+const BUILD_V = '1003-1201';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
