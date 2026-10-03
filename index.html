@@ -967,6 +967,16 @@ const SFX = {
   },
   _last: {},
   _busy: (k, ms) => { const now = performance.now(); if (now - (SFX._last[k] || 0) < ms) return true; SFX._last[k] = now; return false; },
+  // 리셔플: 부르르 떨리는 소리 → 빨려 드는 휘익 → 흩어지는 짤랑 (Bosses의 리셔플 때 울리는 연쇄음 느낌)
+  reshuffle: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    for (let k = 0; k < 10; k++) osc('square', 140 + Math.random() * 60, t + k * 0.06, 0.05, 0.025);
+    osc('sawtooth', 900, t + 0.65, 0.26, 0.04, 180);
+    nz(t + 0.65, 0.26, 0.05, 'bandpass', 1500, 1);
+    osc('sawtooth', 220, t + 0.92, 0.35, 0.04, 1200);
+    SFX.coin(5, 0.95);
+  },
   // 금화 찰랑: 짧은 동전 두세 개가 부딪는 소리 (매치·부품 붙을 때마다)
   coin: (n = 3, at = 0) => {
     if (!audio()) return;
@@ -1678,7 +1688,7 @@ function drawTiles() {
     const x = geo.pad + t.x * geo.step, y = geo.pad + t.y * geo.step;
     // 숨쉬기: 타일마다 박자가 조금씩 다르게 크게 들썩임 (가운데를 0.96으로 낮춰 이웃 타일과 덜 겹치게: 0.86~1.06)
     const br = 0.96 + BREATH * Math.sin(now / 1000 * Math.PI * 2 / 2.2 + t.phase);
-    e.style.transform = `translate(${x + (t.ox || 0)}px, ${y + (t.oy || 0)}px) scale(${t.scale * t.sx * br}, ${t.scale * t.sy * br})`;
+    e.style.transform = `translate(${x + (t.ox || 0)}px, ${y + (t.oy || 0)}px)${t.rot ? ` rotate(${t.rot}deg)` : ''} scale(${t.scale * t.sx * br}, ${t.scale * t.sy * br})`;
     e.style.opacity = t.alpha;
     e.style.filter = t.flash > 0 ? `brightness(${1 + t.flash * 1.5})` : '';
     e.style.zIndex = t.scale > 1.01 ? 3 : 1;
@@ -1719,7 +1729,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790995930';
+const ART_V = '1790996417';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1909,13 +1919,30 @@ async function resolve() {
     await animateFalls(falls);
   }
   setTimeout(() => { $('chain').textContent = ''; }, 700);
-  if (!S.board.findMove()) {
-    banner('🔀 섞는 중');
-    await wait(400);
-    S.board.shuffle();
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const t = S.board.get(r, c); t.x = c; t.y = r; }
-    renderBoard();
+  if (!S.board.findMove()) await shuffleBoard();
+}
+// 둘 곳이 없을 때 (Bosses of Our World의 shuffleBoard 그대로):
+// "리셔플!"을 먼저 띄우고 타일들이 부들부들 떨다가, 가운데로 빨려 들었다가 빙글빙글 새 자리로 흩어짐
+async function shuffleBoard() {
+  clearHint();
+  banner('리셔플!');
+  SFX.reshuffle();
+  vibrate(20);
+  const J = Math.min(JUICE, 1.5);
+  await tween(650, () => { for (const t of S.board.cells) if (t) t.ox = (Math.random() * 2 - 1) * 0.05 * J * geo.step; });
+  for (const t of S.board.cells) if (t) t.ox = 0;
+  S.board.shuffle();
+  const cxm = (COLS - 1) / 2, cym = (ROWS - 1) / 2, moves = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const t = S.board.get(r, c);
+    moves.push({ t, x0: t.x, y0: t.y, x1: c, y1: r, spin: (Math.random() < 0.5 ? -1 : 1) * (1 + Math.random()) });
   }
+  renderBoard();
+  // 가운데로 모이며 작아짐
+  await tween(260, p => { for (const m of moves) { m.t.x = m.x0 + (cxm - m.x0) * p * 0.7; m.t.y = m.y0 + (cym - m.y0) * p * 0.7; m.t.scale = 1 - 0.35 * p * J; m.t.rot = m.spin * p * 180 * J; } }, EASE.inQuad);
+  // 빙글 돌며 새 자리로 흩어짐
+  await tween(420, p => { for (const m of moves) { const sx = m.x0 + (cxm - m.x0) * 0.7, sy = m.y0 + (cym - m.y0) * 0.7; m.t.x = sx + (m.x1 - sx) * p; m.t.y = sy + (m.y1 - sy) * p; m.t.scale = 1 - 0.35 * J + 0.35 * J * p; m.t.rot = m.spin * (1 - p) * 180 * J; } }, EASE.outBack);
+  for (const m of moves) { m.t.x = m.x1; m.t.y = m.y1; m.t.scale = 1; m.t.rot = 0; }
 }
 // 손님이 필요로 하는 부품이 조금 더 자주 떨어짐 (휴머노이드는 여기서 안 나옴)
 function biasedType() {
@@ -2007,7 +2034,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1152';
+const BUILD_V = '1003-1200';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
