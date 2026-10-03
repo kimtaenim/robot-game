@@ -407,6 +407,7 @@ class Board {
   makesRunWhenPlaced(r, c, type) {
     if (c >= 2 && this.typeAt(r, c - 1) === type && this.typeAt(r, c - 2) === type) return true;
     if (r >= 2 && this.typeAt(r - 1, c) === type && this.typeAt(r - 2, c) === type) return true;
+    if (r >= 1 && c >= 1 && this.typeAt(r - 1, c) === type && this.typeAt(r, c - 1) === type && this.typeAt(r - 1, c - 1) === type) return true;  // 2×2
     return false;
   }
 
@@ -447,6 +448,15 @@ class Board {
     };
     scan(this.rows, this.cols, (r, c) => this.idx(r, c));
     scan(this.cols, this.rows, (c, r) => this.idx(r, c));
+    // (로봇 러시 추가) 2×2로 모인 같은 타일도 터짐
+    const squares = [];
+    for (let r = 0; r + 1 < this.rows; r++) for (let c = 0; c + 1 < this.cols; c++) {
+      const q = [this.idx(r, c), this.idx(r, c + 1), this.idx(r + 1, c), this.idx(r + 1, c + 1)];
+      const t = this.cells[q[0]];
+      if (!t || t.noMatch || !q.every(i => this.cells[i] && !this.cells[i].noMatch && this.cells[i].type === t.type)) continue;
+      squares.push(q.join(','));
+      mark(q);
+    }
 
     const byRoot = new Map();
     for (let i = 0; i < n; i++) {
@@ -456,6 +466,8 @@ class Board {
       byRoot.get(root).cells.push(i);
     }
     const groups = [...byRoot.values()];
+    // 줄과 겹치지 않은 순수 2×2 묶음 표시 (부품 1개, 휴머노이드 안 나옴)
+    for (const g of groups) if (g.cells.length === 4 && squares.includes(g.cells.slice().sort((a, b) => a - b).join(','))) g.square = true;
     const matched = new Set();
     for (const g of groups) for (const i of g.cells) matched.add(i);
     return { groups, matched };
@@ -470,7 +482,12 @@ class Board {
     for (let k = c + 1; this.typeAt(r, k) === type; k++) h++;
     for (let k = r - 1; this.typeAt(k, c) === type; k--) v++;
     for (let k = r + 1; this.typeAt(k, c) === type; k++) v++;
-    return h >= 3 || v >= 3;
+    if (h >= 3 || v >= 3) return true;
+    // 2×2: (r,c)를 꼭짓점으로 하는 네 정사각형
+    for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+      if (this.typeAt(r + dr, c) === type && this.typeAt(r, c + dc) === type && this.typeAt(r + dr, c + dc) === type) return true;
+    }
+    return false;
   }
 
   wouldMatch(a, b) {
@@ -493,6 +510,10 @@ class Board {
         for (let k = 1; this.typeAt(p.r - dr * k, p.c - dc * k) === type; k++) run.push({ r: p.r - dr * k, c: p.c - dc * k });
         for (let k = 1; this.typeAt(p.r + dr * k, p.c + dc * k) === type; k++) run.push({ r: p.r + dr * k, c: p.c + dc * k });
         if (run.length >= 3) for (const q of run) out.set(q.r * this.cols + q.c, q);
+      }
+      for (const [dr, dc] of [[-1, -1], [-1, 1], [1, -1], [1, 1]]) {
+        const sq = [p, { r: p.r + dr, c: p.c }, { r: p.r, c: p.c + dc }, { r: p.r + dr, c: p.c + dc }];
+        if (sq.slice(1).every(q => this.typeAt(q.r, q.c) === type)) for (const q of sq) out.set(q.r * this.cols + q.c, q);
       }
     }
     this.swap(a, b);
@@ -1618,7 +1639,7 @@ async function resolve() {
     if (!m.groups.length) break;
     chain++;
     S.chainMax = Math.max(S.chainMax, chain);
-    const bigGroups = m.groups.filter(g => g.cells.length >= 4);
+    const bigGroups = m.groups.filter(g => g.cells.length >= 4 && !g.square);
     // 히트스톱: 연쇄나 4개 이상이면 터지기 직전 아주 잠깐 멈춤
     if (JUICE > 0 && (chain >= 2 || bigGroups.length)) await wait(35 * JUICE);
     SFX.match(chain - 1); vibrate(10);
@@ -1628,7 +1649,7 @@ async function resolve() {
     let order = 0;
     for (const g of m.groups) {
       // 3개 = 부품 1, 4개 = 2, 5개 이상 = 3
-      const gain = Math.min(3, g.cells.length - 2);
+      const gain = g.square ? 1 : Math.min(3, g.cells.length - 2);  // 2×2 묶음은 부품 1개
       const mid = g.cells[Math.floor(g.cells.length / 2)];
       const midEl = tileEls.get(S.board.cells[mid]);
       const [x0, y0] = midEl ? centerOf(midEl) : [innerWidth / 2, innerHeight / 2];
