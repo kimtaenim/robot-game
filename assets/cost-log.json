@@ -1,6 +1,6 @@
 {
- "total_usd": 6.4003,
- "images": 52,
+ "total_usd": 6.6173,
+ "images": 54,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -78,6 +78,13 @@
    "quality": "medium",
    "images": 10,
    "usd": 1.307
+  },
+  {
+   "started": "2026-10-03T02:08:44.857Z",
+   "only": "robot-mm",
+   "quality": "medium",
+   "images": 2,
+   "usd": 0.217
   }
  ]
 }
