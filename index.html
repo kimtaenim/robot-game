@@ -36,7 +36,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #D9578E; --t-korea: #3C3F46;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-korea: #3C3F46;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -528,7 +528,7 @@ const TILES = {
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
   made:  { icon: '🇺🇸', name: '국내생산', color: 'var(--t-made)' },
   union: { icon: '🤝', name: '노사합의', color: 'var(--t-union)' },
-  korea: { icon: '🇰🇷', name: '한국로봇', color: 'var(--t-korea)' },
+  korea: { icon: '🇰🇷', name: '국내생산', color: 'var(--t-korea)' },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
@@ -590,55 +590,47 @@ const SECTORS = [];
 ORDERS.forEach(o => { if (!SECTORS.some(s => s.key === secKey(o))) SECTORS.push({ key: secKey(o), icon: o.icon }); });
 SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 
-// ───────── 단계: 한 판에 로봇 여러 종 + 손님 많이 ─────────
-// 일반 타일 수: 1~4단계 4종, 5~9단계 5종, 10단계부터 6종 (휴머노이드는 특수 타일이라 세지 않음)
+// ───────── 단계: 판마다 타일을 무작위로 골라, 그 타일로 조립되는 로봇만 주문 ─────────
+// 타일 수(휴머노이드 제외): 1~4단계 4종, 5~9단계 5종, 10단계부터 6종
 // 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.7%, 6종 6.3% (막히면 섞음)
 // 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
-// 로봇은 단계마다 갈아치우지 않고, 쌓아 가며 천천히 늘림
-//   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (바퀴·자율주행·팔·SI)
-//   5~9단계: + AGV (🚧 바닥 공사 추가)
-//   10단계~: + 4족로봇 (다리 추가) / 12단계~: + 팔 달린 4족 / 14단계~: + 켄타우로스
-//   16단계~: + 국내생산 / 18단계~: + 노사합의 / 20단계~: + 한국로봇 (16단계부터 타일 6종을 단계마다 돌려 씀)
-const STAGES = [
-  { from: 1,  robots: ['amr', 'cobot', 'mm', 'hum'],                tiles: ['wheel', 'auto', 'arm', 'tool'] },
-  { from: 5,  robots: ['amr', 'cobot', 'mm', 'agv', 'hum'],         tiles: ['wheel', 'auto', 'arm', 'tool', 'floor'] },
-  { from: 10, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
-  { from: 12, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
-  { from: 14, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
-  // 16단계~: 미국 손님(포드·BMW)은 국내생산(미국 내 생산) 칸 1개를 더 채워야 납품 (미 FCC가 외국산 첨단 로봇 인증을 막음)
-  // 18단계~: 현대차 손님은 노사합의 타일도 맞춰야 납품 (금속노조 현대차지부: "노사 합의 없이 단 1대의 로봇도 안 된다")
-  { from: 16, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made'], fresh: 'made' },
-  { from: 18, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made', 'union'], fresh: 'union' },
-  // 20단계~: 방위산업(방사청) 손님은 한국로봇 칸 1개를 더 채워야 납품
-  // (보스턴다이내믹스는 비무기화 서약 때문에 군 임무가 묶여서, 군용은 현대로템·레인보우로보틱스 국산 플랫폼으로)
-  { from: 20, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made', 'union', 'korea'], fresh: 'korea' },
-];
-// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 단계에 따라 붙는 조건(국내생산·노사합의·한국로봇 각 1칸 = 그 타일 3개 맞추기)
+// 조건 타일: 4단계부터 노사합의(현대차), 9단계부터 국내생산 성조기(미국 손님), 10단계부터 국내생산 태극기(방위산업)
+const BASE_TILES = ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'];
+const TILE_FROM = { union: 4, made: 9, korea: 10 };
+const tileCount = lv => lv >= 10 ? 6 : lv >= 5 ? 5 : 4;
+const poolAt = lv => [...BASE_TILES, ...Object.keys(TILE_FROM).filter(t => lv >= TILE_FROM[t])];
+// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 해금된 조건 칸(국내생산·노사합의 각 1칸 = 그 타일 3개 맞추기)
 function orderParts(o, pool) {
   const out = [];
   for (let k = 0; k < o.n; k++) out.push(...ROBOTS[o.want].parts);
   if (o.us && pool.includes('made')) out.push('made');
-  if (o.union && pool.includes('union')) out.push('union');
   if (o.korea && pool.includes('korea')) out.push('korea');
+  if (o.union && pool.includes('union')) out.push('union');
   return out;
 }
-// 타일은 휴머노이드 빼고 6종까지만. 해금된 타일이 6종을 넘으면 단계마다 6종을 무작위로 골라 돌려 씀
-// (SI는 휴머노이드 주문에 늘 필요해서 항상 포함, 새로 풀린 타일은 그 단계에 꼭 포함)
 const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+// 판마다 타일 조합 고르기. 너무 단순해지지 않게:
+//   SI는 늘 포함(휴머노이드 주문에 필요) / 새로 풀린 조건 타일은 그 판에 꼭 포함
+//   고른 타일은 전부 어떤 주문엔가 쓰임 / 일반 로봇이 4종 판은 2종, 5·6종 판은 3종 이상 / 일반 주문 4가지 이상
 function levelDef(lv) {
-  const st = STAGES.filter(s => lv >= s.from).pop();
-  if (st.tiles.length <= 6) return { ...st, pool: st.tiles };
-  const must = ['tool', ...(lv === st.from && st.fresh ? [st.fresh] : [])];
-  for (let tries = 0; tries < 60; tries++) {
-    const tiles = [...must, ...shuffled(st.tiles.filter(t => !must.includes(t))).slice(0, 6 - must.length)];
-    const ok = o => st.robots.includes(o.want) && orderParts(o, st.tiles).every(p => p === 'hum' || tiles.includes(p));
-    const robots = st.robots.filter(r => ORDERS.some(o => o.want === r && ok(o)));
-    // 일반 주문 로봇이 3종 이상 나오는 조합만 씀
-    if (robots.filter(r => r !== 'hum').length >= 3) return { ...st, tiles, robots, pool: st.tiles };
-  }
-  return { ...st, tiles: st.tiles.slice(0, 6), pool: st.tiles };
+  const pool = poolAt(lv), n = tileCount(lv);
+  const fresh = Object.keys(TILE_FROM).find(t => TILE_FROM[t] === lv);
+  const must = ['tool', ...(fresh ? [fresh] : [])];
+  const tryPick = (minRobots, minOrders, allUsed) => {
+    for (let k = 0; k < 300; k++) {
+      const tiles = [...must, ...shuffled(pool.filter(t => !must.includes(t))).slice(0, n - must.length)];
+      const orders = ORDERS.filter(o => orderParts(o, pool).every(p => p === 'hum' || tiles.includes(p)));
+      const normal = orders.filter(o => o.want !== 'hum');
+      const robots = [...new Set(orders.map(o => o.want))];
+      if (robots.filter(r => r !== 'hum').length < minRobots || normal.length < minOrders) continue;
+      if (allUsed && !tiles.every(t => orders.some(o => orderParts(o, pool).includes(t)))) continue;
+      return { lv, tiles, robots, pool, fresh };
+    }
+    return null;
+  };
+  const want = n >= 5 ? 3 : 2;
+  return tryPick(want, 4, true) || tryPick(2, 3, true) || tryPick(1, 1, false) || { lv, tiles: ['wheel', 'auto', 'arm', 'tool'], robots: ['amr', 'cobot', 'mm', 'hum'], pool, fresh };
 }
-const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 5: ['agv'], 10: ['quad'], 12: ['qarm'], 14: ['centaur'] };
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음): 1단계 20명, 단계마다 +2명
 const levelTarget = lv => 20 + (lv - 1) * 2;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
@@ -847,7 +839,10 @@ function pickOrder(i) {
   if (isHumSlot(i)) {
     const hums = ORDERS.filter(o => o.want === 'hum' && can(o));
     const fresh = hums.filter(o => !open.has(o.id));
-    const list = fresh.length ? fresh : hums;
+    let list = fresh.length ? fresh : hums;
+    // 보드에 조건 타일(노사합의·국내생산)이 있으면 그걸 쓰는 손님(현대차·BMW)이 자주 옴
+    const cond = list.filter(o => orderParts(o, S.def.pool).some(p => p === 'union' || p === 'made' || p === 'korea'));
+    if (cond.length && Math.random() < 0.7) list = cond;
     return list[Math.floor(Math.random() * list.length)];
   }
   let pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum' && can(o) && !open.has(o.id));
@@ -1524,9 +1519,9 @@ function startLevel() {
   layout(); renderBoard();
   renderClients(); renderStock(); renderHud();
   banner(`${S.lv}단계`);
-  const fresh = NEW_AT[S.lv];
-  if (fresh) banner(`NEW ${fresh.map(r => ROBOTS[r].icon).join(' ')}`, 1100);
-  if (S.lv === S.def.from && S.def.fresh) banner(`NEW ${TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
+  // 이번 판에 주문이 들어오는 로봇 (타일 조합에 따라 판마다 바뀜)
+  banner(S.def.robots.filter(r => r !== 'hum').map(r => ROBOTS[r].icon).join(' '), 1100);
+  if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 2300);
   addClient(0);
   S.spawnT = 2;
 }
