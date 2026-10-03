@@ -1,7 +1,7 @@
 <title>Robot Rush</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Jua&family=IBM+Plex+Mono:wght@500;600&family=Gowun+Dodum&display=swap">
 <style>
 /* 레이아웃: 금색 제목·계기판 → 클라이언트 3명(말풍선 주문)과 계산대 줄무늬 → 철판 프레임 5×5 조립대. 공장 틸블루 바닥 */
 :root {
@@ -34,8 +34,8 @@
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
-  --font-display: 'Black Han Sans', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-display: 'Jua', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-body: 'Gowun Dodum', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 [hidden] { display: none !important; }
@@ -1087,7 +1087,7 @@ function fxDraw() {
     ctx.fillStyle = p.color;
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
     if (p.glyph) {
-      ctx.font = `700 ${p.size}px 'IBM Plex Sans KR', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = `700 ${p.size}px 'Jua', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(19,32,42,.55)'; ctx.strokeText(p.glyph, 0, 0); ctx.fillText(p.glyph, 0, 0);
     } else if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.size, 0, Math.PI * 2); ctx.fill(); } else ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
     ctx.restore();
@@ -1097,7 +1097,7 @@ function fxDraw() {
     const p = t.t / t.dur, s = p < 0.15 ? 0.4 + 0.8 * (p / 0.15) * 1.0 : 1.2 - 0.2 * Math.min(1, (p - 0.15) * 4);
     ctx.save(); ctx.translate(t.x, t.y - 30 * p); ctx.scale(s, s);
     ctx.globalAlpha = p > 0.7 ? (1 - p) / 0.3 : 1;
-    ctx.font = `${t.size}px 'Black Han Sans', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `${t.size}px 'Jua', sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     let tx = 0;
     if (t.img && t.img.complete) { const w = ctx.measureText(t.str).width, d = t.size * 1.15; tx = d / 2; ctx.drawImage(t.img, -w / 2 - d / 2 - 2, -d / 2, d, d); }
     ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(19,32,42,.85)'; ctx.strokeText(t.str, tx, 0);
