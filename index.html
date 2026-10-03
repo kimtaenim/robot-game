@@ -289,6 +289,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .b-ic { font-size: 30px; line-height: 1; }
 .b-nm { flex: 1; min-width: 0; word-break: keep-all; }
 .b-item b { color: var(--steel); }
+.ver { color: var(--muted); font-size: 11px; }
 .sheet-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .ghost { background: transparent; color: var(--muted); border: 2px solid var(--line); border-radius: 12px; padding: 10px 16px; font-weight: 700; font-size: 14px; }
 .cs-bots { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; max-width: 92vw; }
@@ -1303,10 +1304,9 @@ async function orderIntro(c, i) {
   set(-999, -999, 1, 0);
   document.body.appendChild(scrim);
   document.body.appendChild(el);
-  // 주문서 칸 위에 맞춰 놓고, 칸보다 크면 줄임
+  // 크기는 그대로, 위치만 화면 위쪽(주문서 칸 자리)으로: 주문서 위끝을 칸 위끝에 맞춤
   const rr = $('rail').getBoundingClientRect(), ch = el.getBoundingClientRect().height;
-  fit = Math.min(1, (rr.height + 40) / ch);
-  const mx = centerX(), my = Math.max(rr.top + rr.height / 2, ch * fit / 2 + 6);
+  const mx = centerX(), my = Math.max(rr.top - 6, 6) + ch / 2;
   set(mx, my, 0.3, 0);
   scrim.style.top = '0px'; scrim.style.height = rr.bottom + 'px';
   SFX.ticket();
@@ -1708,7 +1708,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790995509';
+const ART_V = '1790995570';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1996,6 +1996,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
+const BUILD_V = '1003-1146';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2085,7 +2086,7 @@ function summaryHtml() {
     <h2>⏸ ${S.lv}단계</h2>
     <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
     <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 1단계부터 다시</button></div>
-`;
+    <small class="ver">버전 ${BUILD_V}</small>`;
 }
 $('sheet').addEventListener('click', e => {
   const act = e.target.closest('[data-act]')?.dataset.act;
