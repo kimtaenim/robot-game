@@ -163,6 +163,13 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .ocard.hum .tag { font-size: 15px; padding: 2px 5px; }
 @keyframes stampIn { 0% { transform: translate(-50%, -50%) rotate(-12deg) scale(2.2); opacity: 0; } 100% { transform: translate(-50%, -50%) rotate(-12deg) scale(1); opacity: 1; } }
 .ocard.enter { animation: drop .3s ease-out; }
+/* 독촉: 기다림 바가 50%·30%·15% 밑이면 점점 세게 흔들림 (transform은 튀는 효과가 쓰므로 translate·rotate 속성으로) */
+.ocard[data-urge="1"] { animation: urge1 1.6s ease-in-out infinite; }
+.ocard[data-urge="2"] { animation: urge2 .7s ease-in-out infinite; }
+.ocard[data-urge="3"] { animation: urge3 .28s linear infinite; }
+@keyframes urge1 { 0%, 70%, 100% { rotate: 0deg; translate: 0 0; } 76% { rotate: -2deg; } 82% { rotate: 2deg; } 88% { rotate: -1.5deg; } 94% { rotate: 1deg; } }
+@keyframes urge2 { 0%, 100% { rotate: 0deg; translate: 0 0; } 20% { rotate: -3deg; translate: -2px 0; } 40% { rotate: 3deg; translate: 2px -1px; } 60% { rotate: -2.5deg; translate: -2px 0; } 80% { rotate: 2deg; translate: 1px -1px; } }
+@keyframes urge3 { 0% { rotate: -4deg; translate: -3px 1px; } 25% { rotate: 4deg; translate: 3px -2px; } 50% { rotate: -3.5deg; translate: -3px -1px; } 75% { rotate: 3.5deg; translate: 2px 2px; } 100% { rotate: -4deg; translate: -3px 1px; } }
 .ocard.bump { transform: scale(1.06); }
 .need { flex: none; position: relative; width: 23px; height: 23px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; border: 1.5px dashed var(--muted); background: var(--surface-2); box-sizing: border-box; }
 .need.got { border: 1.5px solid var(--good); background: rgba(46, 160, 67, .18); }
@@ -274,7 +281,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
   .ocard .co { font-size: 10.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ocard.enter, .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
+  .ocard.enter, .ocard[data-urge], .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
   .flyer { transition: none; }
 }
 </style>
@@ -654,8 +661,8 @@ function levelDef(lv) {
   return tryPick(want, 4, true) || tryPick(2, 3, true) || tryPick(1, 1, false) || { lv, tiles: ['wheel', 'auto', 'arm', 'tool'], robots: ['amr', 'cobot', 'mm', 'hum'], pool, fresh };
 }
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음)
-// 한 판을 짧게(2~3분): 1단계 10명, 단계마다 +1명, 최대 20명
-const levelTarget = lv => Math.min(20, 10 + (lv - 1));
+// 1단계 15명, 단계마다 +1명, 최대 25명
+const levelTarget = lv => Math.min(25, 15 + (lv - 1));
 // RU$H TIME: 연속 납품(다음 납품까지 12초 이내) 3번이면 10초 동안 점수 2배·기다림 바 절반 속도, 납품할 때마다 3초 연장
 const RUSH_GAP = 12, RUSH_NEED = 3, RUSH_SEC = 10, RUSH_ADD = 3;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
@@ -1197,6 +1204,9 @@ function updateBars() {
     const f = Math.max(0, c.t / c.max);
     const el = document.querySelector(`[data-pat="${i}"] i`);
     if (el) { el.style.transform = `scaleX(${c.state === 'wait' ? f : 0})`; el.className = 'p' + (bandOf(c) + 1); }
+    // 바가 절반 밑으로 내려가면 주문서가 흔들리며 독촉 (낮을수록 세게)
+    const card = document.querySelector(`.ocard[data-slot="${i}"]`);
+    if (card) { const u = c.state !== 'wait' || c.intro ? 0 : f < 0.15 ? 3 : f < 0.3 ? 2 : f < 0.5 ? 1 : 0; if (card.dataset.urge !== String(u)) card.dataset.urge = u; }
     const fe = document.querySelector(`[data-face="${i}"]`);
     if (fe) { const f2 = faceOf(c); if (fe.textContent !== f2) fe.textContent = f2; }
   });
