@@ -326,7 +326,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 @keyframes ssFlash { 0% { opacity: 0; } 10% { opacity: .6; } 50% { opacity: .6; } 55% { opacity: 1; } 100% { opacity: .85; } }
 .ss-lv { position: relative; font-family: var(--font-display); font-size: 40px; color: #fff; text-shadow: 0 3px 0 var(--ink); transform: translateY(-80px); opacity: 0; animation: ssLv 1.9s ease-out forwards; }
 @keyframes ssLv { 0% { transform: translateY(-80px); opacity: 0; } 15% { transform: translateY(0); opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
-.ss-go { position: relative; font-family: var(--font-title); font-size: 60px; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 5px 0 #5a3104, 0 0 30px rgba(255, 200, 60, .9); transform: scale(3); opacity: 0; animation: ssGo 1.9s forwards; }
+.ss-go { position: relative; font-family: var(--font-title); font-size: clamp(34px, 11vw, 48px); line-height: 1.05; text-align: center; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 5px 0 #5a3104, 0 0 30px rgba(255, 200, 60, .9); transform: scale(3); opacity: 0; animation: ssGo 1.9s forwards; }
 @keyframes ssGo { 0%, 48% { transform: scale(3) rotate(-6deg); opacity: 0; } 56% { transform: scale(.9) rotate(-3deg); opacity: 1; } 62% { transform: scale(1.05) rotate(-3deg); } 100% { transform: scale(1) rotate(-3deg); opacity: 1; } }
 .ss-goal { position: relative; font-family: var(--font-display); font-size: 18px; color: #fff; background: rgba(0, 0, 0, .45); border-radius: 999px; padding: 3px 14px; opacity: 0; animation: ssLv 1.9s .1s ease-out forwards; }
 .ss-gear { position: absolute; font-size: 120px; opacity: .35; animation: gearSpin 1.9s linear forwards; }
@@ -1472,7 +1472,7 @@ function startShow() {
   return new Promise(done => {
     const el = document.createElement('div');
     el.className = 'startshow';
-    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-go">START!</div><div class="ss-panel"><div class="ss-make">이번에 만들 로봇</div><div class="ss-bots">${botsToMakeHtml()}</div><div class="ss-tap">눌러서 시작 ▶</div></div>`;
+    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-go">OPEN FOR<br>BUSINESS!</div><div class="ss-panel"><div class="ss-make">이번에 만들 로봇</div><div class="ss-bots">${botsToMakeHtml()}</div><div class="ss-tap">눌러서 시작 ▶</div></div>`;
     document.body.appendChild(el);
     SFX.start();
     vibrate([20, 60, 20, 60, 80]);
@@ -1719,7 +1719,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790995892';
+const ART_V = '1790995930';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -2007,7 +2007,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1151';
+const BUILD_V = '1003-1152';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
