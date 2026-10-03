@@ -1544,9 +1544,7 @@ function startLevel() {
   layout(); renderBoard();
   renderClients(); renderStock(); renderHud();
   banner(`${S.lv}단계`);
-  // 이번 판에 주문이 들어오는 로봇 (타일 조합에 따라 판마다 바뀜)
-  banner(S.def.robots.filter(r => r !== 'hum').map(r => ROBOTS[r].icon).join(' '), 1100);
-  if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 2300);
+  if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
   addClient(0);
   S.spawnT = 2;
 }
