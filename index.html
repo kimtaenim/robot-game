@@ -1388,7 +1388,8 @@ function clientTick(dt) {
       S.slots[i] = null;
       S.spawnT = Math.min(S.spawnT, 0.6);
       renderClients();
-      if (S.done >= levelTarget(S.lv) && !waitingNormal().length) levelClear();
+      // 목표 수만큼 납품하면 바로 판 끝 (남은 손님은 그냥 돌아감)
+      if (S.done >= levelTarget(S.lv)) levelClear();
     }
   });
 }
@@ -1397,7 +1398,9 @@ function spawnTick(dt) {
   // 휴머노이드 자리는 비면 바로 다음 손님
   // 손님 수가 목표를 넘지 않게: 이미 납품한 수 + 기다리는 손님 수로 셈 (15/14 같은 일이 없게)
   if (!S.slots[HUM_SLOT] && S.done + waiting().length < levelTarget(S.lv)) { addClient(HUM_SLOT); return; }
-  if (S.done + waiting().length >= levelTarget(S.lv)) return;
+  // 막바지에 휴머노이드 손님만 남아 꼼짝 못 하는 일이 없게: 일반 손님이 하나도 없으면 목표를 넘어도 한 명은 더 받음
+  const humOnly = !waitingNormal().length && waiting().length > 0;
+  if (S.done + waiting().length >= levelTarget(S.lv) && !humOnly) return;
   const free = [0, 1].find(i => !S.slots[i]);
   if (free === undefined) return;
   if ((S.spawnT -= dt) <= 0 || !waitingNormal().length) {
@@ -2453,7 +2456,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-224506';
+const BUILD_V = '1003-231601';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
