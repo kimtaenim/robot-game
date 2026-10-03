@@ -810,10 +810,10 @@ const ORDERS = [
   { id: 'posco2',   want: 'qarm',  n: 1, label: '용선 샘플링 4족로봇', mood: 'calm', icon: '🔥', who: '포스코',      task: '용선 측온·샘플링', sec: '⑦ 철강',     fact: '고로에서는 스팟이 하루 12번 배관 누설을 점검하고, 1500도 용선의 측온·샘플링도 로봇화 중이에요.' },
   { id: 'fire2',    want: 'centaur', n: 1, label: '구조·진압 켄타우로스', mood: 'long', icon: '🧯', who: '소방청',    task: '들어가서 구조·진압', sec: '㉖ 소방·경찰',   fact: '지금 무인소방로봇은 원격으로 물을 쏘는 수준이라, 위험 지역에 직접 들어가 탐색·구조·진압까지 하는 형태로 가야 한다는 주문이 나와요.' },
   // 특별 주문 (농담): 휴머노이드 자리에 가끔
-  { id: 'skynet',   want: 'term',  n: 1, mood: 'long', icon: '🕶️', who: '사이버다인 시스템즈', task: '"I\'ll be back."', sec: '★ 특별 주문', fact: '농담 주문이에요. 사람처럼 생긴 로봇도 결국 손끝 SI를 붙여야 일을 해요.' },
-  { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '"아무로, 출격합니다!"', sec: '★ 특별 주문', fact: '농담 주문이에요. 거대 로봇도 손끝 도구(SI)가 없으면 빔 사벨을 못 쥐어요.' },
-  { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '"오토봇, 변신!"', sec: '★ 특별 주문', fact: '농담 주문이에요. 자동차로 변신하려면 손끝 SI보다 바퀴가 먼저예요.' },
-  { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '"신지, 에바에 타라."', sec: '★ 특별 주문', fact: '농담 주문이에요. 타라는 말이 있어도 SI가 먼저예요.' },
+  { id: 'skynet',   want: 'term',  n: 1, mood: 'long', icon: '🕶️', who: '사이버다인 시스템즈', task: '"I\'ll be back."', sec: '★ 특별 주문', fact: '"Hasta la vista, baby."' },
+  { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '"아무로, 출격합니다!"', sec: '★ 특별 주문', fact: '"인정하고 싶지 않군. 젊음 때문에 저지른 실수라는 것을."' },
+  { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '"오토봇, 변신!"', sec: '★ 특별 주문', fact: '"자유는 모든 지각 있는 존재의 권리다."' },
+  { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '"신지, 에바에 타라."', sec: '★ 특별 주문', fact: '"도망치면 안 돼, 도망치면 안 돼, 도망치면 안 돼!"' },
   { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
   { id: 'bmw',      want: 'hum',   n: 1, us: true, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
   { id: 'cj',       want: 'hum',   n: 1, mood: 'long', icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
@@ -2359,7 +2359,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-172324';
+const BUILD_V = '1003-173023';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
