@@ -229,7 +229,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .float.big { font-size: 30px; color: var(--accent); }
 @keyframes floatUp { to { transform: translate(-50%, -54px); opacity: 0; } }
 .shufflenote { position: fixed; z-index: 45; pointer-events: none; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; background: rgba(19, 32, 42, .88); border: 3px solid var(--gold); border-radius: 18px; padding: 10px 26px 12px; animation: noteIn 1.5s ease forwards; white-space: nowrap; }
-.shufflenote small { font-family: var(--font-display); font-size: 17px; color: #fff; }
+.shufflenote small { font-family: var(--font-title); font-size: 18px; color: #fff; letter-spacing: 1px; }
 .shufflenote b { font-family: var(--font-title); font-weight: 400; font-size: 44px; color: #FFE27A; -webkit-text-stroke: 1px #5a3104; text-shadow: 0 3px 0 #5a3104; }
 @keyframes noteIn { 0% { transform: translate(-50%, -50%) scale(.3); opacity: 0; } 12% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 20% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 .banner { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
@@ -275,7 +275,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 @keyframes coinJump { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 1; } 35% { transform: translate(calc(-50% + var(--dx) * .5), calc(-50% + var(--up))) rotate(calc(var(--rot) * .4)) scale(1); } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + 340px)) rotate(var(--rot)); opacity: 0; } }
 /* 단계 끝: 불꽃놀이 + 춤추는 로봇들 */
 .clearshow { position: fixed; inset: 0; z-index: 47; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-.cs-dim { position: absolute; inset: 0; background: rgba(12, 18, 30, .72); animation: csDim .4s ease forwards; }
+.cs-dim { position: absolute; inset: 0; background: rgba(12, 18, 30, .9); animation: csDim .4s ease forwards; }
 @keyframes csDim { 0% { opacity: 0; } 100% { opacity: 1; } }
 .fw { position: absolute; width: 0; height: 0; }
 .fw i { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); opacity: 0; animation: fwSpark 1.3s ease-out forwards; }
@@ -302,6 +302,11 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 @keyframes csOut { to { opacity: 0; } }
 .cs-ic { font-size: 64px; line-height: 1; animation: csDance .5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
 @keyframes csDance { 0% { rotate: -12deg; translate: 0 0; } 50% { translate: 0 -14px; } 100% { rotate: 12deg; translate: 0 0; } }
+/* 클리어 춤: 그림이 찌그러지지 않게 a프레임만, 눌림·늘어남 없이 통째로 흔들기만 */
+.cs-ic .art.bob { animation: none; }
+.cs-ic .art.bob img { animation: none; opacity: 1; }
+.cs-ic .art.bob img.b { display: none; }
+.cs-ic .art { width: 1.2em; height: 1.2em; }
 .cs-name { margin-top: 4px; font-family: var(--font-display); font-size: 17px; color: #fff; background: rgba(0, 0, 0, .45); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
 /* 주문서가 다 뜨면 까딱까딱 두 번 */
 .order-card.wiggle { animation: cardWiggle .7s ease-in-out 2; }
@@ -1733,7 +1738,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790996478';
+const ART_V = '1790996590';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1932,7 +1937,7 @@ async function shuffleBoard() {
   // 보드 한가운데에 큰 알림: 왜 섞는지 먼저 알려 주고 섞음
   const note = document.createElement('div');
   note.className = 'shufflenote';
-  note.innerHTML = '<small>더 맞출 게 없어요!</small><b>리셔플!</b>';
+  note.innerHTML = '<small>NO MORE MOVES!</small><b>RESHUFFLE!</b>';
   const br = $('board').getBoundingClientRect();
   Object.assign(note.style, { left: br.left + br.width / 2 + 'px', top: br.top + br.height / 2 + 'px' });
   document.body.appendChild(note);
@@ -2045,7 +2050,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1201';
+const BUILD_V = '1003-1203';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2091,6 +2096,9 @@ function levelClear() {
   const stars = avg >= 2.5 ? 3 : avg >= 1.8 ? 2 : 1;
   const bonus = stars * 300;
   S.score += bonus; S.best = Math.max(S.best, S.score); save();
+  // 떠 있던 주문서는 치우고 축하 화면만
+  document.querySelectorAll('.order-card,.readscrim').forEach(e => e.remove());
+  stage.q.length = 0; stage.busy = false;
   S.lv++;
   clearShow(stars).then(() => { if (!S.paused) startLevel(); else S.pendingStart = true; });
   renderHud();
