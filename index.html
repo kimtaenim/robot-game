@@ -696,7 +696,7 @@ const svgImg = k => { const im = new Image(); im.src = 'data:image/svg+xml,' + e
 // 휴머노이드는 처음부터 보드에 없고, 4개 이상 한 번에 맞출 때만 위에서 하나씩 내려옴
 const TILES = {
   wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
-  auto:  { icon: '🧠', name: 'AI', color: 'var(--t-auto)' },  // 자율주행·판단을 맡는 AI
+  auto:  { icon: '🧠', name: '피지컬AI', color: 'var(--t-auto)' },  // 자율주행·판단을 맡는 AI
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
   arm:   { icon: svgIcon('cobot'), img: svgImg('cobot'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
   tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
@@ -2135,7 +2135,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-155528';
+const BUILD_V = '1003-155605';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
