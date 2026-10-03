@@ -1,3 +1,3 @@
-tile-auto,tile-legs,tile-wheel,robot-mm,robot-cobot-weld
-medium
-run 31 (redo faded)
+tile-legs,robot-mm
+high
+run 32 (retry faded)
