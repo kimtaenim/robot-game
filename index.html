@@ -2003,7 +2003,6 @@ function summaryHtml() {
     <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
     <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 1단계부터 다시</button></div>
     <span class="lbl">조합표</span>${recipesHtml()}
-    <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>${mapHtml()}
     <span class="lbl">현장 도감 ${S.dex.size}/${ORDERS.length}</span>
     <div class="log">${ORDERS.map(o => S.dex.has(o.id) ? logItem(o) : `<div class="log-item locked"><span class="i">❔</span><span class="h">???<small>${o.sec}</small></span><span>아직 납품 전</span></div>`).join('')}</div>
     <p>출처: 로봇 스터디 2차 발제 자료 (2026.09.21). 매치3 보드 로직은 Bosses of Our World에서 가져왔어요.</p>`;
