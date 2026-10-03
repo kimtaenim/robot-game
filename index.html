@@ -110,6 +110,16 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .rushbadge i { display: block; width: 54px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.25); overflow: hidden; }
 .rushbadge u { display: block; height: 100%; background: #C0392B; transform-origin: left; }
 @keyframes rushPulse { 50% { transform: translate(-50%, -50%) scale(1.08); } }
+/* 그림(assets/): a·b 두 장을 번갈아 보이며 크게 까딱까딱 (기울고·통통 튀고·눌렸다 펴짐) */
+.art { display: inline-block; position: relative; width: 1.15em; height: 1.15em; vertical-align: -0.22em; flex: none; }
+.art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+img.art { object-fit: contain; }
+.art.bob { transform-origin: 50% 85%; animation: artBob 1.1s ease-in-out infinite; animation-delay: var(--d, 0s); }
+.art.bob img { animation: artA 1.1s steps(1, end) infinite; animation-delay: var(--d, 0s); }
+.art.bob img.b { animation-name: artB; }
+@keyframes artA { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes artB { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 1; } }
+@keyframes artBob { 0%, 100% { rotate: -8deg; translate: 0 0; scale: 1 1; } 25% { rotate: 0deg; translate: 0 -10%; scale: .96 1.06; } 50% { rotate: 8deg; translate: 0 0; scale: 1.08 .9; } 75% { rotate: 0deg; translate: 0 -10%; scale: .96 1.06; } }
 /* 돈벼락 */
 .moneyrain { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
 .moneyrain > span { position: absolute; top: -60px; line-height: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,.35)); animation: mrFall linear forwards; opacity: 0; }
@@ -282,8 +292,9 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
   .ocard .co { font-size: 10.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ocard.enter, .ocard[data-urge], .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
+  .art.bob, .ocard.enter, .ocard[data-urge], .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
   .flyer { transition: none; }
+  .art.bob img { animation: none; } .art.bob img.b { opacity: 0; }
 }
 </style>
 
@@ -999,7 +1010,7 @@ function complete(i) {
   vibrate([30, 50, 30]);
   const lit = [...S.dex].some(id => secKey(O[id]) === secKey(c.order));
   S.dex.add(c.order.id); S.runServed.push(c.order.id); save();
-  if (!lit) banner(`${secKey(c.order)}${c.order.icon} 점등!`, 2100);
+  if (!lit) banner(`${secKey(c.order)}${c.order.emoji || c.order.icon} 점등!`, 2100);
   c.state = 'done'; c.until = DONE_SEC;
   S.done++;
   renderClients(); renderHud();
@@ -1088,7 +1099,7 @@ function orderBody(c, big) {
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
-    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}">${faceOf(c)}</div>`}
+    ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c))}</div>`}
     <div class="rb"><span class="ric">${r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
     <div class="needs">${needs}</div>${big ? orderNote(c) : ''}`;
 }
@@ -1144,7 +1155,7 @@ async function leaveShow(c, i, happy) {
   const rob = `<div class="lrobot">${ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
     ? `${rob}<div class="lstars">${'⭐'.repeat(c.stars)}<span>${'☆'.repeat(3 - c.stars)}</span></div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]}</div>`
-    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">😢😢😢</div><div class="lword">계약 취소</div>`;
+    : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢').repeat(3)}</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
   document.body.appendChild(el);
@@ -1209,7 +1220,7 @@ function updateBars() {
     const card = document.querySelector(`.ocard[data-slot="${i}"]`);
     if (card) { const u = c.state !== 'wait' || c.intro ? 0 : f < 0.15 ? 3 : f < 0.3 ? 2 : f < 0.5 ? 1 : 0; if (card.dataset.urge !== String(u)) card.dataset.urge = u; }
     const fe = document.querySelector(`[data-face="${i}"]`);
-    if (fe) { const f2 = faceOf(c); if (fe.textContent !== f2) fe.textContent = f2; }
+    if (fe) { const f2 = faceOf(c); if (fe.dataset.f !== f2) { fe.dataset.f = f2; fe.innerHTML = faceHTML(f2); } }
   });
 }
 function renderStock() {}
@@ -1385,6 +1396,48 @@ function renderBoard() {
 }
 function clearBoardEls() { tileEls.forEach(e => e.remove()); tileEls.clear(); }
 
+// ───────── 그림(assets/): 파일이 있으면 이모지 대신 그림, 없으면 이모지 그대로 ─────────
+// 부품·로봇·업종은 a/b 두 장을 번갈아 보여 주며 까딱까딱, 손님 얼굴은 한 장
+const IND_KEY = {
+  '항만': 'port', '항공기 제조': 'aircraft', '물류센터': 'logistics', '자동차 부품 공장': 'autoparts', '배터리(ESS) 공장': 'ess',
+  '배터리 소재 공장': 'material', '조선소': 'shipyard', '학교 급식실': 'school', '제조 공장': 'factory', '직업 교육': 'training',
+  '배터리 공장': 'battery', '제철소': 'steel', '경찰': 'police', '방위산업': 'defense', '소방': 'fire', '자동차 공장': 'auto',
+};
+const FACE_KEY = { '😊': 'smile', '😐': 'neutral', '😠': 'frown', '😡': 'angry', '😄': 'delight', '😢': 'tear' };
+const FACE_ART = {};
+const faceHTML = e => FACE_ART[e] || e;
+// 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
+const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="assets/${key}-a.png" alt=""><img class="b" src="assets/${key}-b.png" alt=""></span>`;
+const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
+function applyArt(key, imA) {
+  const [kind, name] = key.split(/-(.+)/);
+  if (kind === 'tile' && TILES[name]) {
+    const t = TILES[name];
+    t.emoji = t.emoji || (t.icon.startsWith('<') ? '' : t.icon);
+    t.icon = artHTML(key); t.img = imA;
+    tileEls.forEach((e, tile) => { if (tile.type === name) { const ic = e.querySelector('.ic'); if (ic) ic.innerHTML = t.icon; } });
+    if (name === 'hum') { ROBOTS.hum.emoji = ROBOTS.hum.emoji || ROBOTS.hum.icon; ROBOTS.hum.icon = artHTML(key); }
+  } else if (kind === 'robot' && ROBOTS[name]) {
+    ROBOTS[name].emoji = ROBOTS[name].emoji || ROBOTS[name].icon; ROBOTS[name].icon = artHTML(key);
+  } else if (kind === 'ind') {
+    ORDERS.forEach(o => { if (IND_KEY[o.ind] === name) { o.emoji = o.emoji || o.icon; o.icon = artHTML(key); } });
+  }
+}
+async function loadArt() {
+  const anim = [...Object.keys(TILES).map(k => 'tile-' + k), ...Object.keys(ROBOTS).filter(r => r !== 'hum').map(r => 'robot-' + r), ...Object.values(IND_KEY).map(k => 'ind-' + k)];
+  let any = false;
+  await Promise.all([
+    ...anim.map(async key => {
+      const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
+      if (a && b) { applyArt(key, a); any = true; }
+    }),
+    ...Object.entries(FACE_KEY).map(async ([e, k]) => {
+      if (await loadImg(`assets/face-${k}.png`)) { FACE_ART[e] = `<img class="art face" src="assets/face-${k}.png" alt="${e}">`; any = true; }
+    }),
+  ]);
+  if (any && S.slots) renderClients();
+}
+loadArt();
 // ───────── 매치3 진행 ─────────
 function slide(t, r, c, ms) {
   const x0 = t.x, y0 = t.y;
@@ -1654,7 +1707,7 @@ function startLevel() {
   layout(); renderBoard();
   renderClients(); renderStock(); renderHud();
   banner(`${S.lv}단계`);
-  if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
+  if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].emoji || TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
   addClient(0);
   S.spawnT = 2;
 }
