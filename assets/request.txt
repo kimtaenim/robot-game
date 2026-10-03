@@ -1,3 +1,3 @@
-face-suitf-smile,face-trump-smile
+face-suitf-,face-trump-
 medium
-run 15
+run 16
