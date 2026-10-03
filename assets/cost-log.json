@@ -1,6 +1,6 @@
 {
- "total_usd": 13.9407,
- "images": 119,
+ "total_usd": 14.5042,
+ "images": 125,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -176,6 +176,13 @@
    "quality": "medium",
    "images": 24,
    "usd": 2.1618
+  },
+  {
+   "started": "2026-10-03T03:31:36.672Z",
+   "only": "tile-auto,tile-legs,tile-wheel,robot-mm,robot-cobot-weld",
+   "quality": "medium",
+   "images": 6,
+   "usd": 0.5635
   }
  ]
 }
