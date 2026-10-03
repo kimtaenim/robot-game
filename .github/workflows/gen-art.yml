@@ -1,0 +1,43 @@
+# 그림 생성: GitHub 저장소 Secret에 넣은 OPENAI_API_KEY로 scripts/gen-art.mjs를 돌리고, 생긴 assets/를 커밋
+# Actions 탭 → "Generate art" → Run workflow
+name: Generate art
+
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: '이름에 이 글자가 들어간 그림만 (비우면 전부, 예: robot-amr)'
+        required: false
+        default: ''
+      quality:
+        description: 'low / medium / high'
+        required: false
+        default: 'medium'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate images
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QUALITY: ${{ inputs.quality }}
+          ONLY: ${{ inputs.only }}
+        run: node scripts/gen-art.mjs "$ONLY"
+      - name: Commit images
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets
+          git diff --cached --quiet && echo "새 그림 없음" && exit 0
+          git commit -m "Generated art"
+          git push
