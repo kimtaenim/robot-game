@@ -376,6 +376,16 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .nt-txt small { font-size: 14.5px; font-weight: 700; line-height: 1.3; color: var(--steel); word-break: keep-all; }
 .nt-tap { margin-top: 8px; font-family: var(--font-display); font-size: 18px; color: #1A1400; background: var(--accent); border-radius: 999px; padding: 8px 22px; opacity: 0; transition: opacity .3s; }
 .newtiles.ready .nt-tap { opacity: 1; animation: urgent 1s ease-in-out infinite; }
+.cs-head { background: var(--steel, #2C6E9B); }
+.case-bot { font-size: 96px; line-height: 1; margin: 4px 0 0; }
+.case-bot .art { width: 1.25em; height: 1.25em; }
+.case-name { font-family: var(--font-display); font-size: 26px; line-height: 1.1; text-align: center; }
+.case-where { font-family: var(--font-display); font-size: 18px; color: var(--steel); text-align: center; word-break: keep-all; }
+.case-task { font-size: 15px; font-weight: 700; color: var(--muted); text-align: center; word-break: keep-all; }
+.case-fact { align-self: stretch; margin-top: 6px; font-size: 15.5px; font-weight: 700; line-height: 1.4; word-break: keep-all; background: var(--surface-2, #F3F4F6); border-radius: 10px; padding: 8px 10px; }
+.case-why { align-self: stretch; margin-top: 6px; font-size: 15.5px; font-weight: 700; line-height: 1.45; color: var(--ink); word-break: keep-all; background: #FFF6D6; border: 2px solid #F0C34A; border-radius: 10px; padding: 8px 10px; }
+.case-why b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 18px; color: #A0640A; margin-bottom: 2px; }
+.leave .lfact { max-width: min(330px, 88vw); margin-top: 6px; font-size: 15px; font-weight: 700; line-height: 1.4; color: var(--ink); text-align: center; word-break: keep-all; background: rgba(255, 255, 255, .95); border: 2px solid var(--ink); border-radius: 10px; padding: 6px 10px; opacity: 0; animation: csIn .35s .5s ease-out forwards; }
 /* 단계 시작 */
 .startshow.ready { pointer-events: auto; cursor: pointer; }
 .startshow.out { opacity: 0; transition: opacity .25s; }
@@ -911,11 +921,11 @@ try {
   S.best = +ld('best') || 0;
   // 하던 판 이어서: 단계·점수·만든 로봇 (새로고침하거나 나갔다 와도 그 단계부터)
   const run = JSON.parse(localStorage.getItem('robotrush.run') || 'null');
-  if (run && run.lv >= 1) Object.assign(S, { lv: run.lv, score: run.score || 0, chainMax: run.chainMax || 0, runServed: run.runServed || [], seenTiles: run.seenTiles || [] });
+  if (run && run.lv >= 1) Object.assign(S, { lv: run.lv, score: run.score || 0, chainMax: run.chainMax || 0, runServed: run.runServed || [], seenTiles: run.seenTiles || [], seenCases: run.seenCases || [] });
 } catch (e) {}
 const save = () => { try {
   localStorage.setItem('robotrush.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotrush.best', String(S.best));
-  localStorage.setItem('robotrush.run', JSON.stringify({ lv: S.lv, score: S.score, chainMax: S.chainMax, runServed: S.runServed.slice(-300), seenTiles: S.seenTiles || [] }));
+  localStorage.setItem('robotrush.run', JSON.stringify({ lv: S.lv, score: S.score, chainMax: S.chainMax, runServed: S.runServed.slice(-300), seenTiles: S.seenTiles || [], seenCases: S.seenCases || [] }));
 } catch (e) {} };
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -1510,7 +1520,7 @@ async function leaveShow(c, i, happy) {
   el.className = 'leave' + (happy ? ' happy' : ' angry');
   const rob = `<div class="lrobot">${c.order.robotIcon || ROBOTS[c.order.want].icon}${c.order.n > 1 ? `<b>×${c.order.n}</b>` : ''}</div>`;
   el.innerHTML = happy
-    ? `<div class="lrays"></div>${rob}<div class="lname">${robotLabel(c.order)}</div><div class="lstamp">납품 완료!</div><div class="lstars">${[0, 1, 2].map(k => `<i class="${k < c.stars ? 'on' : 'off'}" style="animation-delay:${0.35 + k * 0.22}s">${k < c.stars ? '⭐' : '☆'}</i>`).join('')}</div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]} <b>+${c.gain || 0}</b></div>`
+    ? `<div class="lrays"></div>${rob}<div class="lname">${robotLabel(c.order)}</div><div class="lstamp">납품 완료!</div><div class="lstars">${[0, 1, 2].map(k => `<i class="${k < c.stars ? 'on' : 'off'}" style="animation-delay:${0.35 + k * 0.22}s">${k < c.stars ? '⭐' : '☆'}</i>`).join('')}</div><div class="lword">${['', '그럭저럭', '좋아요!', '최고예요!'][c.stars]} <b>+${c.gain || 0}</b></div>${c.order.fact ? `<div class="lfact">${c.order.fact}</div>` : ''}`
     : `${rob.replace('lrobot', 'lrobot shadow')}<div class="lsad">${faceHTML('😢', clientChar(c)).repeat(3)}</div><div class="lword">계약 취소</div>`;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(x0, y0, 0.35, 1);
@@ -1522,7 +1532,8 @@ async function leaveShow(c, i, happy) {
   }
   await tween(330, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
   // 전체 2초: 만족은 떠 있음 1.53 + 펑 0.14, 떠남은 떠 있음 1.29 + 연기 0.38
-  await tween(happy ? 1530 : 1290, q => set(mx, my - 6 * Math.sin(q * Math.PI * 3), 1, 1));
+  // 납품은 사례 한 줄을 읽을 수 있게 조금 더 오래 (2.6초)
+  await tween(happy ? (c.order.fact ? 2600 : 1530) : 1290, q => set(mx, my - 6 * Math.sin(q * Math.PI * (happy && c.order.fact ? 5 : 3)), 1, 1));
   const r = el.getBoundingClientRect();
   if (happy) {
     SFX.cash();  // 캐시 소리와 함께 돈이 우수수
@@ -1658,6 +1669,66 @@ const SPECIAL_HELP = '이번 판 특별 손님! 휴머노이드 대신 이 타�
 function freshTiles() {
   S.seenTiles = S.seenTiles || [];
   return [...S.def.tiles, S.def.special || 'hum'].filter(t => !S.seenTiles.includes(t));
+}
+// 새 타일이 없는 판: 대신 실제 납품 사례 한 페이지 (완성 로봇 그림 + 어디에 + 왜 이 로봇인지)
+const CASE_WHY = {
+  port: '부두는 길과 동선이 정해져 있고 같은 경로를 계속 오가요. 바닥에 깐 길을 따라가는 AGV가 정확하고 튼튼해요. 대신 처음에 길을 까는 바닥 공사가 필요해요.',
+  kai: '공정 사이를 정해진 길로 오가는 자재 이송이에요. 길을 한 번 깔아 두면 AGV가 실수 없이 반복해요.',
+  stl: '물류센터는 선반 배치가 자주 바뀌어요. AMR은 바닥 공사 없이 스스로 지도를 그리고 길을 찾아서, 배치가 바뀌어도 그대로 써요.',
+  transys: '이미 돌아가는 공장(브라운필드)은 바닥을 뜯기 어려워요. AMR은 바닥 공사 없이 스스로 길을 찾아 들어가요.',
+  ford: '사람과 지게차가 오가는 공장 안에서 자재를 날라야 해요. 장애물을 보고 피해 가는 AMR이 맞아요.',
+  usbat: '미국 공장에서 쓸 AMR이라 성능만큼 어디서 만들었는지(FCC 인증)도 따져야 해요.',
+  ecopro: '넓은 설비 사이를 돌며 살펴야 해서, 스스로 다니는 AMR에 센서를 달아 순찰해요.',
+  mipo: '숙련 용접공이 모자라고 같은 용접을 계속 반복해요. 울타리 없이 사람 옆에서 일하는 협동로봇에 용접 토치(SI)를 달아요.',
+  ship2: '고열·먼지 속에서 용접선을 따라가야 해요. 협동로봇에 용접 토치(SI)를 달면 사람은 옆에서 지시만 해요.',
+  busanEdu: '무거운 솥과 뜨거운 기름 앞에서 같은 동작을 반복해요. 협동로봇에 조리 도구(SI)를 달아 힘든 일을 덜어요.',
+  seoulEdu: '볶고 끓이고 튀기는 일마다 도구만 바꿔 달면 돼요. 협동로봇은 끝에 다는 도구(SI)로 하는 일이 정해져요.',
+  gyeonggiEdu: '튀김은 뜨거운 기름 앞 반복 작업이라 위험해요. 한곳에서 로봇이 튀겨 여러 학교로 보내요.',
+  kyochon: '튀김은 뜨거운 기름 앞에서 같은 동작을 반복해요. 협동로봇에 튀김 바구니(SI)를 달면 돼요. 다만 값이 비싸서 들일지는 점주가 고민해요.',
+  bhc: '튀김 바구니(SI)를 단 협동로봇이 기름 앞 반복 작업을 맡아요. 작은 매장에는 로봇 값이 큰 부담이에요.',
+  gwangjin: '양산 라인의 반복 피킹은 협동로봇이 잘해요. 울타리 없이 사람 옆에 둘 수 있어 라인을 크게 안 바꿔요.',
+  polytech: '협동로봇은 사람 옆에서 안전하게 쓸 수 있어서, 학생이 직접 만지며 배우는 실습용으로 좋아요.',
+  lg: '라인을 돌아다니면서(바퀴+AI) 손으로 셀을 빼고 장비 문을 열어야(팔+SI) 해요. 그래서 둘을 합친 모바일 매니퓰레이터예요.',
+  rby1: '돌아다니며 양팔로 일하는 로봇은 카메라·센서로 주변을 읽고 무선으로 통신해요. 바로 이 기능 때문에 FCC 규제 대상이 됐어요.',
+  posco: '고로 주변은 계단·배관·턱이 많고 뜨겁고 위험해요. 바퀴로는 못 가는 곳이라 다리로 걷는 4족로봇이 순찰해요.',
+  police: '폭발물 현장은 사람이 먼저 들어가기 위험하고 바닥이 험해요. 4족로봇이 계단과 잔해를 넘어 먼저 들어가요.',
+  army: '산과 험지는 바퀴가 못 가요. 다리로 걷는 4족로봇이 정찰해요. 군 장비라서 국내생산 칸이 붙어요.',
+  fire: '화재 현장은 연기·잔해·계단투성이예요. 4족로봇이 걸어 들어가 사람보다 먼저 살펴요.',
+  posco2: '1500도 용선 앞까지 걸어가서(다리) 직접 온도를 재고 시료를 떠야(팔+SI) 해요. 그래서 팔 달린 4족로봇이에요.',
+  fire2: '험한 곳까지 걸어 들어가고(4족 하체) 양팔로 구조·진압까지(사람 상체) 하려는 형태예요.',
+  hyundai: '자동차 조립 라인은 사람 키와 손에 맞춰져 있어서, 휴머노이드는 라인을 뜯어고치지 않고 사람 자리에 들어가요. 대신 노조와 합의가 필요해요.',
+  bmw: '차체 라인에서 사람이 하던 교대 근무를 같은 자리에서 그대로 대신해요. 사람 모양이라 라인을 바꿀 필요가 적어요.',
+  cj: '상자에 완충재를 채우는 포장은 양손이 필요해요. 사람처럼 두 팔이 있는 휴머노이드가 맞아요.',
+  catl: '사람이 서던 생산 라인에 그대로 세울 수 있어요. 배터리 회사라 자기 배터리로 움직이는 로봇을 직접 써 봐요.',
+};
+function pickCase() {
+  S.seenCases = S.seenCases || [];
+  const all = ORDERS.filter(o => CASE_WHY[o.id] && S.def.robots.includes(o.want));
+  const fresh = all.filter(o => !S.seenCases.includes(o.id));
+  const list = fresh.length ? fresh : all;
+  return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+}
+function caseShow(o) {
+  return new Promise(done => {
+    const el = document.createElement('div');
+    el.className = 'newtiles casepage';
+    el.innerHTML = `<div class="nt-panel"><div class="nt-head cs-head">납품 사례</div>
+      <div class="case-bot">${o.robotIcon || ROBOTS[o.want].icon}</div>
+      <div class="case-name">${robotLabel(o)}</div>
+      <div class="case-where">${o.icon} ${o.ind}${o.who ? ` · ${o.who}` : ''}</div>
+      <div class="case-task">${o.task}</div>
+      <div class="case-fact">${o.fact}</div>
+      <div class="case-why"><b>왜 ${robotLabel(o)}?</b>${CASE_WHY[o.id]}</div>
+      <div class="nt-tap">알겠어요 ▶</div></div>`;
+    document.body.appendChild(el);
+    SFX.ticket();
+    S.seenCases.push(o.id); save();
+    setTimeout(() => {
+      el.classList.add('ready');
+      const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); };
+      el.addEventListener('pointerdown', go);
+    }, 900);
+  });
 }
 function newTilesShow(list) {
   return new Promise(done => {
@@ -2288,7 +2359,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-171848';
+const BUILD_V = '1003-172324';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2324,6 +2395,7 @@ function startLevel() {
   // 처음 나오는 타일이 있으면 설명 창부터, 그다음 시작 연출, 그 뒤 첫 주문서
   const fresh = freshTiles();
   if (fresh.length) onStage(() => newTilesShow(fresh));
+  else { const cs = pickCase(); if (cs) onStage(() => caseShow(cs)); }  // 새 타일이 없으면 납품 사례 한 페이지
   onStage(startShow);
   addClient(0);
   S.spawnT = 2;
@@ -2368,7 +2440,7 @@ function openSheet(html, pause) {
 function restartGame() {
   document.querySelectorAll('.order-card,.readscrim,.clearshow,.leave,.moneyrain,.startshow').forEach(e => e.remove());
   stage.q.length = 0; stage.busy = false;
-  Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], seenTiles: [], paused: false, pendingStart: false });
+  Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], seenTiles: [], seenCases: [], paused: false, pendingStart: false });
   $('overlay').hidden = true;
   save();
   startLevel();
