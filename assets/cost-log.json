@@ -1,6 +1,6 @@
 {
- "total_usd": 11.1284,
- "images": 89,
+ "total_usd": 11.779,
+ "images": 95,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -162,6 +162,13 @@
    "quality": "medium",
    "images": 5,
    "usd": 0.6605
+  },
+  {
+   "started": "2026-10-03T03:17:32.911Z",
+   "only": "tile-term,tile-gundam,tile-eva",
+   "quality": "medium",
+   "images": 6,
+   "usd": 0.6506
   }
  ]
 }
