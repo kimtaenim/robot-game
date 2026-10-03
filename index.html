@@ -172,7 +172,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .ocard.hum .hint { font-size: 11.5px; white-space: normal; word-break: keep-all; text-align: center; line-height: 1.05; }
 .ocard .rb { display: flex; align-items: center; justify-content: center; gap: 1px; max-width: 100%; }
 .ocard .rb .ric { font-size: clamp(28px, calc(var(--rh, 218px) * .14), 40px); line-height: 1; }
-.ocard.hum .rb .ric { font-size: clamp(30px, calc(var(--rh, 218px) * .18), 50px); }
+.ocard.hum .rb .ric { font-size: 24px; }
 .ocard .rb b { font-family: var(--font-display); font-weight: 400; font-size: 16px; }
 .ocard .rname { font-family: var(--font-display); font-size: 18px; color: var(--steel); line-height: 1.02; letter-spacing: -0.04em; text-align: left; word-break: keep-all; }
 .ocard .needs { display: flex; flex-wrap: nowrap; justify-content: center; gap: 2px; margin: 3px 0 4px; }
@@ -180,7 +180,9 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 /* 좁은 휴머노이드 상시 주문서 */
 .ocard.hum { padding: 4px 1px 4px; background: linear-gradient(180deg, #FFF8E1, var(--surface) 45%); border-color: var(--gold-deep); }
 .ocard.hum .ind { font-size: 24px; }
-.ocard.hum .rb { margin-top: auto; }
+.ocard.hum .rb { margin-top: 0; }
+.ocard.hum .cface { flex: 1 1 0; min-height: 0; width: 100%; margin: 0; align-items: center; }
+.ocard.hum .cface .art { height: 100%; max-height: 100%; width: auto; max-width: 100%; }
 .ocard.hum { container-type: inline-size; }
 .ocard.hum .rname { font-size: clamp(12px, 27cqw, 18px); line-height: 1; text-align: center; word-break: keep-all; }
 .ocard.hum .needs { flex-wrap: wrap; gap: 2px; }
@@ -352,6 +354,21 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .ld-bar i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .1s; }
 .ld-gear { font-size: 56px; animation: ldSpin 1.2s linear infinite; }
 @keyframes ldSpin { to { transform: rotate(360deg); } }
+/* 처음 나오는 타일 설명 창 */
+.newtiles { position: fixed; inset: 0; z-index: 47; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(10, 12, 26, .6); }
+.newtiles.ready { cursor: pointer; }
+.newtiles.out { opacity: 0; transition: opacity .25s; }
+.nt-panel { width: min(360px, 92vw); max-height: 90vh; overflow: auto; background: #fff; color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0,0,0,.45); padding: 10px 10px 14px; display: flex; flex-direction: column; align-items: center; gap: 2px; animation: csIn .35s ease-out; }
+.nt-head { align-self: stretch; text-align: center; font-family: var(--font-display); font-size: 20px; color: #fff; background: var(--accent-deep, #C0392B); border-radius: 8px; padding: 4px 0; margin-bottom: 4px; }
+.nt-row { align-self: stretch; display: flex; align-items: center; gap: 10px; padding: 6px 2px; border-bottom: 1px dashed var(--line); opacity: 0; animation: csIn .35s ease-out forwards; }
+.nt-row:last-of-type { border-bottom: 0; }
+.nt-tile { flex: none; width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 34px; box-shadow: inset 0 -3px 0 rgba(0,0,0,.2); }
+.nt-tile .art { width: 1.4em; height: 1.4em; }
+.nt-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nt-txt b { font-family: var(--font-display); font-weight: 400; font-size: 20px; line-height: 1.1; }
+.nt-txt small { font-size: 14.5px; font-weight: 700; line-height: 1.3; color: var(--steel); word-break: keep-all; }
+.nt-tap { margin-top: 8px; font-family: var(--font-display); font-size: 18px; color: #1A1400; background: var(--accent); border-radius: 999px; padding: 8px 22px; opacity: 0; transition: opacity .3s; }
+.newtiles.ready .nt-tap { opacity: 1; animation: urgent 1s ease-in-out infinite; }
 /* 단계 시작 */
 .startshow.ready { pointer-events: auto; cursor: pointer; }
 .startshow.out { opacity: 0; transition: opacity .25s; }
@@ -419,6 +436,8 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
   .title .star { font-size: 18px; }
   .hud { padding: 4px 7px; }
   .ocard .ind { font-size: 21px; }
+  .ocard.hum .hint { display: none; }
+  .ocard.hum .ind { font-size: 20px; }
   .ocard .co { font-size: 13.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -756,7 +775,7 @@ const ORDERS = [
   { id: 'stl',      want: 'amr',   n: 2, mood: 'mid',  icon: '💄', who: '에스티엘',    task: '오더피킹',           sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
   { id: 'transys',  want: 'amr',   n: 1, us: true, mood: 'mid',  icon: '🏭', who: '현대트랜시스', task: '바닥 공사 없이 운반', sec: '② AMR',        fact: '티라로보틱스가 현대트랜시스 미국 앨라배마 공장에 바닥 공사 없이 넣은 300kg급 AMR이에요.' },
   { id: 'ford',     want: 'amr',   n: 1, us: true, mood: 'hot',  icon: '🔌', who: '포드',        task: '공장 자재 운반',     sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
-  { id: 'usbat',    want: 'amr',   n: 1, us: true, mood: 'mid',  icon: '🔋', who: '배터리사 미국 공장', task: '부품 운반',     sec: '⑧ 배터리 공장', fact: '미국에 공장을 둔 국내 배터리사는 부품 운반 AMR을 들일 때 FCC 장비 인증 규정을 살펴야 해요.' },
+  { id: 'usbat',    want: 'amr',   n: 1, us: true, mood: 'mid',  icon: '🔋', who: '국내 배터리사', task: '미국 공장 부품 운반',     sec: '⑧ 배터리 공장', fact: '미국에 공장을 둔 국내 배터리사는 부품 운반 AMR을 들일 때 FCC 장비 인증 규정을 살펴야 해요.' },
   { id: 'ecopro',   want: 'amr',   n: 1, mood: 'mid',  icon: '🧪', who: '에코프로',    task: '설비 순찰 점검',     sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
   { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: '',            task: '선체 용접',          sec: '④ 조선',        label: '용접 협동로봇', fact: '한 조선소는 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공을 구하지 못해 "일을 못 받는다"는 현장이에요.' },
   { id: 'ship2',    want: 'cobot', n: 1, mood: 'hot',  icon: '🚢', who: '',            task: '고열·분진 속 용접',   sec: '④ 조선',        label: '용접 협동로봇', fact: '조선소는 고열·먼지·용접 스패터 속에서 용접선을 따라 움직여야 해요. 작업자가 말로 지시하면 로봇이 토치 각도와 속도를 정하는 AI 과제도 진행 중이에요.' },
@@ -886,11 +905,11 @@ try {
   S.best = +ld('best') || 0;
   // 하던 판 이어서: 단계·점수·만든 로봇 (새로고침하거나 나갔다 와도 그 단계부터)
   const run = JSON.parse(localStorage.getItem('robotrush.run') || 'null');
-  if (run && run.lv >= 1) Object.assign(S, { lv: run.lv, score: run.score || 0, chainMax: run.chainMax || 0, runServed: run.runServed || [] });
+  if (run && run.lv >= 1) Object.assign(S, { lv: run.lv, score: run.score || 0, chainMax: run.chainMax || 0, runServed: run.runServed || [], seenTiles: run.seenTiles || [] });
 } catch (e) {}
 const save = () => { try {
   localStorage.setItem('robotrush.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotrush.best', String(S.best));
-  localStorage.setItem('robotrush.run', JSON.stringify({ lv: S.lv, score: S.score, chainMax: S.chainMax, runServed: S.runServed.slice(-300) }));
+  localStorage.setItem('robotrush.run', JSON.stringify({ lv: S.lv, score: S.score, chainMax: S.chainMax, runServed: S.runServed.slice(-300), seenTiles: S.seenTiles || [] }));
 } catch (e) {} };
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -1390,7 +1409,8 @@ function orderBody(c, big) {
   const o = c.order, r = ROBOTS[o.want];
   const needs = c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('');
   if (isHumSlot(S.slots.indexOf(c)) && !big) {
-    return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">${splitName(r.name)}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
+    // 손님(트럼프 등)이 크게 서 있고, 만들 로봇은 작은 그림 + 이름으로
+    return `<div class="ind">${o.icon}</div><div class="cface" data-face="${S.slots.indexOf(c)}" data-f="${faceOf(c)}">${faceHTML(faceOf(c), clientChar(c))}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">${splitName(r.name)}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
@@ -1588,6 +1608,40 @@ function botsToMakeHtml() {
     const parts = R.parts.map(p => `<span class="ss-p">${TILES[p].icon}</span>`).join('<i>+</i>');
     return `<div class="ss-bot" style="animation-delay:${(1.1 + k * 0.12).toFixed(2)}s"><span class="ss-ic">${R.icon}</span><span class="ss-nm">${R.name}</span><span class="ss-parts">${parts}</span></div>`;
   }).join('');
+}
+// 이번 판에 처음 나오는 타일: 그림 + 이름 + 한두 줄 설명 (판 시작 전에 한 번)
+const TILE_HELP = {
+  wheel: '굴러다니는 로봇의 발. AMR·AGV·모바일 매니퓰레이터에 들어가요.',
+  auto: '스스로 보고 판단하는 로봇의 두뇌. AMR·4족로봇·휴머노이드에 필요해요.',
+  floor: 'AGV가 따라갈 길(자석 테이프·QR)을 바닥에 까는 공사예요. AGV에 필요해요.',
+  arm: '사람 옆에서 같이 일하는 협동로봇의 팔이에요.',
+  tool: '용접 토치·집게·튀김 바구니처럼 일에 맞는 도구를 달고 현장에 맞춰 설치(SI)해요.',
+  legs: '계단·험한 곳을 걷는 다리. 4족로봇은 다리 타일을 두 번 맞춰야 해요.',
+  made: '미국 FCC가 외국에서 만든 첨단 로봇 인증을 막아요. 미국 주문(트럼프 손님)에 이 칸이 붙어요.',
+  union: '"노사 합의 없이 로봇 1대도 안 된다." 현대차 주문에 이 칸이 붙어요.',
+  korea: '군 로봇은 국내에서 만들어야 해요. 방위산업 주문에 이 칸이 붙어요.',
+  hum: '처음엔 보드에 없어요. 4개·2×2를 맞추면 1개, 5개를 맞추면 2개가 위에서 내려와요.',
+};
+const SPECIAL_HELP = '이번 판 특별 손님! 휴머노이드 대신 이 타일이 내려와요. 4개·2×2를 맞추면 1개, 5개면 2개.';
+function freshTiles() {
+  S.seenTiles = S.seenTiles || [];
+  return [...S.def.tiles, S.def.special || 'hum'].filter(t => !S.seenTiles.includes(t));
+}
+function newTilesShow(list) {
+  return new Promise(done => {
+    const el = document.createElement('div');
+    el.className = 'newtiles';
+    const rows = list.map((t, k) => `<div class="nt-row" style="animation-delay:${(0.25 + k * 0.12).toFixed(2)}s"><span class="nt-tile" style="background:${TILES[t].color}">${TILES[t].icon}</span><div class="nt-txt"><b>${TILES[t].name}</b><small>${TILE_HELP[t] || SPECIAL_HELP}</small></div></div>`).join('');
+    el.innerHTML = `<div class="nt-panel"><div class="nt-head">${S.seenTiles.length ? '새 타일 등장!' : '이번 판 타일'}</div>${rows}<div class="nt-tap">알겠어요 ▶</div></div>`;
+    document.body.appendChild(el);
+    SFX.ticket();
+    S.seenTiles.push(...list); save();
+    setTimeout(() => {
+      el.classList.add('ready');
+      const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); };
+      el.addEventListener('pointerdown', go);
+    }, 700);
+  });
 }
 function startShow() {
   if (JUICE <= 0) { banner(`${S.lv}단계`); return; }
@@ -2175,7 +2229,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-162548';
+const BUILD_V = '1003-162941';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2208,7 +2262,10 @@ function startLevel() {
   S.board.fillInitial();
   layout(); renderBoard();
   renderClients(); renderStock(); renderHud();
-  onStage(startShow);  // 시작 연출이 끝난 뒤 첫 주문서가 뜸
+  // 처음 나오는 타일이 있으면 설명 창부터, 그다음 시작 연출, 그 뒤 첫 주문서
+  const fresh = freshTiles();
+  if (fresh.length) onStage(() => newTilesShow(fresh));
+  onStage(startShow);
   addClient(0);
   S.spawnT = 2;
 }
@@ -2252,7 +2309,7 @@ function openSheet(html, pause) {
 function restartGame() {
   document.querySelectorAll('.order-card,.readscrim,.clearshow,.leave,.moneyrain,.startshow').forEach(e => e.remove());
   stage.q.length = 0; stage.busy = false;
-  Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], paused: false, pendingStart: false });
+  Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], seenTiles: [], paused: false, pendingStart: false });
   $('overlay').hidden = true;
   save();
   startLevel();
