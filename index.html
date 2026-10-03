@@ -2136,6 +2136,17 @@ async function loadArt() {
 const artReady = loadArt();
 // a·b 그림 번갈아 보이기: 0.5초마다 화면 전체 표시 하나만 바꿈 (그림마다 애니메이션을 돌리지 않음)
 setInterval(() => document.body.classList.toggle('fb'), 500);
+// 안전장치: 그림 불러오기에 실패한(크기 0) 그림은 2초마다 찾아서 다시 불러옴 (아이폰에서 앱을 오래 내려 두었다 오면 그림이 비는 경우)
+const healArt = () => {
+  for (const im of document.querySelectorAll('.art img, img.art')) {
+    if (im.complete && im.naturalWidth === 0 && im.src) {
+      const u = new URL(im.src, location.href); u.searchParams.set('r', String(Date.now() % 1e6)); im.src = u.href;
+    }
+  }
+};
+setInterval(healArt, 2000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(healArt, 300); });
+addEventListener('pageshow', () => setTimeout(healArt, 300));
 // ───────── 매치3 진행 ─────────
 function slide(t, r, c, ms) {
   const x0 = t.x, y0 = t.y;
@@ -2448,7 +2459,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-211943';
+const BUILD_V = '1003-212209';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
