@@ -2459,7 +2459,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-212209';
+const BUILD_V = '1003-212606';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2481,17 +2481,6 @@ function loop(t) {
   if (S.board) drawTiles();
   fxDraw();
   requestAnimationFrame(loop);
-// 새 버전 확인 (GitHub Pages는 페이지를 최대 10분 캐시함): 주소 뒤에 매번 다른 값을 붙여 최신 페이지의 빌드 번호를 읽고,
-// 지금 것과 다르면 그 주소로 새로고침 → 캐시를 건너뛴 최신 버전이 바로 뜸 (하던 판은 저장돼 있어서 그대로 이어짐)
-function checkNewVersion() {
-  if (!/github\.io$/.test(location.hostname)) return;
-  fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => {
-    const m = t.match(/BUILD_V = '([^']+)'/);
-    if (m && m[1] !== BUILD_V) location.replace(location.pathname + '?b=' + m[1]);
-  }).catch(() => {});
-}
-checkNewVersion();
-document.addEventListener('visibilitychange', () => { if (!document.hidden) checkNewVersion(); });
 }
 function startLevel() {
   S.def = levelDef(S.lv);
@@ -2685,5 +2674,20 @@ syncSound(); renderHud();
 }
 requestAnimationFrame(loop);
 </script>
+
+// 새 버전 확인 (GitHub Pages는 페이지를 최대 10분 캐시함): 주소 뒤에 매번 다른 값을 붙여 최신 페이지의 빌드 번호를 읽고,
+// 처음 켤 때 한 번만 확인해서, 지금 것과 다르면 그 주소로 새로고침 (판 도중에는 안 함) → 캐시를 건너뛴 최신 버전이 바로 뜸 (하던 판은 저장돼 있어서 그대로 이어짐)
+function checkNewVersion() {
+  if (!/github\.io$/.test(location.hostname)) return;
+  fetch(location.pathname + '?check=' + Date.now(), { cache: 'no-store' }).then(r => r.text()).then(t => {
+    const m = t.match(/BUILD_V = '([^']+)'/);
+    if (!m || m[1] === BUILD_V) return;
+    let tried = null; try { tried = sessionStorage.getItem('robotrush.reloadTo'); } catch (e) {}
+    if (tried === m[1]) return;  // 이미 한 번 시도한 버전이면 다시 새로고침하지 않음
+    try { sessionStorage.setItem('robotrush.reloadTo', m[1]); } catch (e) {}
+    location.replace(location.pathname + '?b=' + m[1]);
+  }).catch(() => {});
+}
+checkNewVersion();
 </body>
 </html>
