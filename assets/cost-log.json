@@ -1,6 +1,6 @@
 {
- "total_usd": 21.3533,
- "images": 192,
+ "total_usd": 22.221,
+ "images": 200,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -337,6 +337,13 @@
    "quality": "medium",
    "images": 4,
    "usd": 0.4345
+  },
+  {
+   "started": "2026-10-03T12:01:15.105Z",
+   "only": "tile-mgodz,tile-mazinger,tile-gmazinger,tile-taekwonv",
+   "quality": "medium",
+   "images": 8,
+   "usd": 0.8678
   }
  ]
 }
