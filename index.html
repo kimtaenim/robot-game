@@ -268,16 +268,23 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 @keyframes coinJump { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 1; } 35% { transform: translate(calc(-50% + var(--dx) * .5), calc(-50% + var(--up))) rotate(calc(var(--rot) * .4)) scale(1); } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + 340px)) rotate(var(--rot)); opacity: 0; } }
 /* 단계 끝: 불꽃놀이 + 춤추는 로봇들 */
 .clearshow { position: fixed; inset: 0; z-index: 47; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-.cs-dim { position: absolute; inset: 0; background: rgba(12, 18, 30, .72); animation: csDim 5s ease forwards; }
-@keyframes csDim { 0% { opacity: 0; } 8% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; } }
+.cs-dim { position: absolute; inset: 0; background: rgba(12, 18, 30, .72); animation: csDim .4s ease forwards; }
+@keyframes csDim { 0% { opacity: 0; } 100% { opacity: 1; } }
 .fw { position: absolute; width: 0; height: 0; }
 .fw i { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); opacity: 0; animation: fwSpark 1.3s ease-out forwards; }
 @keyframes fwSpark { 0% { transform: rotate(var(--a)) translateX(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateX(90px) translateY(30px); opacity: 0; } }
-.cs-title { position: relative; font-family: var(--font-title); font-size: 52px; white-space: nowrap; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 5px 0 #5a3104; animation: csTitle 5s ease forwards; }
+.cs-title { position: relative; font-family: var(--font-title); font-size: 52px; white-space: nowrap; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 5px 0 #5a3104; animation: csTitle .6s ease forwards; }
 .cs-title span { font-size: 28px; -webkit-text-stroke: 0; text-shadow: none; }
-@keyframes csTitle { 0% { transform: scale(.3); opacity: 0; } 8% { transform: scale(1.1); opacity: 1; } 14% { transform: scale(1); } 88% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes csTitle { 0% { transform: scale(.3); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+.cs-sub { position: relative; font-family: var(--font-display); font-size: 16px; color: #FFE27A; opacity: 0; animation: csIn .4s .7s ease-out forwards; }
+.cs-tap { position: relative; margin-top: 8px; font-family: var(--font-display); font-size: 18px; color: #1A1400; background: var(--accent); border-radius: 999px; padding: 8px 22px; opacity: 0; transition: opacity .3s; }
+.clearshow.ready { pointer-events: auto; cursor: pointer; }
+.clearshow.ready .cs-tap { opacity: 1; animation: urgent 1s ease-in-out infinite; }
+.clearshow.out { opacity: 0; transition: opacity .3s; }
+.sheet-btns { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.ghost { background: transparent; color: var(--muted); border: 2px solid var(--line); border-radius: 12px; padding: 10px 16px; font-weight: 700; font-size: 14px; }
 .cs-bots { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; max-width: 92vw; }
-.cs-bot { display: flex; flex-direction: column; align-items: center; opacity: 0; animation: csIn .4s ease-out forwards, csOut .4s 4.5s ease-in forwards; }
+.cs-bot { display: flex; flex-direction: column; align-items: center; opacity: 0; animation: csIn .4s ease-out forwards; }
 @keyframes csIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
 @keyframes csOut { to { opacity: 0; } }
 .cs-ic { font-size: 64px; line-height: 1; animation: csDance .5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
@@ -750,7 +757,7 @@ function levelDef(lv) {
 const levelTarget = lv => Math.min(20, 4 + lv);
 // 템포: 처음엔 느리게(읽으며 배우게), 판마다 조금씩 빨라져서 12단계부터 지금 속도
 // 주문서가 뜨고 사라지는 연출·손님이 오는 간격에 곱함 (1단계 2.3배 → 6단계 1.7배 → 12단계 1배)
-const pace = lv => lv >= 12 ? 1 : 1 + 2 * (12 - lv) / 11;  // 1단계 3배 느리게
+const pace = lv => lv >= 12 ? 1 : lv === 1 ? 4.2 : 1 + 2 * (12 - lv) / 11;  // 1단계는 4배 넘게 느리게(읽을 시간), 2단계 2.8배 → 12단계 1배
 // 기다림: 전체적으로 1.3배 여유, 튜토리얼 같은 1~6단계는 더 느긋하게 (1단계 약 2.5배 → 6단계 1.5배)
 const patienceMul = lv => 1.3 * (lv <= 6 ? 1 + 0.15 * (7 - lv) : 1);
 // 튜토리얼(1~6단계): 처음엔 부품 2개짜리 주문만, 3~4단계는 3개까지 (휴머노이드 손님은 예외)
@@ -1353,10 +1360,10 @@ async function peekOrder(c, i, card) {
   el.remove(); scrim.remove();
 }
 // 단계 끝: 불꽃놀이 + 이번 판에 납품한 로봇들이 이름과 함께 3초 동안 춤
+// 화면을 눌러야 다음 단계로 (자기가 만든 로봇들을 볼 수 있게). 돌려주는 Promise는 눌렀을 때 끝남
 function clearShow(stars) {
   SFX.clear(); SFX.fireworks();
   vibrate([30, 60, 30, 60, 30]);
-  if (JUICE <= 0) { banner(`CLEAR ${'⭐'.repeat(stars)}`); return; }
   const el = document.createElement('div');
   el.className = 'clearshow';
   // 불꽃: 화면 여기저기서 터지는 빛줄기
@@ -1370,10 +1377,17 @@ function clearShow(stars) {
   const seen = new Map();
   for (const id of S.levelServed) { const o = O[id]; const name = robotLabel(o); if (!seen.has(name)) seen.set(name, { o, n: 0 }); seen.get(name).n++; }
   const bots = [...seen.entries()].slice(0, 8).map(([name, { o, n }], k) =>
-    `<div class="cs-bot" style="animation-delay:${(0.9 + k * 0.12).toFixed(2)}s, 4.5s"><div class="cs-ic" style="animation-delay:${(k * 0.17).toFixed(2)}s">${o.robotIcon || ROBOTS[o.want].icon}</div><div class="cs-name">${name}${n > 1 ? ` ×${n}` : ''}</div></div>`).join('');
-  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-bots">${bots}</div>`;
+    `<div class="cs-bot" style="animation-delay:${(0.9 + k * 0.12).toFixed(2)}s"><div class="cs-ic" style="animation-delay:${(k * 0.17).toFixed(2)}s">${o.robotIcon || ROBOTS[o.want].icon}</div><div class="cs-name">${name}${n > 1 ? ` ×${n}` : ''}</div></div>`).join('');
+  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-sub">이번 판에 납품한 로봇</div><div class="cs-bots">${bots}</div><div class="cs-tap">눌러서 다음 단계 ▶</div>`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 5000);
+  return new Promise(done => {
+    // 연출이 다 뜬 뒤(1.5초)부터 누를 수 있음
+    setTimeout(() => {
+      el.classList.add('ready');
+      const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 300); };
+      el.addEventListener('pointerdown', go);
+    }, 1500);
+  });
 }
 // 단계 시작: 단계 번호가 떨어지고 "START!"가 쾅 + 금빛 번쩍 + 공장 사이렌·카운트·쇳소리
 function startShow() {
@@ -1820,8 +1834,13 @@ async function resolve() {
 function biasedType() {
   const need = waiting().flatMap(c => c.needs.filter(n => !n.res).map(n => n.p)).filter(p => S.def.tiles.includes(p));
   if (need.length && Math.random() < 0.12) return need[Math.floor(Math.random() * need.length)];
-  return S.def.tiles[Math.floor(Math.random() * S.def.tiles.length)];
+  // 조건 타일(노사합의·해외수출·국내생산)은 다른 타일보다 조금 덜 나옴
+  const w = S.def.tiles.map(t => COND_TILES.has(t) ? 0.6 : 1);
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let k = 0; k < w.length; k++) if ((r -= w[k]) < 0) return S.def.tiles[k];
+  return S.def.tiles[0];
 }
+const COND_TILES = new Set(['union', 'made', 'korea']);
 
 // 오래 손을 안 대면 맞출 수 있는 두 칸을 반짝임
 let hintCells = [];
@@ -1946,9 +1965,8 @@ function levelClear() {
   const stars = avg >= 2.5 ? 3 : avg >= 1.8 ? 2 : 1;
   const bonus = stars * 300;
   S.score += bonus; S.best = Math.max(S.best, S.score); save();
-  clearShow(stars);
   S.lv++;
-  setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, 5200);
+  clearShow(stars).then(() => { if (!S.paused) startLevel(); else S.pendingStart = true; });
   renderHud();
 }
 
@@ -1983,7 +2001,7 @@ function summaryHtml() {
   return `
     <h2>⏸ ${S.lv}단계</h2>
     <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
-    <button class="primary" type="button" data-act="close">계속 ▶</button>
+    <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 1단계부터 다시</button></div>
     <span class="lbl">조합표</span>${recipesHtml()}
     <span class="lbl">산업 지도 ${litSectors().size}/${SECTORS.length}</span>${mapHtml()}
     <span class="lbl">현장 도감 ${S.dex.size}/${ORDERS.length}</span>
@@ -1993,6 +2011,13 @@ function summaryHtml() {
 $('sheet').addEventListener('click', e => {
   const act = e.target.closest('[data-act]')?.dataset.act;
   if (act === 'close') resume();
+  else if (act === 'restart') {
+    if (!confirm('1단계부터 다시 할까요? 점수는 0점부터 시작해요.')) return;
+    document.querySelectorAll('.order-card,.readscrim,.clearshow,.leave,.moneyrain,.startshow').forEach(e => e.remove());
+    stage.q.length = 0; stage.busy = false;
+    Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], paused: false, pendingStart: false });
+    startLevel();
+  }
   else if (act === 'begin') startLevel();
 });
 $('btnPause').addEventListener('click', () => { if ($('overlay').hidden && S.running) openSheet(summaryHtml(), true); });
