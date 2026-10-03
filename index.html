@@ -181,7 +181,8 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .ocard.hum { padding: 4px 1px 4px; background: linear-gradient(180deg, #FFF8E1, var(--surface) 45%); border-color: var(--gold-deep); }
 .ocard.hum .ind { font-size: 24px; }
 .ocard.hum .rb { margin-top: auto; }
-.ocard.hum .rname { font-size: 15px; text-align: center; }
+.ocard.hum { container-type: inline-size; }
+.ocard.hum .rname { font-size: clamp(12px, 27cqw, 18px); line-height: 1; text-align: center; word-break: keep-all; }
 .ocard.hum .needs { flex-wrap: wrap; gap: 2px; }
 .ocard .needs { max-width: 100%; }
 /* 부품 칸이 많으면(미국 주문 5칸) 칸을 줄여서 주문서 안에 맞춤 */
@@ -331,6 +332,15 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .order-card.wiggle { animation: cardWiggle .7s ease-in-out 2; }
 @keyframes cardWiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -3deg; } 75% { rotate: 3deg; } }
 /* 처음 그림 불러오는 동안 */
+/* 소리 켤지 묻는 창 */
+.sound-ask { position: fixed; inset: 0; z-index: 70; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(10, 12, 26, .72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.sound-ask .box { width: 100%; max-width: 300px; padding: 22px 18px 16px; border: 2px solid var(--gold); border-radius: 18px; background: linear-gradient(180deg, #3a4656, #232b36); box-shadow: 0 10px 40px rgba(0, 0, 0, .6); text-align: center; color: #fff; }
+.sound-ask .icon { font-size: 40px; line-height: 1; }
+.sound-ask p { margin: 10px 0 16px; font-family: var(--font-display); font-size: 22px; }
+.sound-ask .btns { display: flex; gap: 10px; }
+.sound-ask button { flex: 1; padding: 13px 0; border: 0; border-radius: 12px; font: inherit; font-family: var(--font-display); font-size: 18px; color: #fff; background: rgba(255, 255, 255, .14); cursor: pointer; }
+.sound-ask button[data-sound="on"] { background: var(--accent); color: #1A1400; }
+.sound-ask small { display: block; margin-top: 12px; font-size: 12px; color: rgba(255, 255, 255, .7); }
 .loading { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: var(--bg); color: var(--hud-ink); font-family: var(--font-display); font-size: 18px; }
 .ld-bar { width: 180px; height: 8px; border-radius: 4px; background: rgba(0,0,0,.3); overflow: hidden; }
 .ld-bar i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .1s; }
@@ -1355,11 +1365,13 @@ async function runStage() {
 const stageIdle = () => !stage.busy && !stage.q.length;
 
 // 주문서 내용 (가운데 큰 카드와 자리의 카드가 같은 순서로 읽힘)
+// 좁은 휴머노이드 칸: 긴 이름은 두 줄로 (휴머/노이드, 트랜스/포머)
+const splitName = n => n.length < 4 ? n : n === '트랜스포머' ? '트랜스<wbr>포머' : n.slice(0, 2) + '<wbr>' + n.slice(2);
 function orderBody(c, big) {
   const o = c.order, r = ROBOTS[o.want];
   const needs = c.needs.map((nd, k) => `<span class="need${nd.got ? ' got' : ''}" data-need="${k}">${TILES[nd.p].icon}</span>`).join('');
   if (isHumSlot(S.slots.indexOf(c)) && !big) {
-    return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">${r.name}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
+    return `<div class="ind">${o.icon}</div><div class="rb"><span class="ric">${r.icon}</span></div><div class="rname">${splitName(r.name)}</div><div class="needs">${needs}</div><div class="hint">${o.ind}</div>`;
   }
   // 머리(업종·회사·할 일)는 높이를 고정해서, 그 아래 손님 얼굴이 모든 주문서에서 같은 높이에 옴
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
@@ -1805,7 +1817,7 @@ const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
 // 파일마다 내용이 바뀔 때만 새로 받도록 파일 해시를 붙임 (빌드할 때 채움)
-const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "48c7dc89", "tile-made-a.png": "43e550a9", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "583f5ad2", "face-cook-smile.png": "be9219e0", "tile-korea-b.png": "1fcc2bd8", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "f7ec52b4", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "a0ce3ca3", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-term-a.png": "f86a988f", "tile-eva-a.png": "8c753c91", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "robot-cobot-a.png": "bb066d5e", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "e7e699b5", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c90763b3", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "5c6a705c", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "e23a5198", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
+const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "48c7dc89", "tile-made-a.png": "43e550a9", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "tile-korea-b.png": "1fcc2bd8", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "f7ec52b4", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "a492939f", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-term-a.png": "f86a988f", "tile-eva-a.png": "4fc57067", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c90763b3", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "5c6a705c", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "e23a5198", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
 // 게임에서는 가벼운 webp(assets/w/)를 씀. 파일 이름은 png와 같고 확장자만 다름
 const av = f => { const n = f.replace('assets/', ''); return `assets/w/${n.replace(/\.png$/, '.webp')}?v=${ART_HASH[n] || '0'}`; };
 // 업종 아이콘(ind-)은 a프레임만, 로봇·부품은 a·b를 번갈아 (팔이 까딱, 다리가 제자리걸음 등)
@@ -2137,7 +2149,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-160709';
+const BUILD_V = '1003-161141';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2269,9 +2281,32 @@ document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preven
 addEventListener('orientationchange', () => setTimeout(() => { if (S.board) { layout(); renderBoard(); } }, 300));
 if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (S.board) { layout(); renderBoard(); } });
 // 다른 앱으로 나가면 창 없이 조용히 멈췄다가, 돌아오면 그대로 이어서
+// 소리 켤지 묻는 창 (Bosses of Our World와 같음): 처음 시작할 때, 다른 앱 갔다가 돌아올 때
+let soundAsk = null;
+function askSound() {
+  if (soundAsk) return soundAsk;
+  const box = document.createElement('div');
+  box.className = 'sound-ask';
+  box.innerHTML = `<div class="box"><div class="icon">🔊</div><p>게임 소리를 켤까요?</p><div class="btns"><button type="button" data-sound="on">소리 켜기</button><button type="button" data-sound="off">소리 없이</button></div><small>위쪽 sound 버튼으로 언제든 바꿀 수 있어요</small></div>`;
+  document.body.appendChild(box);
+  box.querySelector(`[data-sound="${S.sound ? 'on' : 'off'}"]`).focus({ preventScroll: true });
+  soundAsk = new Promise(res => {
+    box.addEventListener('click', e => {
+      const b = e.target.closest('button[data-sound]');
+      if (!b) return;
+      S.sound = b.dataset.sound === 'on'; syncSound();
+      try { localStorage.setItem('robotrush.sound', S.sound ? '1' : '0'); } catch (err) {}
+      unlockAudio();
+      if (S.sound) SFX.ticket();  // 켜졌다는 확인 소리
+      box.remove(); soundAsk = null; res();
+    });
+  });
+  return soundAsk;
+}
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && S.running && !S.paused) { S.paused = true; S.autoPaused = true; }
-  else if (!document.hidden && S.autoPaused) { S.autoPaused = false; if ($('overlay').hidden) S.paused = false; }
+  if (document.hidden) { if (S.running && !S.paused) { S.paused = true; S.autoPaused = true; } return; }
+  if (document.querySelector('.loading')) return;  // 로딩 중이면 로딩 끝나고 물음
+  askSound().then(() => { if (S.autoPaused) { S.autoPaused = false; if ($('overlay').hidden) S.paused = false; } });
 });
 
 syncSound(); renderHud();
@@ -2283,7 +2318,7 @@ syncSound(); renderHud();
   document.body.appendChild(ld);
   const bar = setInterval(() => { const i = ld.querySelector('.ld-bar i'); if (i && artTotal) i.style.width = (100 * artLoaded / artTotal) + '%'; }, 100);
   // 그림을 전부 받을 때까지 기다림 (아주 느린 망에서도 최대 40초)
-  Promise.race([artReady, new Promise(r => setTimeout(r, 40000))]).then(() => { clearInterval(bar); ld.remove(); if (S.lv > 1) banner(`${S.lv}단계부터 이어서`, 200); startLevel(); });
+  Promise.race([artReady, new Promise(r => setTimeout(r, 40000))]).then(() => { clearInterval(bar); ld.remove(); askSound().then(() => { if (S.lv > 1) banner(`${S.lv}단계부터 이어서`, 200); startLevel(); }); });
 }
 requestAnimationFrame(loop);
 </script>
