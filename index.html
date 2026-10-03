@@ -121,11 +121,10 @@ img.art { object-fit: contain; }
 .cface .art { width: 1.75em; height: 1.75em; }
 .lsad .art { width: 1.3em; height: 1.3em; }
 .art.bob { transform-origin: 50% 85%; animation: artBob 1.1s ease-in-out infinite; animation-delay: var(--d, 0s); }
-.art.bob img { animation: artA 1.1s steps(1, end) infinite; animation-delay: var(--d, 0s); }
-.art.bob img.b { animation-name: artB; }
-@keyframes artA { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
-@keyframes artB { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 1; } }
-@keyframes artBob { 0%, 100% { rotate: -8deg; translate: 0 0; scale: 1 1; } 25% { rotate: 0deg; translate: 0 -10%; scale: .96 1.06; } 50% { rotate: 8deg; translate: 0 0; scale: 1.08 .9; } 75% { rotate: 0deg; translate: 0 -10%; scale: .96 1.06; } }
+.art.bob img { opacity: 1; }
+/* 찌그러짐 없이: 눌린 모양으로 그린 b프레임은 쓰지 않고, a프레임을 통째로 기울이며 통통 튀기기만 */
+.art.bob img.b { display: none; }
+@keyframes artBob { 0%, 100% { rotate: -8deg; translate: 0 0; } 25% { rotate: 0deg; translate: 0 -10%; } 50% { rotate: 8deg; translate: 0 0; } 75% { rotate: 0deg; translate: 0 -10%; } }
 /* 돈벼락 */
 .moneyrain { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
 .moneyrain > span { position: absolute; top: -60px; line-height: 1; will-change: transform; animation: mrFall linear forwards; opacity: 0; }
@@ -1764,7 +1763,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790997487';
+const ART_V = '1790997782';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -2083,7 +2082,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1218';
+const BUILD_V = '1003-1223';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
