@@ -62,8 +62,8 @@ const ITEMS = [
   { name: 'robot-agv', kind: 'anim', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
   { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base.` },
   { name: 'robot-mm', kind: 'anim', prompt: `${ROBOT} A mobile manipulator: a flat wheeled AMR base with a collaborative robot arm and gripper mounted on top.` },
-  { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A four-legged robot dog (quadruped robot) with a sensor head, standing on four mechanical legs.` },
-  { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A four-legged robot dog with a robot arm and gripper mounted on its back, the arm reaching forward.` },
+  { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot: one rounded box-shaped body on four mechanical legs. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box.` },
+  { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A headless four-legged robot like Boston Dynamics Spot with a robot arm and gripper mounted on top of its body, the arm reaching forward. NO head, no neck, no dog head, no ears, no tail. The cute face is drawn on the front end of the body box.` },
   { name: 'robot-centaur', kind: 'anim', prompt: `${ROBOT} A centaur robot: a four-legged robot body with a humanoid robot upper torso, two arms and head on top.` },
 
   // 업종 아이콘 16 (게임의 업종 이름과 같은 순서)
