@@ -696,7 +696,7 @@ const svgImg = k => { const im = new Image(); im.src = 'data:image/svg+xml,' + e
 // 휴머노이드는 처음부터 보드에 없고, 4개 이상 한 번에 맞출 때만 위에서 하나씩 내려옴
 const TILES = {
   wheel: { icon: '🛞', name: '바퀴',     color: 'var(--t-wheel)' },
-  auto:  { icon: '🧭', name: '자율주행', color: 'var(--t-auto)' },
+  auto:  { icon: '🧠', name: 'AI', color: 'var(--t-auto)' },  // 자율주행·판단을 맡는 AI
   floor: { icon: '🚧', name: '바닥 공사', color: 'var(--t-floor)' },
   arm:   { icon: svgIcon('cobot'), img: svgImg('cobot'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
   tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
@@ -712,7 +712,7 @@ const TILES = {
   tf:     { icon: '🚗', name: '트랜스포머', color: 'var(--t-tf)', special: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
-// AMR = 바퀴+자율주행 / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI)
+// AMR = 바퀴+AI / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI)
 // 모바일 매니퓰레이터 = AMR 위에 협동로봇(⑧ LG엔솔) / 4족 = 다리 둘+SI / 휴머노이드 = 특수 타일 3개 맞추기+SI
 // 팔 달린 4족 = 다리 둘+팔+SI / 켄타우로스 = 4족 하체에 휴머노이드 상체+SI
 const ROBOTS = {
@@ -720,10 +720,10 @@ const ROBOTS = {
   agv:   { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
   cobot: { icon: '🦾', name: '협동로봇',           parts: ['arm', 'tool'] },
   mm:    { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'tool'] },
-  quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'legs', 'tool'] },
+  quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'legs', 'auto'] },  // 다리 둘 + AI
   qarm:  { icon: '🦂', name: '팔 달린 4족로봇',    parts: ['legs', 'legs', 'arm', 'tool'] },
   centaur: { icon: '🏇', name: '켄타우로스 로봇',  parts: ['legs', 'legs', 'hum', 'tool'] },
-  hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum', 'tool'] },
+  hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum', 'tool', 'auto'] },  // 휴머노이드 + SI + AI
   term:   { icon: '💀', name: '터미네이터',         parts: ['term', 'tool'] },
   gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool'] },
   eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'tool'] },
@@ -787,9 +787,9 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 // 타일 수(휴머노이드 제외): 1~4단계 4종, 5~9단계 5종, 10단계부터 6종
 // 5×5 보드 시뮬레이션: 4종 막힘 0.1%, 5종 1.7%, 6종 6.3% (막히면 섞음)
 // 5×6이면 4개짜리 매치가 잦아져 휴머노이드가 너무 쉽게 나와서 5×5 유지
-// 조건 타일: 4단계부터 노사합의(현대차), 9단계부터 해외수출 성조기(미국 손님), 10단계부터 국내생산 태극기(방위산업)
+// 조건 타일: 6단계부터 노사합의(현대차), 9단계부터 해외수출 성조기(미국 손님), 10단계부터 국내생산 태극기(방위산업)
 const BASE_TILES = ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'];
-const TILE_FROM = { union: 4, made: 9, korea: 10 };
+const TILE_FROM = { union: 6, made: 9, korea: 10 };  // 노사합의는 타일이 5종인 6단계부터
 const tileCount = lv => lv >= 10 ? 6 : lv >= 5 ? 5 : 4;
 const poolAt = lv => [...BASE_TILES, ...Object.keys(TILE_FROM).filter(t => lv >= TILE_FROM[t])];
 // 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 해금된 조건 칸(해외수출·국내생산·노사합의 각 1칸 = 그 타일 3개 맞추기)
@@ -816,7 +816,7 @@ function levelDef(lv) {
   const FIXED_SPECIAL = { 5: 'gundam', 8: 'eva', 11: 'term', 14: 'tf' };
   const special = FIXED_SPECIAL[lv] || (lv >= 17 && (lv - 17) % 3 === 0 ? ['term', 'gundam', 'eva', 'tf'][Math.floor(Math.random() * 4)] : 'hum');
   // 특별 로봇에 필요한 일반 부품(SI, 트랜스포머는 바퀴)은 보드에 꼭 포함
-  const must = [...new Set([...ROBOTS[special].parts.filter(p => !isSpec(p)), 'tool', ...(fresh ? [fresh] : [])])];
+  const must = [...new Set([...ROBOTS[special].parts.filter(p => !isSpec(p)), ...(fresh ? [fresh] : [])])];
   const tryPick = (minRobots, minOrders, allUsed) => {
     for (let k = 0; k < 300; k++) {
       const tiles = [...must, ...shuffled(pool.filter(t => !must.includes(t))).slice(0, n - must.length)];
@@ -2135,7 +2135,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-154334';
+const BUILD_V = '1003-155305';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
