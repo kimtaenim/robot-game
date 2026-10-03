@@ -1301,10 +1301,10 @@ function pickOrder(i) {
   }
   let pool = ORDERS.filter(o => ok.has(o.want) && !isSpec(o.want) && can(o) && !open.has(o.id));
   if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && !isSpec(o.want) && can(o));
-  // 켄타우로스는 드물게(4번 중 1번꼴), 그리고 이미 기다리는 켄타우로스 손님이 있으면 안 받음
-  const centaurOpen = S.slots.some(c => c && c.order.want === 'centaur' && c.state === 'wait');
+  // 켄타우로스는 아직 현장 수요가 거의 없는 미래형(소방 구조 구상)이라 아주 가끔만: 한 판에 많아야 한 번, 10번 중 1번꼴
   const noCentaur = pool.filter(o => o.want !== 'centaur');
-  if (noCentaur.length && (centaurOpen || Math.random() > 0.25)) pool = noCentaur;
+  const centaurDone = (S.levelServed || []).concat(S.levelMissed || []).some(id => O[id] && O[id].want === 'centaur') || S.slots.some(c => c && c.order.want === 'centaur');
+  if (noCentaur.length && (centaurDone || Math.random() > 0.1)) pool = noCentaur;
   // 조선소 손님은 7명 중 1명꼴
   const ships = pool.filter(o => o.ind === '조선소'), rest = pool.filter(o => o.ind !== '조선소');
   if (ships.length && (Math.random() < SHIP_SHARE || !rest.length)) return ships[Math.floor(Math.random() * ships.length)];
@@ -2390,7 +2390,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-204736';
+const BUILD_V = '1003-204808';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
