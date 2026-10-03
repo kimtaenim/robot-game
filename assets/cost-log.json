@@ -1,6 +1,6 @@
 {
- "total_usd": 20.9188,
- "images": 188,
+ "total_usd": 21.3533,
+ "images": 192,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -330,6 +330,13 @@
    "quality": "medium",
    "images": 2,
    "usd": 0.2178
+  },
+  {
+   "started": "2026-10-03T10:57:40.599Z",
+   "only": "robot-indus,tile-iarm",
+   "quality": "medium",
+   "images": 4,
+   "usd": 0.4345
   }
  ]
 }
