@@ -136,8 +136,12 @@ img.art { object-fit: contain; }
 /* 찌그러짐 없이 통째로 살짝 기울며 통통. 로봇·부품은 a·b 두 장(자세만 다른 그림)을 번갈아 보여 줌 */
 .art.bob img.b { display: none; }
 .art.bob.swap img.b { display: block; }
-.art.bob.swap img { animation: artA 1s steps(1, end) infinite; animation-delay: var(--d, 0s); }
-.art.bob.swap img.b { animation-name: artB; }
+/* a·b 그림 번갈아: 그림마다 애니메이션을 돌리면 아이폰이 그림 일부를 안 그리는 문제가 있어서, 화면 전체에 0.5초마다 붙였다 떼는 표시(body.fb) 하나로 */
+.art.bob.swap img.b { display: none; }
+body.fb .art.bob.swap img:not(.b) { display: none; }
+body.fb .art.bob.swap img.b { display: block; }
+/* 보드 타일은 그림을 흔들지 않음 (25칸이 다 돌면 아이폰에서 그림이 빠짐). a·b 번갈아만 */
+.tile .art.bob { animation: none; }
 @keyframes artA { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 0; } }
 @keyframes artB { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 1; } }
 @keyframes artBob { 0%, 100% { rotate: -14deg; translate: 0 0; } 25% { rotate: 0deg; translate: 0 -18%; } 50% { rotate: 14deg; translate: 0 0; } 75% { rotate: 0deg; translate: 0 -18%; } }
@@ -233,7 +237,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .fxc { position: absolute; left: -40px; top: -40px; pointer-events: none; z-index: 5; }
 .cellbg { position: absolute; border-radius: 10px; background: var(--cell); box-shadow: inset 0 2px 4px rgba(0, 0, 0, .35); }
 .boardwrap { padding: 7px 0 2px; }
-.tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); will-change: transform; pointer-events: none; transform-origin: 50% 50%; }
+.tile { position: absolute; left: 0; top: 0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); pointer-events: none; transform-origin: 50% 50%; }
 .sv { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; flex: none; }
 .tile .ic { font-size: calc(var(--ts, 60px) * 0.66); line-height: 1; }
 .tile .nm { font-size: 9.5px; font-weight: 500; color: var(--t-ink-light); opacity: .75; margin-bottom: 0; text-align: center; line-height: 1.1; white-space: nowrap; letter-spacing: -0.02em; }
@@ -1395,8 +1399,9 @@ function clientTick(dt) {
 function spawnTick(dt) {
   if (!stageIdle()) return;
   // 휴머노이드 자리는 비면 바로 다음 손님
-  if (!S.slots[HUM_SLOT] && S.done < levelTarget(S.lv)) { addClient(HUM_SLOT); return; }
-  if (S.done + waitingNormal().length >= levelTarget(S.lv)) return;
+  // 손님 수가 목표를 넘지 않게: 이미 납품한 수 + 기다리는 손님 수로 셈 (15/14 같은 일이 없게)
+  if (!S.slots[HUM_SLOT] && S.done + waiting().length < levelTarget(S.lv)) { addClient(HUM_SLOT); return; }
+  if (S.done + waiting().length >= levelTarget(S.lv)) return;
   const free = [0, 1].find(i => !S.slots[i]);
   if (free === undefined) return;
   if ((S.spawnT -= dt) <= 0 || !waitingNormal().length) {
@@ -2129,6 +2134,8 @@ async function loadArt() {
   if (any && S.slots) renderClients();
 }
 const artReady = loadArt();
+// a·b 그림 번갈아 보이기: 0.5초마다 화면 전체 표시 하나만 바꿈 (그림마다 애니메이션을 돌리지 않음)
+setInterval(() => document.body.classList.toggle('fb'), 500);
 // ───────── 매치3 진행 ─────────
 function slide(t, r, c, ms) {
   const x0 = t.x, y0 = t.y;
@@ -2441,7 +2448,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-211829';
+const BUILD_V = '1003-211943';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
