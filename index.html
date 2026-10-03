@@ -233,18 +233,18 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 
 .readscrim.top { bottom: auto; background: rgba(5, 25, 30, .45); }
 .readscrim { position: fixed; inset: 0; z-index: 37; background: rgba(5, 25, 30, .55); opacity: 0; cursor: pointer; }
-.order-card { position: fixed; z-index: 38; cursor: pointer; width: 236px; box-sizing: border-box; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 12px 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0, 0, 0, .45); }
+.order-card { position: fixed; z-index: 38; cursor: pointer; width: min(320px, 86vw); box-sizing: border-box; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 12px 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0, 0, 0, .45); }
 .order-card .oc-head { align-self: stretch; text-align: center; font-family: var(--font-display); font-size: 14px; letter-spacing: .08em; color: var(--surface); background: var(--ink); border-radius: 8px; padding: 3px 0; margin-bottom: 4px; }
 .order-card.hum .oc-head { background: var(--gold-deep); }
-.order-card .ind { font-family: var(--font-display); font-size: 32px; line-height: 1.1; text-align: center; word-break: keep-all; }
-.order-card .co { font-size: 13px; font-weight: 700; color: var(--muted); }
-.order-card .task { font-size: 15px; font-weight: 700; color: var(--steel); text-align: center; word-break: keep-all; }
+.order-card .ind { font-family: var(--font-display); font-size: 38px; line-height: 1.1; text-align: center; word-break: keep-all; }
+.order-card .co { font-size: 16px; font-weight: 700; color: var(--muted); }
+.order-card .task { font-size: 18px; font-weight: 700; color: var(--steel); text-align: center; word-break: keep-all; }
 .order-card .rb { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-.order-card .rb .ric { font-size: 58px; line-height: 1.05; }
+.order-card .rb .ric { font-size: 76px; line-height: 1.05; }
 .order-card .rb b { font-family: var(--font-display); font-weight: 400; font-size: 26px; }
-.order-card .rname { font-family: var(--font-display); font-size: 18px; color: var(--steel); line-height: 1.2; word-break: keep-all; max-width: 110px; }
+.order-card .rname { font-family: var(--font-display); font-size: 22px; color: var(--steel); line-height: 1.2; word-break: keep-all; max-width: 110px; }
 .order-card .needs { display: flex; gap: 4px; margin-top: 4px; }
-.order-card .need { width: 34px; height: 34px; font-size: 22px; border-width: 2px; border-radius: 8px; }
+.order-card .need { width: 42px; height: 42px; font-size: 28px; border-width: 2px; border-radius: 8px; }
 .order-card .oc-note { margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--bad); font-weight: 700; text-align: center; word-break: keep-all; background: #FDECEA; border-radius: 8px; padding: 5px 8px; }
 .order-card .oc-tap { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--surface); background: var(--accent); color: #1A1400; border-radius: 999px; padding: 6px 16px; animation: urgent 1s ease-in-out infinite; }
 .order-card .stamp { position: absolute; right: 10px; top: 42%; font-family: var(--font-display); font-size: 34px; color: var(--bad); border: 4px solid var(--bad); border-radius: 10px; padding: 0 10px; background: rgba(255, 255, 255, .7); transform: rotate(-14deg) scale(2.4); opacity: 0; pointer-events: none; }
@@ -299,6 +299,9 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .cs-ic { font-size: 64px; line-height: 1; animation: csDance .5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
 @keyframes csDance { 0% { rotate: -12deg; translate: 0 0; } 50% { translate: 0 -14px; } 100% { rotate: 12deg; translate: 0 0; } }
 .cs-name { margin-top: 4px; font-family: var(--font-display); font-size: 17px; color: #fff; background: rgba(0, 0, 0, .45); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
+/* 주문서가 다 뜨면 까딱까딱 두 번 */
+.order-card.wiggle { animation: cardWiggle .7s ease-in-out 2; }
+@keyframes cardWiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -5deg; } 75% { rotate: 5deg; } }
 /* 단계 시작 */
 .startshow.ready { pointer-events: auto; cursor: pointer; }
 .startshow.out { opacity: 0; transition: opacity .25s; }
@@ -778,7 +781,7 @@ function levelDef(lv) {
 const levelTarget = lv => Math.min(20, 4 + lv);
 // 템포: 처음엔 느리게(읽으며 배우게), 판마다 조금씩 빨라져서 12단계부터 지금 속도
 // 주문서가 뜨고 사라지는 연출·손님이 오는 간격에 곱함 (1단계 2.3배 → 6단계 1.7배 → 12단계 1배)
-const pace = lv => lv >= 12 ? 1 : lv === 1 ? 4.2 : 1 + 2 * (12 - lv) / 11;  // 1단계는 4배 넘게 느리게(읽을 시간), 2단계 2.8배 → 12단계 1배
+const pace = lv => lv >= 12 ? 1 : 1 + 1.5 * (12 - lv) / 11;  // 1단계 2.5배 느리게 → 12단계 1배  // 1단계는 4배 넘게 느리게(읽을 시간), 2단계 2.8배 → 12단계 1배
 // 기다림: 전체적으로 1.3배 여유, 튜토리얼 같은 1~6단계는 더 느긋하게 (1단계 약 2.5배 → 6단계 1.5배)
 const patienceMul = lv => 1.3 * (lv <= 6 ? 1 + 0.15 * (7 - lv) : 1);
 // 튜토리얼(1~6단계): 처음엔 부품 2개짜리 주문만, 3~4단계는 3개까지 (휴머노이드 손님은 예외)
@@ -1314,16 +1317,18 @@ async function orderIntro(c, i) {
   const accepted = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
   const P = pace(S.lv);
   await tween(240 * P, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
+  // 다 뜨면 까딱까딱 두 번
+  el.classList.add('wiggle');
   await accepted;
+  el.classList.remove('wiggle');
   scrim.style.pointerEvents = 'none'; el.style.pointerEvents = 'none';
   // 누르면 살짝 커졌다가, 자기 칸으로 날아가며 다시 작아짐
   SFX.stamp();
-  await tween(280 * P, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outBack);
-  await wait(160 * P);
+  // 누르면 바로 자기 칸으로 날아가 앉음 (너무 작아지지 않게: 칸 너비까지만)
   const target = document.querySelector(`[data-slot="${i}"]`);
   const [tx, ty] = target ? centerOf(target) : [mx, 80];
-  const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width * 1.15 : 0.4;
-  await tween(700 * P, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inOutQuad);
+  const s1 = target ? Math.max(0.55, target.getBoundingClientRect().width / (el.getBoundingClientRect().width / 1)) : 0.6;
+  await tween(380, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1 + (s1 - 1) * q, 1 - 0.15 * q); scrim.style.opacity = 1 - q; }, EASE.inOutQuad);
   el.remove(); scrim.remove();
   c.intro = false;
   if (S.slots[i] === c) renderClients();
@@ -1461,17 +1466,12 @@ function startShow() {
   return new Promise(done => {
     const el = document.createElement('div');
     el.className = 'startshow';
-    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-go">START!</div><div class="ss-make">이번에 만들 로봇</div><div class="ss-bots">${botsToMakeHtml()}</div><div class="ss-tap">눌러서 시작 ▶</div>`;
+    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-go">START!</div>`;
     document.body.appendChild(el);
     SFX.start();
     vibrate([20, 60, 20, 60, 80]);
     setTimeout(() => { const r = $('board').getBoundingClientRect(); fxBurst(r.width / 2, r.height * 0.1, '#F0B400', 40, 1.6); }, 950);
-    // 만들 로봇을 읽을 수 있게: 눌러야 시작 (1.5초 뒤부터 누를 수 있음)
-    setTimeout(() => {
-      el.classList.add('ready');
-      const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); };
-      el.addEventListener('pointerdown', go);
-    }, 1500);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); }, 1700);
   });
 }
 // 보드 밖에서 돈 파편 터뜨리기: 보드 기준 좌표로 바꿔서
@@ -1708,7 +1708,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790995570';
+const ART_V = '1790995720';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -1996,7 +1996,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-1146';
+const BUILD_V = '1003-1148';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
