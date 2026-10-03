@@ -36,7 +36,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #D9578E;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -126,7 +126,10 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .ocard.hum .rb { margin-top: auto; }
 .ocard.hum .rname { font-size: 12px; text-align: center; }
 .ocard.hum .needs { flex-wrap: wrap; gap: 2px; }
-.ocard.hum .need { width: 21px; height: 21px; font-size: 14px; }
+.ocard .needs { max-width: 100%; }
+/* 부품 칸이 많으면(미국 주문 5칸) 칸을 줄여서 주문서 안에 맞춤 */
+.ocard .need { flex: 0 1 23px; width: auto; height: auto; aspect-ratio: 1; min-width: 17px; overflow: hidden; }
+.ocard.hum .need { flex: none; width: 21px; height: 21px; font-size: 14px; }
 .ocard.empty, .ocard.pending { background: rgba(0, 0, 0, .14); border: 2px dashed var(--hud-line); box-shadow: none; color: var(--hud-muted); justify-content: center; font-size: 12px; font-weight: 700; }
 .ocard.pending span { font-size: 30px; animation: urgent 1s ease-in-out infinite; }
 .ocard.done { border-color: var(--good); }
@@ -195,6 +198,7 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .order-card .rname { font-family: var(--font-display); font-size: 18px; color: var(--steel); line-height: 1.2; word-break: keep-all; max-width: 110px; }
 .order-card .needs { display: flex; gap: 4px; margin-top: 4px; }
 .order-card .need { width: 34px; height: 34px; font-size: 22px; border-width: 2px; border-radius: 8px; }
+.order-card .oc-note { margin-top: 4px; font-size: 12.5px; line-height: 1.4; color: var(--bad); font-weight: 700; text-align: center; word-break: keep-all; background: #FDECEA; border-radius: 8px; padding: 5px 8px; }
 .order-card .oc-tap { margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--surface); background: var(--accent); color: #1A1400; border-radius: 999px; padding: 6px 16px; animation: urgent 1s ease-in-out infinite; }
 .order-card .stamp { position: absolute; right: 10px; top: 42%; font-family: var(--font-display); font-size: 34px; color: var(--bad); border: 4px solid var(--bad); border-radius: 10px; padding: 0 10px; background: rgba(255, 255, 255, .7); transform: rotate(-14deg) scale(2.4); opacity: 0; pointer-events: none; }
 .order-card.stamped .stamp { animation: stampHit .22s ease-out forwards; }
@@ -243,8 +247,9 @@ button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   .title .main, .title .usd { font-size: 34px !important; }
   .title .star { font-size: 18px; }
   .hud { padding: 4px 7px; }
-  .ocard .hd { height: 70px; }
-  .ocard .co { display: none; }
+  .ocard .hd { height: 72px; gap: 1px; }
+  .ocard .ind { font-size: 17px; }
+  .ocard .co { font-size: 10.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ocard.enter, .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .title .usd, .title .star, .puff { animation: none; }
@@ -521,6 +526,8 @@ const TILES = {
   arm:   { icon: svgIcon('cobot'), img: svgImg('cobot'), name: '로봇 팔',  color: 'var(--t-arm)', lite: true },
   tool:  { icon: svgIcon('grip'), img: svgImg('grip'), name: '엔드포인트 SI', color: 'var(--t-tool)' },
   legs:  { icon: '🦿', name: '다리',     color: 'var(--t-legs)', lite: true },
+  made:  { icon: '🇺🇸', name: '국내생산', color: 'var(--t-made)' },
+  union: { icon: '🤝', name: '노사합의', color: 'var(--t-union)' },
   hum:   { icon: '🤖', name: '휴머노이드', color: 'var(--t-hum)', special: true, lite: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
@@ -545,7 +552,7 @@ const ORDERS = [
   { id: 'kai',      want: 'agv',   n: 1, mood: 'calm', icon: '🛩️', who: 'KAI',         task: '공정 사이 자재 이송', sec: '⑨ 항공기 제조', fact: 'AGV로 자재를 옮기고 로봇으로 T-50 날개를 뚫어, 8시간 걸리던 작업을 40분으로 줄였어요.' },
   { id: 'stl',      want: 'amr',   n: 2, mood: 'mid',  icon: '💄', who: '에스티엘',    task: '오더피킹',           sec: '② AMR',         fact: '트위니가 오더피킹 AMR 12대를 먼저 넣어 검증한 뒤 본계약을 맺었어요.' },
   { id: 'transys',  want: 'amr',   n: 1, mood: 'mid',  icon: '🏭', who: '현대트랜시스', task: '바닥 공사 없이 운반', sec: '② AMR',        fact: '바닥 공사 없이 기존 공장에 바로 넣을 수 있는 300kg급 AMR이에요.' },
-  { id: 'ford',     want: 'amr',   n: 1, mood: 'hot',  icon: '🔌', who: '포드',        task: '공장 자재 운반',     sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
+  { id: 'ford',     want: 'amr',   n: 1, us: true, mood: 'hot',  icon: '🔌', who: '포드',        task: '공장 자재 운반',     sec: '② AMR',         fact: '티로보틱스가 미국 포드 ESS 공장에 AMR을 공급했어요.' },
   { id: 'ecopro',   want: 'amr',   n: 1, mood: 'mid',  icon: '🧪', who: '에코프로',    task: '설비 순찰 점검',     sec: '⑧ 배터리 공장', fact: '이차전지 소재 공장에서 AMR로 설비를 점검하고 고장을 미리 잡아요.' },
   { id: 'mipo',     want: 'cobot', n: 2, mood: 'mid',  icon: '🚢', who: '',            task: '선체 용접',          sec: '④ 조선',        label: '용접 협동로봇', fact: '한 조선소는 협동로봇 27대를 추가해 누적 55대가 됐어요. 숙련 용접공을 구하지 못해 "일을 못 받는다"는 현장이에요.' },
   { id: 'ship2',    want: 'cobot', n: 1, mood: 'hot',  icon: '🚢', who: '',            task: '고열·분진 속 용접',   sec: '④ 조선',        label: '용접 협동로봇', fact: '조선소는 고열·먼지·용접 스패터 속에서 용접선을 따라 움직여야 해요. 작업자가 말로 지시하면 로봇이 토치 각도와 속도를 정하는 AI 과제도 진행 중이에요.' },
@@ -559,8 +566,8 @@ const ORDERS = [
   { id: 'fire',     want: 'quad',  n: 1, mood: 'hot',  icon: '🚒', who: '소방청',      task: '화재 현장 탐색',     sec: '㉖ 소방·경찰',   fact: '4족보행로봇 40대에 160억원, 대당 약 4억원을 편성했어요.' },
   { id: 'posco2',   want: 'qarm',  n: 1, mood: 'calm', icon: '🔥', who: '포스코',      task: '용선 측온·샘플링', sec: '⑦ 철강',     fact: '고로에서는 스팟이 하루 12번 배관 누설을 점검하고, 1500도 용선의 측온·샘플링도 로봇화 중이에요.' },
   { id: 'fire2',    want: 'centaur', n: 1, mood: 'long', icon: '🧯', who: '소방청',    task: '들어가서 구조·진압', sec: '㉖ 소방·경찰',   fact: '지금 무인소방로봇은 원격으로 물을 쏘는 수준이라, 위험 지역에 직접 들어가 탐색·구조·진압까지 하는 형태로 가야 한다는 주문이 나와요.' },
-  { id: 'hyundai',  want: 'hum',   n: 1, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
-  { id: 'bmw',      want: 'hum',   n: 1, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
+  { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
+  { id: 'bmw',      want: 'hum',   n: 1, us: true, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
   { id: 'cj',       want: 'hum',   n: 1, mood: 'long', icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
   { id: 'catl',     want: 'hum',   n: 1, mood: 'long', icon: '⚡', who: 'CATL',        task: '생산 라인 투입',     sec: '⑧ 배터리 공장', fact: '자사 배터리로 움직이는 휴머노이드를 생산라인에 실전 배치했어요.' },
 ];
@@ -590,14 +597,42 @@ SECTORS.sort((a, b) => a.key.codePointAt(0) - b.key.codePointAt(0));
 //   1~4단계: AMR·협동로봇·모바일 매니퓰레이터·휴머노이드 (바퀴·자율주행·팔·SI)
 //   5~9단계: + AGV (🚧 바닥 공사 추가)
 //   10단계~: + 4족로봇 (다리 추가) / 12단계~: + 팔 달린 4족 / 14단계~: + 켄타우로스
+//   16단계~: + 국내생산 / 18단계~: + 노사합의 (이때부터 타일 6종을 단계마다 돌려 씀)
 const STAGES = [
   { from: 1,  robots: ['amr', 'cobot', 'mm', 'hum'],                tiles: ['wheel', 'auto', 'arm', 'tool'] },
   { from: 5,  robots: ['amr', 'cobot', 'mm', 'agv', 'hum'],         tiles: ['wheel', 'auto', 'arm', 'tool', 'floor'] },
   { from: 10, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
   { from: 12, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
   { from: 14, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs'] },
+  // 16단계~: 미국 손님(포드·BMW)은 국내생산(미국 내 생산) 타일 3개를 더 맞춰야 납품 (미 FCC가 외국산 첨단 로봇 인증을 막음)
+  // 18단계~: 현대차 손님은 노사합의 타일도 맞춰야 납품 (금속노조 현대차지부: "노사 합의 없이 단 1대의 로봇도 안 된다")
+  { from: 16, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made'], fresh: 'made' },
+  { from: 18, robots: ['amr', 'cobot', 'mm', 'agv', 'quad', 'qarm', 'centaur', 'hum'], tiles: ['wheel', 'auto', 'arm', 'tool', 'floor', 'legs', 'made', 'union'], fresh: 'union' },
 ];
-const levelDef = lv => STAGES.filter(s => lv >= s.from).pop();
+// 주문 하나에 필요한 부품: 로봇 부품 × 대수 + 단계에 따라 붙는 조건(국내생산 3개, 노사합의 1개)
+function orderParts(o, pool) {
+  const out = [];
+  for (let k = 0; k < o.n; k++) out.push(...ROBOTS[o.want].parts);
+  if (o.us && pool.includes('made')) out.push('made', 'made', 'made');
+  if (o.union && pool.includes('union')) out.push('union');
+  return out;
+}
+// 타일은 휴머노이드 빼고 6종까지만. 해금된 타일이 6종을 넘으면 단계마다 6종을 무작위로 골라 돌려 씀
+// (SI는 휴머노이드 주문에 늘 필요해서 항상 포함, 새로 풀린 타일은 그 단계에 꼭 포함)
+const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+function levelDef(lv) {
+  const st = STAGES.filter(s => lv >= s.from).pop();
+  if (st.tiles.length <= 6) return { ...st, pool: st.tiles };
+  const must = ['tool', ...(lv === st.from && st.fresh ? [st.fresh] : [])];
+  for (let tries = 0; tries < 60; tries++) {
+    const tiles = [...must, ...shuffled(st.tiles.filter(t => !must.includes(t))).slice(0, 6 - must.length)];
+    const ok = o => st.robots.includes(o.want) && orderParts(o, st.tiles).every(p => p === 'hum' || tiles.includes(p));
+    const robots = st.robots.filter(r => ORDERS.some(o => o.want === r && ok(o)));
+    // 일반 주문 로봇이 3종 이상 나오는 조합만 씀
+    if (robots.filter(r => r !== 'hum').length >= 3) return { ...st, tiles, robots, pool: st.tiles };
+  }
+  return { ...st, tiles: st.tiles.slice(0, 6), pool: st.tiles };
+}
 const NEW_AT = { 1: ['amr', 'cobot', 'mm', 'hum'], 5: ['agv'], 10: ['quad'], 12: ['qarm'], 14: ['centaur'] };
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음): 1단계 20명, 단계마다 +2명
 const levelTarget = lv => 20 + (lv - 1) * 2;
@@ -802,14 +837,16 @@ const waitingNormal = () => S.slots.filter((c, i) => c && c.state === 'wait' && 
 function pickOrder(i) {
   const ok = new Set(S.def.robots);
   const open = new Set(S.slots.filter(Boolean).map(c => c.order.id));
+  // 이번 단계 보드에 있는 타일로 만들 수 있는 주문만
+  const can = o => orderParts(o, S.def.pool).every(p => p === 'hum' || S.def.tiles.includes(p));
   if (isHumSlot(i)) {
-    const hums = ORDERS.filter(o => o.want === 'hum');
+    const hums = ORDERS.filter(o => o.want === 'hum' && can(o));
     const fresh = hums.filter(o => !open.has(o.id));
     const list = fresh.length ? fresh : hums;
     return list[Math.floor(Math.random() * list.length)];
   }
-  let pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum' && !open.has(o.id));
-  if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum');
+  let pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum' && can(o) && !open.has(o.id));
+  if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && o.want !== 'hum' && can(o));
   // 조선소 손님은 7명 중 1명꼴
   const ships = pool.filter(o => o.ind === '조선소'), rest = pool.filter(o => o.ind !== '조선소');
   if (ships.length && (Math.random() < SHIP_SHARE || !rest.length)) return ships[Math.floor(Math.random() * ships.length)];
@@ -817,8 +854,7 @@ function pickOrder(i) {
 }
 function addClient(i) {
   const order = pickOrder(i);
-  const needs = [];
-  for (let k = 0; k < order.n; k++) needs.push(...ROBOTS[order.want].parts);
+  const needs = orderParts(order, S.def.pool);
   const max = MOODS[order.mood] + needs.length * PART_SEC;  // 단계가 올라도 인내심은 그대로
   const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, noTimer: isHumSlot(i), intro: true };
   S.slots[i] = c;
@@ -925,7 +961,15 @@ function orderBody(c, big) {
   return `<div class="hd"><div class="ind">${o.icon} ${o.ind}</div>${o.who ? `<div class="co">${o.who}</div>` : ''}<div class="task">${o.task}</div></div>
     ${big ? '' : `<div class="cface" data-face="${S.slots.indexOf(c)}">${faceOf(c)}</div>`}
     <div class="rb"><span class="ric">${r.icon}</span>${o.n > 1 ? `<b>×${o.n}</b>` : ''}<span class="rname">${robotLabel(o)}</span></div>
-    <div class="needs">${needs}</div>`;
+    <div class="needs">${needs}</div>${big ? orderNote(c) : ''}`;
+}
+// 새 주문서에 붙는 조건 설명 (발제 자료 내용)
+function orderNote(c) {
+  const has = p => c.needs.some(nd => nd.p === p);
+  let out = '';
+  if (has('made')) out += `<div class="oc-note">🇺🇸 미국 FCC가 외국에서 생산된 첨단 로봇의 인증을 막아요. 미국 안에서 만든 로봇만!</div>`;
+  if (has('union')) out += `<div class="oc-note">🤝 금속노조 현대차지부: "노사 합의 없이 단 1대의 로봇도 현장에 들어올 수 없다"</div>`;
+  return out;
 }
 
 // 손님 등장: 주문서가 가운데 크게 뜸 → 눌러서 수락(도장 쾅) → 작아지며 자리로 들어감
@@ -1476,6 +1520,7 @@ function startLevel() {
   banner(`${S.lv}단계`);
   const fresh = NEW_AT[S.lv];
   if (fresh) banner(`NEW ${fresh.map(r => ROBOTS[r].icon).join(' ')}`, 1100);
+  if (S.lv === S.def.from && S.def.fresh) banner(`NEW ${TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
   addClient(0);
   S.spawnT = 2;
 }
