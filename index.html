@@ -3,26 +3,26 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1E5D68">
+<meta name="theme-color" content="#56636F">
 <title>Robot Rush</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Do+Hyeon&family=IBM+Plex+Mono:wght@500;600&family=Gowun+Dodum&display=swap">
 <style>
-/* 레이아웃: 금색 제목·계기판 → 클라이언트 3명(말풍선 주문)과 계산대 줄무늬 → 철판 프레임 5×5 조립대. 공장 틸블루 바닥 */
+/* 레이아웃: 금색 제목·계기판 → 클라이언트 3명(말풍선 주문)과 계산대 줄무늬 → 철판 프레임 5×5 조립대. 공장 금속 회색 바닥 */
 :root {
-  /* 공장 틸블루 바닥 위의 작업장. 카드(말풍선·안내창)만 흰 종이 */
-  --bg: #1E5D68;
-  --bg-deep: #134650;
+  /* 공장 금속 회색 바닥 위의 작업장. 카드(말풍선·안내창)만 흰 종이 */
+  --bg: #56636F;
+  --bg-deep: #3A4550;
   --plate: rgba(255, 255, 255, 0.05);
-  --hud-ink: #E8F3F2;
-  --hud-muted: #9CC6C9;
+  --hud-ink: #EEF2F5;
+  --hud-muted: #B4C0CB;
   --hud-line: rgba(255, 255, 255, 0.16);
   --gold: #F2C14E;
   --gold-deep: #7A5200;
-  --board: #0F2E35;
-  --cell: #1A424A;
-  --frame: #0A2227;
+  --board: #232B33;
+  --cell: #33404B;
+  --frame: #1B2229;
   --surface: #FFFFFF;
   --surface-2: #F2F5F7;
   --ink: #13202A;
@@ -47,7 +47,8 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; overflow: hidden; overflow: clip; }
 .app { overflow-x: clip; }
-body { background: var(--bg) repeating-linear-gradient(135deg, var(--plate) 0 2px, transparent 2px 14px); color: var(--hud-ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; overflow: hidden; }
+/* 공장 금속판: 점잖은 파란 회색 + 빗살 무늬 + 위쪽이 살짝 밝은 금속 광택 */
+body { background: repeating-linear-gradient(135deg, var(--plate) 0 2px, transparent 2px 14px), linear-gradient(180deg, #66737F 0%, var(--bg) 45%, #4B5762 100%) var(--bg); color: var(--hud-ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; overflow: hidden; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
