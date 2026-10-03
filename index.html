@@ -41,7 +41,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-iarm: #474C55; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #7CC63E; --t-tf: #B5262B; --t-korea: #9C7A3C;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-iarm: #474C55; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #7CC63E; --t-tf: #B5262B; --t-mgodz: #78909C; --t-mazinger: #B0BEC5; --t-gmazinger: #26A69A; --t-taekwonv: #0D47A1; --t-korea: #9C7A3C;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -386,6 +386,23 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .case-why { align-self: stretch; margin-top: 6px; font-size: 15.5px; font-weight: 700; line-height: 1.45; color: var(--ink); word-break: keep-all; background: #FFF6D6; border: 2px solid #F0C34A; border-radius: 10px; padding: 8px 10px; }
 .case-why b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 18px; color: #A0640A; margin-bottom: 2px; }
 .leave .lfact { max-width: min(330px, 88vw); margin-top: 6px; font-size: 15px; font-weight: 700; line-height: 1.4; color: var(--ink); text-align: center; word-break: keep-all; background: rgba(255, 255, 255, .95); border: 2px solid var(--ink); border-radius: 10px; padding: 6px 10px; opacity: 0; animation: csIn .35s .5s ease-out forwards; }
+.end-head { background: linear-gradient(90deg, #C9A227, #E8C547); color: #3B2A00; }
+.end-stats { align-self: stretch; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 6px 0; }
+.end-stats div { display: flex; flex-direction: column; align-items: center; background: var(--surface-2, #F3F4F6); border-radius: 10px; padding: 6px 2px; }
+.end-stats b { font-family: var(--font-display); font-weight: 400; font-size: 18px; white-space: nowrap; }
+.end-stats small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.end-bots { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 8px; font-size: 34px; }
+.end-bot { position: relative; display: inline-flex; align-items: flex-end; }
+.end-bot .art { width: 1.2em; height: 1.2em; }
+.end-bot i { font-style: normal; font-family: var(--font-display); font-size: 13px; color: var(--steel); margin-left: -4px; }
+.end-notes { align-self: stretch; margin-top: 6px; background: #FFF6D6; border: 2px solid #F0C34A; border-radius: 10px; padding: 6px 10px; font-size: 13.5px; line-height: 1.4; word-break: keep-all; }
+.end-notes b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 17px; color: #A0640A; }
+.end-notes p { margin: 3px 0 0; font-weight: 700; }
+.end-notes em { font-style: normal; color: var(--steel); }
+.end-q { margin-top: 8px; font-family: var(--font-display); font-size: 18px; text-align: center; word-break: keep-all; }
+.end-btns { display: flex; gap: 10px; align-items: center; }
+.end-btns .nt-tap { border: 0; cursor: pointer; }
+.end-again { margin-top: 8px; font-family: var(--font-display); font-size: 15px; color: var(--muted); background: transparent; border: 2px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
 /* 단계 시작 */
 .startshow.ready { pointer-events: auto; cursor: pointer; }
 .startshow.out { opacity: 0; transition: opacity .25s; }
@@ -763,6 +780,11 @@ const TILES = {
   gundam: { icon: '🛡️', name: '건담', color: 'var(--t-gundam)', special: true },
   eva:    { icon: '👹', name: '에바', color: 'var(--t-eva)', special: true },
   tf:     { icon: '🚗', name: '트랜스포머', color: 'var(--t-tf)', special: true },
+  // 23단계부터 차례로 나오는 옛날 로봇 (1970년대생이라 AI가 없음 → 피지컬AI 대신 산업용 팔로 조립)
+  mgodz:     { icon: '🦖', name: '메카고질라', color: 'var(--t-mgodz)', special: true },
+  mazinger:  { icon: '🤖', name: '마징가 Z', color: 'var(--t-mazinger)', special: true },
+  gmazinger: { icon: '🦾', name: '그레이트 마징가', color: 'var(--t-gmazinger)', special: true },
+  taekwonv:  { icon: '🥋', name: '태권V', color: 'var(--t-taekwonv)', special: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
 // AMR = 바퀴+AI / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI) / 산업용 로봇 = 산업용 팔+바닥 공사(고정·울타리)+SI
@@ -782,6 +804,10 @@ const ROBOTS = {
   gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool', 'auto'] },
   eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'tool', 'auto'] },
   tf:     { icon: '🚗', name: '트랜스포머',         parts: ['tf', 'wheel', 'auto'] },  // 트랜스포머는 SI 대신 바퀴
+  mgodz:     { icon: '🦖', name: '메카고질라',      parts: ['mgodz', 'iarm', 'tool'] },  // 옛날 로봇: AI 대신 산업용 팔
+  mazinger:  { icon: '🤖', name: '마징가 Z',        parts: ['mazinger', 'iarm', 'tool'] },
+  gmazinger: { icon: '🦾', name: '그레이트 마징가', parts: ['gmazinger', 'iarm', 'tool'] },
+  taekwonv:  { icon: '🥋', name: '로보트 태권V',    parts: ['taekwonv', 'iarm', 'tool'] },
 };
 
 // ───────── 클라이언트 (로봇 스터디 2차 발제 자료, 2026.09.21에서 로봇 종류를 밝힌 현장) ─────────
@@ -817,6 +843,10 @@ const ORDERS = [
   { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '"아무로, 출격합니다!"', sec: '★ 특별 주문', fact: '"이것이 젊음인가!"' },
   { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '"오토봇, 변신!"', sec: '★ 특별 주문', fact: '"자유는 모든 지각 있는 존재의 권리다."' },
   { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '"신지, 에바에 타라."', sec: '★ 특별 주문', fact: '"도망치면 안 돼, 도망치면 안 돼, 도망치면 안 돼!"' },
+  { id: 'godzbase', want: 'mgodz', n: 1, mood: 'long', icon: '🦖', who: '고질라 대책본부', task: '"메카고질라, 기동!"', sec: '★ 특별 주문', fact: '고질라를 막으려면 고질라만 한 로봇이 필요해요. 1974년생이라 AI 대신 산업용 로봇 기술로!' },
+  { id: 'photon',   want: 'mazinger', n: 1, mood: 'long', icon: '⚡', who: '광자력연구소', task: '"파일더 온!"', sec: '★ 특별 주문', fact: '"무쇠로 만든 사람, 인조인간 로보트 마징가 Z!" 1972년생이라 AI는 없어요.' },
+  { id: 'fortress', want: 'gmazinger', n: 1, mood: 'long', icon: '🪃', who: '과학요새연구소', task: '"그레이트 부메랑!"', sec: '★ 특별 주문', fact: '마징가 Z보다 강한 후속기. 그래도 1974년생이라 AI 대신 산업용 로봇 기술이에요.' },
+  { id: 'kimlab',   want: 'taekwonv', n: 1, mood: 'long', icon: '🥋', who: '김박사 연구소', task: '"로보트 태권V, 출동!"', sec: '★ 특별 주문', fact: '"달려라 달려 로보트야, 날아라 날아 태권V!" 1976년생 국산 로봇이에요.' },
   { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
   { id: 'bmw',      want: 'hum',   n: 1, us: true, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
   { id: 'cj',       want: 'hum',   n: 1, mood: 'long', icon: '🧴', who: 'CJ대한통운',  task: '양팔로 완충재 포장', sec: '⑫ 물류센터',    fact: '올리브영 물류센터 포장 라인에 휴머노이드 양팔 로봇 2대가 들어갔어요.' },
@@ -826,7 +856,7 @@ const ORDERS = [
 const IND = {
   port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', usbat: '배터리 공장', rby1: '제조 공장', ecopro: '배터리 소재 공장',
   mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', seoulEdu: '학교 급식실', gyeonggiEdu: '학교 급식실', kyochon: '치킨집', bhc: '치킨집', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
-  skynet: '미래에서 온 주문', autobot: '사이버트론', efsf: '우주세기 0079', nerv: '제3신동경시', posco: '제철소', posco2: '제철소', posco3: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
+  skynet: '미래에서 온 주문', autobot: '사이버트론', efsf: '우주세기 0079', nerv: '제3신동경시', godzbase: '도쿄만', photon: '광자력연구소', fortress: '과학요새', kimlab: '김박사 연구소', posco: '제철소', posco2: '제철소', posco3: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
 };
 ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
 const robotLabel = o => o.label || ROBOTS[o.want].name;
@@ -861,7 +891,7 @@ function orderParts(o, pool) {
   if (o.union && pool.includes('union')) out.push('union');
   return out;
 }
-const SPECIALS = ['hum', 'term', 'gundam', 'eva', 'tf'];
+const SPECIALS = ['hum', 'term', 'gundam', 'eva', 'tf', 'mgodz', 'mazinger', 'gmazinger', 'taekwonv'];
 const isSpec = t => SPECIALS.includes(t);
 const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 // 판마다 타일 조합 고르기. 너무 단순해지지 않게:
@@ -873,8 +903,13 @@ function levelDef(lv) {
   // 4단계부터 세 판에 한 판꼴: 휴머노이드 대신 터미네이터·건담·에바·트랜스포머 중 하나
   // 특별 로봇 판: 5단계 건담, 8단계 에바, 11단계 터미네이터, 14단계 트랜스포머.
   // 17단계부터는 3단계마다(17, 20, 23…) 넷 중 하나를 무작위로. 나머지 판은 휴머노이드
-  const FIXED_SPECIAL = { 5: 'gundam', 8: 'eva', 11: 'term', 14: 'tf' };
-  const special = FIXED_SPECIAL[lv] || (lv >= 17 && (lv - 17) % 3 === 0 ? ['term', 'gundam', 'eva', 'tf'][Math.floor(Math.random() * 4)] : 'hum');
+  // 5 건담, 8 에바, 11 터미네이터, 14 트랜스포머 / 17·20은 그 넷 중 무작위
+  // 23 메카고질라, 26 마징가 Z, 29 그레이트 마징가, 32 태권V 첫 등장 / 33단계부터는 판마다 휴머노이드·특별 로봇 무작위
+  const FIXED_SPECIAL = { 5: 'gundam', 8: 'eva', 11: 'term', 14: 'tf', 23: 'mgodz', 26: 'mazinger', 29: 'gmazinger', 32: 'taekwonv' };
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const special = FIXED_SPECIAL[lv]
+    || (lv >= 33 ? pick(['hum', 'hum', 'hum', 'term', 'gundam', 'eva', 'tf', 'mgodz', 'mazinger', 'gmazinger', 'taekwonv'])
+    : lv >= 17 && (lv - 17) % 3 === 0 ? pick(['term', 'gundam', 'eva', 'tf']) : 'hum');
   // 특별 로봇에 필요한 일반 부품(SI, 트랜스포머는 바퀴)은 보드에 꼭 포함
   const debut = Object.keys(ROBOT_FROM).find(r => ROBOT_FROM[r] === lv);
   const must = [...new Set([...ROBOTS[special].parts.filter(p => !isSpec(p)), ...(fresh ? [fresh] : []), ...(debut ? ROBOTS[debut].parts : [])])].slice(0, n);
@@ -895,8 +930,8 @@ function levelDef(lv) {
   return tryPick(want, 4, true) || tryPick(2, 3, true) || tryPick(1, 1, false) || { lv, tiles: ['wheel', 'auto', 'arm', 'tool'], robots: ['amr', 'cobot', 'mm', 'hum'], pool, fresh, special: 'hum' };
 }
 // 단계 목표 = 만족시켜 보낸 손님 수 (떠난 손님은 세지 않음)
-// 1단계 5명, 단계마다 +1명, 최대 20명
-const levelTarget = lv => Math.min(20, 4 + lv);
+// 1단계 5명, 단계마다 +1명, 최대 14명
+const levelTarget = lv => Math.min(14, 4 + lv);
 // 템포: 처음엔 느리게(읽으며 배우게), 판마다 조금씩 빨라져서 12단계부터 지금 속도
 // 주문서가 뜨고 사라지는 연출·손님이 오는 간격에 곱함 (1단계 2.3배 → 6단계 1.7배 → 12단계 1배)
 const pace = lv => lv >= 12 ? 1 : 1 + 1.5 * (12 - lv) / 11;  // 1단계 2.5배 느리게 → 12단계 1배  // 1단계는 4배 넘게 느리게(읽을 시간), 2단계 2.8배 → 12단계 1배
@@ -1693,6 +1728,8 @@ const TILE_HELP = {
   hum: '처음엔 보드에 없어요. 4개·2×2를 맞추면 1개, 5개를 맞추면 2개가 위에서 내려와요.',
 };
 const SPECIAL_HELP = '이번 판 특별 손님! 휴머노이드 대신 이 타일이 내려와요. 4개·2×2를 맞추면 1개, 5개면 2개.';
+const OLD_HELP = '1970년대생 옛날 로봇이라 AI가 없어요! 피지컬AI 대신 산업용 팔 + SI로 조립해요. 4개·2×2를 맞추면 1개, 5개면 2개가 내려와요.';
+['mgodz', 'mazinger', 'gmazinger', 'taekwonv'].forEach(t => { TILE_HELP[t] = OLD_HELP; });
 // 1단계는 항상 그 판 타일 전부. 그 뒤로는 앞 판들을 깨면서 본 적 없는 타일만 (판을 깨야 '본 타일'로 기록 → 새로고침해도 다시 뜸)
 function freshTiles() {
   S.seenTiles = S.seenTiles || [];
@@ -2028,7 +2065,7 @@ const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
 // 파일마다 내용이 바뀔 때만 새로 받도록 파일 해시를 붙임 (빌드할 때 채움)
-const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "f174149f", "tile-made-a.png": "d557ba97", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "robot-indus-b.png": "4a7cabef", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "tile-iarm-a.png": "fc127d92", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "robot-indus-a.png": "ba4c70bc", "tile-korea-b.png": "ebe1008b", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "d1987f19", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "tile-iarm-b.png": "f0647318", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "b64d5546", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-term-a.png": "f86a988f", "tile-eva-a.png": "48055f29", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "indus-ref.png": "2bfe4680", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c8c8a23a", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "7077aabd", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "09f47fab", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
+const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "f174149f", "tile-made-a.png": "d557ba97", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "tile-mgodz-b.png": "64821f9c", "robot-indus-b.png": "4a7cabef", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "tile-iarm-a.png": "fc127d92", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "robot-indus-a.png": "ba4c70bc", "tile-korea-b.png": "ebe1008b", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "d1987f19", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "tile-taekwonv-b.png": "0aa23e33", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "tile-iarm-b.png": "f0647318", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "b64d5546", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-mazinger-a.png": "d7ef493a", "tile-term-a.png": "f86a988f", "tile-gmazinger-b.png": "62cc3817", "tile-eva-a.png": "48055f29", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "tile-mazinger-b.png": "dd429822", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "indus-ref.png": "2bfe4680", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "tile-gmazinger-a.png": "877ae7f9", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-mgodz-a.png": "ebb5f540", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "tile-taekwonv-a.png": "357f6b58", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c8c8a23a", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "7077aabd", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "09f47fab", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
 // 게임에서는 가벼운 webp(assets/w/)를 씀. 파일 이름은 png와 같고 확장자만 다름
 const av = f => { const n = f.replace('assets/', ''); return `assets/w/${n.replace(/\.png$/, '.webp')}?v=${ART_HASH[n] || '0'}`; };
 // 업종 아이콘(ind-)은 a프레임만, 로봇·부품은 a·b를 번갈아 (팔이 까딱, 다리가 제자리걸음 등)
@@ -2391,7 +2428,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-205216';
+const BUILD_V = '1003-210323';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2447,6 +2484,37 @@ function startLevel() {
   addClient(0);
   S.spawnT = 2;
 }
+const ENDING_LV = 20;
+// 엔딩: 지금까지 납품한 로봇·현장·수익을 보여 주고 "계속할까요?" → 계속하면 21단계부터 이어서
+function endingShow() {
+  return new Promise(done => {
+    const ids = S.runServed.filter(id => O[id]);
+    const bots = new Map();
+    for (const id of ids) { const o = O[id]; const k = o.want; if (!bots.has(k)) bots.set(k, { o, n: 0 }); bots.get(k).n += o.n || 1; }
+    const total = [...bots.values()].reduce((a, b) => a + b.n, 0);
+    const sites = [...new Set(ids.filter(id => !isSpec(O[id].want) || O[id].want === 'hum').map(id => O[id].who || O[id].ind))];
+    const notes = [...new Set(ids)].map(id => O[id]).filter(o => CASE_WHY[o.id]).slice(-5).reverse();
+    const el = document.createElement('div');
+    el.className = 'newtiles ending';
+    el.innerHTML = `<div class="nt-panel"><div class="nt-head end-head">🏆 20단계 완주! 로봇 공장 대박!</div>
+      <div class="end-stats"><div><b>💰 ${S.score.toLocaleString()}</b><small>총수익</small></div><div><b>🤖 ${total}대</b><small>납품한 로봇</small></div><div><b>🏭 ${sites.length}곳</b><small>다녀간 현장</small></div></div>
+      <div class="end-bots">${[...bots.values()].sort((a, b) => b.n - a.n).slice(0, 10).map(({ o, n }) => `<span class="end-bot">${o.robotIcon || ROBOTS[o.want].icon}<i>×${n}</i></span>`).join('')}</div>
+      ${notes.length ? `<div class="end-notes"><b>현장 노트</b>${notes.map(o => `<p>${o.icon} <em>${o.who || o.ind}</em> ${o.fact}</p>`).join('')}</div>` : ''}
+      <div class="end-q">계속할까요? 21단계부터는 옛날 로봇들이 기다려요!</div>
+      <div class="end-btns"><button type="button" class="nt-tap end-go" data-go="next">계속하기 ▶</button><button type="button" class="end-again" data-go="restart">↺ 처음부터</button></div></div>`;
+    document.body.appendChild(el);
+    SFX.clear(); SFX.fireworks();
+    setTimeout(() => {
+      el.classList.add('ready');
+      el.addEventListener('click', e => {
+        const b = e.target.closest('[data-go]');
+        if (!b) return;
+        if (b.dataset.go === 'restart' && !confirm('처음부터 다시 할까요? 1단계, 0점부터 시작해요.')) return;
+        el.classList.add('out'); setTimeout(() => { el.remove(); done(b.dataset.go); }, 250);
+      });
+    }, 1200);
+  });
+}
 function levelClear() {
   if (!S.running) return;
   S.running = false;
@@ -2463,7 +2531,8 @@ function levelClear() {
   stage.q.length = 0; stage.busy = false;
   S.lv++;
   save();  // 다음 단계부터 이어서 할 수 있게
-  clearShow(stars).then(go => { if (go === 'restart') { restartGame(); return; } if (!S.paused) startLevel(); else S.pendingStart = true; });
+  const ended = S.lv === ENDING_LV + 1;  // 20단계를 깨면 엔딩 → 계속할지 물어봄
+  clearShow(stars).then(go => (go === 'next' && ended ? endingShow() : go)).then(go => { if (go === 'restart') { restartGame(); return; } if (!S.paused) startLevel(); else S.pendingStart = true; });
   renderHud();
 }
 
