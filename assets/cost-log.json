@@ -1,6 +1,6 @@
 {
- "total_usd": 14.9256,
- "images": 127,
+ "total_usd": 15.1425,
+ "images": 129,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -190,6 +190,13 @@
    "quality": "high",
    "images": 2,
    "usd": 0.4214
+  },
+  {
+   "started": "2026-10-03T03:38:36.512Z",
+   "only": "tile-tf",
+   "quality": "medium",
+   "images": 2,
+   "usd": 0.217
   }
  ]
 }
