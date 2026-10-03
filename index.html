@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#56636F">
 <title>Robot Rush</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,7 +45,9 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 [hidden] { display: none !important; }
-html, body { height: 100%; margin: 0; overflow: hidden; overflow: clip; }
+/* 폰에서 확대·축소되지 않게: 두 번 탭·핀치 확대 막고, 가로로 돌려도 글자 크기가 자동으로 커지지 않게 */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
+html, body { height: 100%; margin: 0; overscroll-behavior: none; overflow: hidden; overflow: clip; }
 .app { overflow-x: clip; }
 /* 공장 금속판: 점잖은 파란 회색 + 빗살 무늬 + 위쪽이 살짝 밝은 금속 광택 */
 body { background: repeating-linear-gradient(135deg, var(--plate) 0 2px, transparent 2px 14px), linear-gradient(180deg, #66737F 0%, var(--bg) 45%, #4B5762 100%) var(--bg); color: var(--hud-ink); font-family: var(--font-body); -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; overflow: hidden; }
@@ -1680,7 +1682,7 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790994938';
+const ART_V = '1790995006';
 const av = f => `${f}?v=${ART_V}`;
 const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
@@ -2077,6 +2079,14 @@ $('btnSound').addEventListener('click', () => {
   S.sound = !S.sound; syncSound();
   try { localStorage.setItem('robotrush.sound', S.sound ? '1' : '0'); } catch (e) {}
 });
+// 아이폰 사파리는 user-scalable=no를 무시하므로 핀치·두 번 탭 확대를 직접 막음
+['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => { const now = Date.now(); if (now - lastTouchEnd < 350) e.preventDefault(); lastTouchEnd = now; }, { passive: false });
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+// 돌리거나 주소창이 접혀 화면 크기가 바뀌면 다시 맞춤
+addEventListener('orientationchange', () => setTimeout(() => { if (S.board) { layout(); renderBoard(); } }, 300));
+if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (S.board) { layout(); renderBoard(); } });
 // 다른 앱으로 나가면 창 없이 조용히 멈췄다가, 돌아오면 그대로 이어서
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && S.running && !S.paused) { S.paused = true; S.autoPaused = true; }
