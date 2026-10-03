@@ -1,0 +1,153 @@
+// ROBOT RU$H 그림 생성 스크립트 (OpenAI gpt-image-1)
+//
+// 쓰는 법:
+//   OPENAI_API_KEY=sk-... node scripts/gen-art.mjs            # 전부 (이미 있는 파일은 건너뜀)
+//   OPENAI_API_KEY=sk-... node scripts/gen-art.mjs tile-wheel # 이름에 이 글자가 들어간 것만
+//   FORCE=1 ... node scripts/gen-art.mjs robot-amr            # 있어도 다시 그림
+//   QUALITY=high ... (기본 medium. low / medium / high)
+//
+// 결과: assets/<이름>-a.png, assets/<이름>-b.png (까딱까딱 2프레임), 손님 얼굴은 assets/face-<이름>.png 한 장
+// 스타일 기준: assets/style/ref-*.png (사용자가 준 예시 그림 2장)
+// 만드는 법:
+//   a 프레임 = 예시 그림을 참고 이미지로 넣고 새 그림 생성 (images/edits)
+//   b 프레임 = a 프레임을 넣고 "똑같은 그림, 살짝 기울고 눌린 자세"로 다시 그림 → 둘을 번갈아 보여 주면 까딱까딱
+// Node 18 이상, 추가 패키지 없음.
+
+import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const OUT = join(ROOT, 'assets');
+const KEY = process.env.OPENAI_API_KEY;
+const QUALITY = process.env.QUALITY || 'medium';
+const FORCE = !!process.env.FORCE;
+const ONLY = process.argv[2] || '';
+const CONCURRENCY = 3;
+if (!KEY) { console.error('OPENAI_API_KEY가 없어요.'); process.exit(1); }
+
+// ───────── 공통 스타일 ─────────
+const STYLE = [
+  'Cute, simple cartoon sticker style, matching the reference images:',
+  'bold thick black outlines, flat colors with soft cel shading, chunky rounded shapes, friendly and playful.',
+  'Exactly one subject, centered, filling about 80% of the canvas with even padding.',
+  'No text, no letters, no numbers, no logos, no background scenery, no drop shadow on the ground.',
+  'Fully transparent background.',
+].join(' ');
+// 타일 그림은 색 있는 타일 위에 올라감 → 물체만, 밝은 회색 금속 위주
+const PART = 'A single machine part icon for a match-3 game tile. Mostly light gray and white metal with small accent colors so it reads on any colored tile. No face.';
+// 완성 로봇은 예시 드론처럼 귀여운 얼굴(눈·입)
+const ROBOT = 'A cute industrial robot character with a small friendly face (two round black eyes with highlights, small smiling mouth) like the reference drone. White and light gray body with orange accent lights.';
+// 업종 아이콘: 그 업종을 떠올리게 하는 상징물 하나
+const PLACE = 'A cute icon representing an industry or workplace, drawn as one simple symbolic object or tiny building. It may have a tiny friendly face.';
+const FACE = 'A round yellow emoji-like customer face, cute cartoon style, thick black outline, no body.';
+
+// ───────── 그림 목록 ─────────
+// kind: 'anim' = a·b 2프레임, 'still' = 한 장
+const ITEMS = [
+  // 부품 타일 10
+  { name: 'tile-wheel', kind: 'anim', prompt: `${PART} A chunky robot wheel with a thick dark rubber tire and a light gray hub.` },
+  { name: 'tile-auto', kind: 'anim', prompt: `${PART} An autonomous driving sensor module: a small lidar puck on a base with a glowing blue scan ring.` },
+  { name: 'tile-floor', kind: 'anim', prompt: `${PART} A floor guidance square: a small floor tile with a yellow-black magnetic guide tape stripe and a QR code sticker.` },
+  { name: 'tile-arm', kind: 'anim', prompt: `${PART} A bare collaborative robot arm (cobot) with a round base, two links and three joints, ending in an empty tool flange. No gripper, no hand.` },
+  { name: 'tile-tool', kind: 'anim', prompt: `${PART} A two-finger robot gripper (end effector) with a wrist mount on top, fingers open, pointing down.` },
+  { name: 'tile-legs', kind: 'anim', prompt: `${PART} A single robot leg with a thigh, knee joint and a rounded foot, like a quadruped robot leg.` },
+  { name: 'tile-hum', kind: 'anim', prompt: `A cute small humanoid robot standing, full body, white and light gray with a dark visor face showing two glowing eyes. Special golden glow outline.` },
+  { name: 'tile-union', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A handshake over a signed paper agreement with a red wax seal, meaning a labor-management agreement.` },
+  { name: 'tile-made', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A cardboard shipping box with a small United States flag sticker and an export arrow, meaning overseas export to the USA.` },
+  { name: 'tile-korea', kind: 'anim', prompt: `${PART.replace('machine part', 'symbol')} A small factory building with a South Korean flag (taegukgi) on top, meaning made in Korea.` },
+
+  // 완성 로봇 7
+  { name: 'robot-amr', kind: 'anim', prompt: `${ROBOT} An AMR: a low flat four-wheeled autonomous mobile robot carrying a small box on top, with a lidar dome.` },
+  { name: 'robot-agv', kind: 'anim', prompt: `${ROBOT} An AGV: a low rectangular automated guided cart following a yellow guide line on the floor, carrying a pallet.` },
+  { name: 'robot-cobot', kind: 'anim', prompt: `${ROBOT} A collaborative robot arm on a round base with a two-finger gripper at the end, the face on the base.` },
+  { name: 'robot-mm', kind: 'anim', prompt: `${ROBOT} A mobile manipulator: a flat wheeled AMR base with a collaborative robot arm and gripper mounted on top.` },
+  { name: 'robot-quad', kind: 'anim', prompt: `${ROBOT} A four-legged robot dog (quadruped robot) with a sensor head, standing on four mechanical legs.` },
+  { name: 'robot-qarm', kind: 'anim', prompt: `${ROBOT} A four-legged robot dog with a robot arm and gripper mounted on its back, the arm reaching forward.` },
+  { name: 'robot-centaur', kind: 'anim', prompt: `${ROBOT} A centaur robot: a four-legged robot body with a humanoid robot upper torso, two arms and head on top.` },
+
+  // 업종 아이콘 16 (게임의 업종 이름과 같은 순서)
+  { name: 'ind-port', kind: 'anim', prompt: `${PLACE} A seaport: a stack of shipping containers with a small harbor crane. (항만)` },
+  { name: 'ind-aircraft', kind: 'anim', prompt: `${PLACE} Aircraft manufacturing: a small jet trainer airplane on an assembly stand. (항공기 제조)` },
+  { name: 'ind-logistics', kind: 'anim', prompt: `${PLACE} A logistics warehouse: a tall shelf rack with cardboard boxes. (물류센터)` },
+  { name: 'ind-autoparts', kind: 'anim', prompt: `${PLACE} An auto parts factory: a car seat and a gear on a small conveyor. (자동차 부품 공장)` },
+  { name: 'ind-ess', kind: 'anim', prompt: `${PLACE} A battery energy storage (ESS) factory: a big battery cabinet with a lightning bolt. (배터리 ESS 공장)` },
+  { name: 'ind-material', kind: 'anim', prompt: `${PLACE} A battery materials plant: a lab flask with green liquid next to a small battery cell. (배터리 소재 공장)` },
+  { name: 'ind-shipyard', kind: 'anim', prompt: `${PLACE} A shipyard: a large ship hull with welding sparks. (조선소)` },
+  { name: 'ind-school', kind: 'anim', prompt: `${PLACE} A school cafeteria kitchen: a lunch tray with rice, soup and side dishes and a big cooking pot. (학교 급식실)` },
+  { name: 'ind-factory', kind: 'anim', prompt: `${PLACE} A general manufacturing factory: a small factory building with a gear and a chimney. (제조 공장)` },
+  { name: 'ind-training', kind: 'anim', prompt: `${PLACE} Vocational training: a graduation cap on top of a wrench. (직업 교육)` },
+  { name: 'ind-battery', kind: 'anim', prompt: `${PLACE} A battery cell factory: a big cylindrical battery cell with a plus sign. (배터리 공장)` },
+  { name: 'ind-steel', kind: 'anim', prompt: `${PLACE} A steel mill: a blast furnace pouring glowing orange molten iron. (제철소)` },
+  { name: 'ind-police', kind: 'anim', prompt: `${PLACE} Police: a police cap with a badge and a small blue-red siren light. (경찰)` },
+  { name: 'ind-defense', kind: 'anim', prompt: `${PLACE} Defense industry: a military helmet with a camouflage pattern and a medal. (방위산업)` },
+  { name: 'ind-fire', kind: 'anim', prompt: `${PLACE} Firefighting: a firefighter helmet with a fire extinguisher. (소방)` },
+  { name: 'ind-auto', kind: 'anim', prompt: `${PLACE} A car factory: a small car on an assembly line. (자동차 공장)` },
+
+  // 손님 얼굴 6 (한 장씩, 애니메이션 없음)
+  { name: 'face-smile', kind: 'still', prompt: `${FACE} Happy, gentle closed-eye smile with rosy cheeks.` },
+  { name: 'face-neutral', kind: 'still', prompt: `${FACE} Neutral, flat mouth, slightly bored eyes.` },
+  { name: 'face-frown', kind: 'still', prompt: `${FACE} Annoyed frown, eyebrows down, small sweat drop.` },
+  { name: 'face-angry', kind: 'still', prompt: `${FACE} Very angry, red-orange face, furrowed brows, gritted teeth, steam puffs.` },
+  { name: 'face-delight', kind: 'still', prompt: `${FACE} Delighted, big open grin, sparkling eyes.` },
+  { name: 'face-tear', kind: 'still', prompt: `${FACE} Sad with a single tear rolling down one cheek.` },
+];
+
+// ───────── API ─────────
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const exists = p => access(p).then(() => true, () => false);
+async function pngBlob(path) { return new Blob([await readFile(path)], { type: 'image/png' }); }
+
+// images/edits: 참고 그림(들)과 프롬프트로 새 그림
+async function edit(images, prompt) {
+  for (let attempt = 1; ; attempt++) {
+    const fd = new FormData();
+    fd.append('model', 'gpt-image-1');
+    fd.append('prompt', prompt);
+    fd.append('size', '1024x1024');
+    fd.append('quality', QUALITY);
+    fd.append('background', 'transparent');
+    fd.append('output_format', 'png');
+    fd.append('input_fidelity', 'high');
+    for (const [i, p] of images.entries()) fd.append('image[]', await pngBlob(p), `ref${i}.png`);
+    const res = await fetch('https://api.openai.com/v1/images/edits', { method: 'POST', headers: { Authorization: `Bearer ${KEY}` }, body: fd });
+    if (res.ok) return Buffer.from((await res.json()).data[0].b64_json, 'base64');
+    const msg = await res.text();
+    if ((res.status === 429 || res.status >= 500) && attempt < 5) { await sleep(2000 * 2 ** attempt); continue; }
+    throw new Error(`${res.status} ${msg.slice(0, 300)}`);
+  }
+}
+
+const REFS = [join(OUT, 'style', 'ref-drone.png'), join(OUT, 'style', 'ref-monster.png')];
+const FRAME_B = [
+  'Second frame of a 2-frame idle "bobbing" loop animation.',
+  'Redraw the EXACT same subject from the input image: same design, same colors, same outline thickness, same size and same position in the canvas.',
+  'Only change the pose slightly: tilt the whole subject about 8 degrees to the right and squash it a little vertically, as if it is bouncing.',
+  'Fully transparent background. No text.',
+].join(' ');
+
+async function make(item) {
+  const a = join(OUT, item.kind === 'still' ? `${item.name}.png` : `${item.name}-a.png`);
+  const b = join(OUT, `${item.name}-b.png`);
+  if (FORCE || !(await exists(a))) {
+    await writeFile(a, await edit(REFS, `${STYLE}\n\nDraw: ${item.prompt}\n\nUse the reference images only for the art style, not for the subject.`));
+    console.log('✓', a.replace(ROOT + '/', ''));
+  }
+  if (item.kind === 'anim' && (FORCE || !(await exists(b)))) {
+    await writeFile(b, await edit([a], FRAME_B));
+    console.log('✓', b.replace(ROOT + '/', ''));
+  }
+}
+
+await mkdir(OUT, { recursive: true });
+const todo = ITEMS.filter(it => it.name.includes(ONLY));
+const total = todo.reduce((n, it) => n + (it.kind === 'anim' ? 2 : 1), 0);
+console.log(`그림 ${todo.length}종, 최대 ${total}장 (quality=${QUALITY})`);
+let next = 0, failed = 0;
+await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
+  while (next < todo.length) {
+    const it = todo[next++];
+    try { await make(it); } catch (e) { failed++; console.error('✗', it.name, e.message); }
+  }
+}));
+console.log(failed ? `실패 ${failed}종. 같은 명령을 다시 돌리면 없는 것만 다시 그려요.` : '끝!');
