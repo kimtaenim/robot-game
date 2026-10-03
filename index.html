@@ -1023,21 +1023,24 @@ const SFX = {
       t += d;
     }
   },
-  // 태극기 맞춤: 옹헤야 가락 "도라도라미라라" (장구 덩·쿵에 맞춰 좀 우스꽝스럽게)
+  // 태극기 맞춤: 옹헤야 "어절씨구 옹헤야" = "도라도라미라라"
+  // 자진모리 장단(12/8, 한 박 = 8분음표 셋)처럼 긴-짧은 쿵짝: 도(긴)라(짧) | 도(긴)라(짧) | 미(긴)라(짧) | 라(한 박 통째)
+  // 장구: 덩(1박) 쿵(2박) 덕(3박 뒤) 쿵(4박)
   onghaeya: () => {
     if (!audio() || SFX._busy('onghaeya', 2400)) return;
-    const t = ac.currentTime, q = 0.22;
+    const t = ac.currentTime + 0.03, e = 0.15;  // 8분음표 길이 (한 박 = 0.45초)
     const D = 523, L = 440, M = 659;
-    [[D, 1], [L, 1], [D, 1], [L, 1], [M, 1], [L, 1], [L, 2]].reduce((at, [f, b]) => {
-      const d = b * q;
+    for (const [f, at, len] of [[D, 0, 2], [L, 2, 1], [D, 3, 2], [L, 5, 1], [M, 6, 2], [L, 8, 1], [L, 9, 3]]) {
+      const d = len * e;
       // 해금처럼 살짝 흔들리는 톱니 + 마림바
-      const o = osc('sawtooth', f, t + at, d * 0.95, 0.05);
-      const v = ac.createOscillator(), vg = ac.createGain(); v.frequency.value = 7; vg.gain.value = f * 0.02; v.connect(vg).connect(o.frequency); v.start(t + at); v.stop(t + at + d);
-      SFX.marimba(f, at, 0.2, d * 0.8);
-      return at + d;
-    }, 0.02);
-    // 장구: 덩(낮게) 쿵(더 낮게)
-    [0, 2, 4, 6].forEach(k => { osc('sine', k % 4 === 0 ? 110 : 80, t + 0.02 + k * q, 0.18, 0.18, 55); nz(t + 0.02 + k * q, 0.05, 0.05, 'bandpass', 1200, 2); });
+      const o = osc('sawtooth', f, t + at * e, d * 0.95, 0.05);
+      const v = ac.createOscillator(), vg = ac.createGain(); v.frequency.value = 7; vg.gain.value = f * 0.02; v.connect(vg).connect(o.frequency); v.start(t + at * e); v.stop(t + at * e + d);
+      SFX.marimba(f, 0.03 + at * e, 0.2, d * 0.8);
+    }
+    const dung = at => { osc('sine', 110, t + at * e, 0.22, 0.2, 55); nz(t + at * e, 0.06, 0.06, 'bandpass', 1200, 2); };
+    const kung = at => osc('sine', 80, t + at * e, 0.2, 0.18, 50);
+    const deok = at => nz(t + at * e, 0.05, 0.08, 'bandpass', 2600, 3);
+    dung(0); kung(3); deok(6); deok(8); kung(9);
   },
   // 에바 타일 맞춤: 에반게리온 주제가 첫 소절 "라도레도레레레솔파미레미" (미국 국가처럼 마림바)
   // 에바 맞춤: "잔혹한 천사의 테제" 첫 구절 "라 도 레~ 도 | 레 레 레 솔 파 미 레 미~~" (원곡처럼 4/4, 약 133BPM)
@@ -2170,7 +2173,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-162000';
+const BUILD_V = '1003-162141';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
