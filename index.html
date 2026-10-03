@@ -767,7 +767,7 @@ const TILES = {
 // ───────── 로봇 = 부품 묶음 ─────────
 // AMR = 바퀴+AI / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI) / 산업용 로봇 = 산업용 팔+바닥 공사(고정·울타리)+SI
 // 모바일 매니퓰레이터 = AMR 위에 협동로봇(⑧ LG엔솔) / 4족 = 다리 둘+SI / 휴머노이드 = 특수 타일 3개 맞추기+SI
-// 팔 달린 4족 = 다리 둘+팔+SI / 켄타우로스 = 4족 하체에 휴머노이드 상체+SI
+// 팔 달린 4족 = 다리 둘+팔+SI / 켄타우로스 = 휴머노이드 상체+다리+AI+SI
 const ROBOTS = {
   amr:   { icon: '🚚', name: 'AMR',               parts: ['wheel', 'auto'] },
   agv:   { icon: '🛤️', name: 'AGV',               parts: ['wheel', 'floor'] },
@@ -776,7 +776,7 @@ const ROBOTS = {
   mm:    { icon: '🚜', name: '모바일 매니퓰레이터', parts: ['wheel', 'auto', 'arm', 'tool'] },
   quad:  { icon: '🐕‍🦺', name: '4족로봇',           parts: ['legs', 'legs', 'auto'] },  // 다리 둘 + AI
   qarm:  { icon: '🦂', name: '팔 달린 4족로봇',    parts: ['legs', 'legs', 'arm', 'tool'] },
-  centaur: { icon: '🏇', name: '켄타우로스 로봇',  parts: ['legs', 'legs', 'hum', 'tool'] },
+  centaur: { icon: '🏇', name: '켄타우로스 로봇',  parts: ['hum', 'legs', 'auto', 'tool'] },  // 휴머노이드 상체 + 다리 + AI + SI
   hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum', 'tool', 'auto'] },  // 휴머노이드 + SI + AI
   term:   { icon: '💀', name: '터미네이터',         parts: ['term', 'tool', 'auto'] },
   gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool', 'auto'] },
@@ -1301,6 +1301,10 @@ function pickOrder(i) {
   }
   let pool = ORDERS.filter(o => ok.has(o.want) && !isSpec(o.want) && can(o) && !open.has(o.id));
   if (!pool.length) pool = ORDERS.filter(o => ok.has(o.want) && !isSpec(o.want) && can(o));
+  // 켄타우로스는 드물게(4번 중 1번꼴), 그리고 이미 기다리는 켄타우로스 손님이 있으면 안 받음
+  const centaurOpen = S.slots.some(c => c && c.order.want === 'centaur' && c.state === 'wait');
+  const noCentaur = pool.filter(o => o.want !== 'centaur');
+  if (noCentaur.length && (centaurOpen || Math.random() > 0.25)) pool = noCentaur;
   // 조선소 손님은 7명 중 1명꼴
   const ships = pool.filter(o => o.ind === '조선소'), rest = pool.filter(o => o.ind !== '조선소');
   if (ships.length && (Math.random() < SHIP_SHARE || !rest.length)) return ships[Math.floor(Math.random() * ships.length)];
@@ -1720,7 +1724,7 @@ const CASE_WHY = {
   army: '산과 험지는 바퀴가 못 가요. 다리로 걷는 4족로봇이 정찰해요. 군 장비라서 국내생산 칸이 붙어요.',
   fire: '화재 현장은 연기·잔해·계단투성이예요. 4족로봇이 걸어 들어가 사람보다 먼저 살펴요.',
   posco2: '1500도 용선 앞까지 걸어가서(다리) 직접 온도를 재고 시료를 떠야(팔+SI) 해요. 그래서 팔 달린 4족로봇이에요.',
-  fire2: '험한 곳까지 걸어 들어가고(4족 하체) 양팔로 구조·진압까지(사람 상체) 하려는 형태예요.',
+  fire2: '험한 곳까지 다리로 걸어 들어가고, 휴머노이드 상체의 양팔로 구조·진압까지 하려는 형태예요. 스스로 판단하는 AI도 필요해요.',
   hyundai: '자동차 조립 라인은 사람 키와 손에 맞춰져 있어서, 휴머노이드는 라인을 뜯어고치지 않고 사람 자리에 들어가요. 대신 노조와 합의가 필요해요.',
   bmw: '차체 라인에서 사람이 하던 교대 근무를 같은 자리에서 그대로 대신해요. 사람 모양이라 라인을 바꿀 필요가 적어요.',
   cj: '상자에 완충재를 채우는 포장은 양손이 필요해요. 사람처럼 두 팔이 있는 휴머노이드가 맞아요.',
@@ -2279,7 +2283,8 @@ function biasedType() {
   const w = S.def.tiles.map(t => {
     const k = need[t] || 0;
     let x = COND_TILES.has(t) && !k ? 0.6 : 1;
-    if (k) x *= 1 + 0.55 * Math.min(k, 4) * ((onBoard[t] || 0) < 5 ? 1.5 : 1);
+    // 필요한 개수만큼 비례해서 (다리 둘이 드는 4족로봇이 몰려도 따라가게 상한을 넉넉히), 보드에 적으면 더
+    if (k) x *= 1 + 0.6 * Math.min(k, 8) * ((onBoard[t] || 0) < 5 ? 1.5 : 1);
     return x;
   });
   let r = Math.random() * w.reduce((a, b) => a + b, 0);
@@ -2385,7 +2390,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-195930';
+const BUILD_V = '1003-204315';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
