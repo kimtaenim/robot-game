@@ -327,6 +327,12 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 /* 클리어 춤: 그림이 찌그러지지 않게 a프레임만, 눌림·늘어남 없이 통째로 흔들기만 */
 .cs-ic .art.bob { animation: none; }
 .cs-ic .art { width: 1.2em; height: 1.2em; }
+.cs-lostsub { margin-top: 6px; color: #FFB3A8; animation-delay: 1.1s; }
+.cs-lost .cs-ic { position: relative; font-size: 58px; animation: none; rotate: -14deg; transform-origin: 50% 90%; }
+.cs-lost .cs-fail { position: absolute; left: 50%; top: 82%; transform: translate(-50%, -50%) rotate(-4deg); font-family: var(--font-display); font-weight: 400; font-size: 13px; white-space: nowrap; color: #E53935; background: rgba(255, 255, 255, .9); border: 2px solid #E53935; border-radius: 8px; padding: 0 6px; line-height: 1.3; }
+.cs-lost .cs-ic .art { filter: grayscale(1) brightness(1.45) contrast(1.1); }
+.cs-lost .cs-ic::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .28), rgba(255, 255, 255, 0) 70%); }
+.cs-lost .cs-name { font-size: 14px; color: #ddd; }
 .cs-name { margin-top: 4px; font-family: var(--font-display); font-size: 17px; color: #fff; background: rgba(0, 0, 0, .45); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
 /* 주문서가 다 뜨면 까딱까딱 두 번 */
 .order-card.wiggle { animation: cardWiggle .7s ease-in-out 2; }
@@ -736,10 +742,10 @@ const ROBOTS = {
   qarm:  { icon: '🦂', name: '팔 달린 4족로봇',    parts: ['legs', 'legs', 'arm', 'tool'] },
   centaur: { icon: '🏇', name: '켄타우로스 로봇',  parts: ['legs', 'legs', 'hum', 'tool'] },
   hum:   { icon: '🤖', name: '휴머노이드',         parts: ['hum', 'tool', 'auto'] },  // 휴머노이드 + SI + AI
-  term:   { icon: '💀', name: '터미네이터',         parts: ['term', 'tool'] },
-  gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool'] },
-  eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'tool'] },
-  tf:     { icon: '🚗', name: '트랜스포머',         parts: ['tf', 'wheel'] },  // 트랜스포머는 SI 대신 바퀴
+  term:   { icon: '💀', name: '터미네이터',         parts: ['term', 'tool', 'auto'] },
+  gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool', 'auto'] },
+  eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'tool', 'auto'] },
+  tf:     { icon: '🚗', name: '트랜스포머',         parts: ['tf', 'wheel', 'auto'] },  // 트랜스포머는 SI 대신 바퀴
 };
 
 // ───────── 클라이언트 (로봇 스터디 2차 발제 자료, 2026.09.21에서 로봇 종류를 밝힌 현장) ─────────
@@ -1234,7 +1240,7 @@ function clientTick(dt) {
       c.state = 'gone'; c.until = GONE_SEC;
       vibrate([40, 40, 40]);
       S.dead += c.needs.filter(nd => nd.got).length;
-      S.missed++;
+      S.missed++; S.levelMissed.push(c.order.id);
       renderClients(); renderHud();
       c.showing = true;
       onStage(() => leaveShow(c, i, false)).then(() => { c.showing = false; });
@@ -1537,7 +1543,13 @@ function clearShow(stars) {
   for (const id of S.levelServed) { const o = O[id]; const name = robotLabel(o); if (!seen.has(name)) seen.set(name, { o, n: 0 }); seen.get(name).n++; }
   const bots = [...seen.entries()].slice(0, 8).map(([name, { o, n }], k) =>
     `<div class="cs-bot" style="animation-delay:${(0.9 + k * 0.12).toFixed(2)}s"><div class="cs-ic" style="animation-delay:${(k * 0.17).toFixed(2)}s">${o.robotIcon || ROBOTS[o.want].icon}</div><div class="cs-name">${name}${n > 1 ? ` ×${n}` : ''}</div></div>`).join('');
-  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-sub">이번 판에 납품한 로봇</div><div class="cs-bots">${bots}</div><div class="cs-btns"><div class="cs-tap" data-go="next">다음 단계 ▶</div><div class="cs-again" data-go="restart">↺ 처음부터</div></div>`;
+  // 납품 못 한 로봇: 아래 줄에 회색으로 고개 숙이고, 빨간 "납품 실패" 도장
+  const lost = new Map();
+  for (const id of S.levelMissed || []) { const o = O[id]; const name = robotLabel(o); if (!lost.has(name)) lost.set(name, { o, n: 0 }); lost.get(name).n++; }
+  const nLost = (S.levelMissed || []).length;
+  const lostHtml = nLost ? `<div class="cs-sub cs-lostsub">놓친 주문 ${nLost}</div><div class="cs-bots cs-lost">${[...lost.entries()].slice(0, 6).map(([name, { o, n }], k) =>
+    `<div class="cs-bot" style="animation-delay:${(1.2 + k * 0.12).toFixed(2)}s"><div class="cs-ic">${o.robotIcon || ROBOTS[o.want].icon}<b class="cs-fail">납품 실패</b></div><div class="cs-name">${name}${n > 1 ? ` ×${n}` : ''}</div></div>`).join('')}</div>` : '';
+  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-sub">이번 판에 납품한 로봇</div><div class="cs-bots">${bots}</div>${lostHtml}<div class="cs-btns"><div class="cs-tap" data-go="next">다음 단계 ▶</div><div class="cs-again" data-go="restart">↺ 처음부터</div></div>`;
   document.body.appendChild(el);
   return new Promise(done => {
     // 연출이 다 뜬 뒤(1.5초)부터 누를 수 있음
@@ -2150,7 +2162,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-161243';
+const BUILD_V = '1003-161608';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2175,7 +2187,7 @@ function loop(t) {
 function startLevel() {
   S.def = levelDef(S.lv);
   stage.q.length = 0;
-  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0, levelServed: [], streak: 0, lastDone: -99, rushUntil: 0 });
+  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0, levelServed: [], levelMissed: [], streak: 0, lastDone: -99, rushUntil: 0 });
   $('overlay').hidden = true;
   clearBoardEls();
   S.board = new Board(COLS, ROWS, S.def.tiles);
