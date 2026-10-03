@@ -1,6 +1,6 @@
 {
- "total_usd": 17.5711,
- "images": 155,
+ "total_usd": 18.6578,
+ "images": 167,
  "runs": [
   {
    "started": "2026-10-03T01:27:26.439Z",
@@ -253,6 +253,13 @@
    "quality": "medium",
    "images": 2,
    "usd": 0.1734
+  },
+  {
+   "started": "2026-10-03T04:44:06.528Z",
+   "only": "robot-amr,robot-agv,robot-mm,robot-cobot,robot-quad,robot-qarm,robot-centaur,tile-hum,tile-arm",
+   "quality": "medium",
+   "images": 12,
+   "usd": 1.0867
   }
  ]
 }
