@@ -1162,7 +1162,7 @@ async function orderIntro(c, i) {
   scrim.className = 'readscrim';
   const el = document.createElement('div');
   el.className = 'order-card' + (isHumSlot(i) ? ' hum' : '');
-  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '새 주문'}</div>${orderBody(c, true)}<div class="oc-tap">눌러서 수락</div><div class="stamp">수락</div>`;
+  el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '새 주문'}</div>${orderBody(c, true)}<div class="oc-tap">눌러서 수락</div>`;
   const mx = centerX(), my = innerHeight * 0.46;
   const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
   set(mx, my, 0.3, 0);
@@ -1173,13 +1173,9 @@ async function orderIntro(c, i) {
   const accepted = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
   await tween(240, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
   await accepted;
-  el.classList.add('stamped');
+  // 누르면 살짝 커지면서 사라짐
   SFX.stamp();
-  await wait(380);
-  const target = document.querySelector(`[data-slot="${i}"]`);
-  const [tx, ty] = target ? centerOf(target) : [mx, 80];
-  const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width : 0.4;
-  await tween(300, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1 + (s1 - 1) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inQuad);
+  await tween(260, q => { set(mx, my, 1 + 0.18 * q, 1 - q); scrim.style.opacity = 1 - q; }, EASE.outQuad);
   el.remove(); scrim.remove();
   S.reading = false;
   c.intro = false;
@@ -1249,7 +1245,7 @@ function startShow() {
   return new Promise(done => {
     const el = document.createElement('div');
     el.className = 'startshow';
-    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-lv">${S.lv}단계</div><div class="ss-go">START!</div><div class="ss-goal">손님 ${levelTarget(S.lv)}명 만족시키기</div>`;
+    el.innerHTML = `<div class="ss-flash"></div><div class="ss-gear g1">⚙️</div><div class="ss-gear g2">⚙️</div><div class="ss-lv">${S.lv}단계</div><div class="ss-go">START!</div>`;
     document.body.appendChild(el);
     SFX.start();
     vibrate([20, 60, 20, 60, 80]);
@@ -1779,7 +1775,6 @@ function startLevel() {
   layout(); renderBoard();
   renderClients(); renderStock(); renderHud();
   onStage(startShow);  // 시작 연출이 끝난 뒤 첫 주문서가 뜸
-  if (S.def.fresh) banner(`NEW ${TILES[S.def.fresh].emoji || TILES[S.def.fresh].icon} ${TILES[S.def.fresh].name}`, 1100);
   addClient(0);
   S.spawnT = 2;
 }
