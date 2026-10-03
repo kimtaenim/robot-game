@@ -811,7 +811,7 @@ const ORDERS = [
   { id: 'fire2',    want: 'centaur', n: 1, label: '구조·진압 켄타우로스', mood: 'long', icon: '🧯', who: '소방청',    task: '들어가서 구조·진압', sec: '㉖ 소방·경찰',   fact: '지금 무인소방로봇은 원격으로 물을 쏘는 수준이라, 위험 지역에 직접 들어가 탐색·구조·진압까지 하는 형태로 가야 한다는 주문이 나와요.' },
   // 특별 주문 (농담): 휴머노이드 자리에 가끔
   { id: 'skynet',   want: 'term',  n: 1, mood: 'long', icon: '🕶️', who: '사이버다인 시스템즈', task: '"I\'ll be back."', sec: '★ 특별 주문', fact: '"Hasta la vista, baby."' },
-  { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '"아무로, 출격합니다!"', sec: '★ 특별 주문', fact: '"인정하고 싶지 않군. 젊음 때문에 저지른 실수라는 것을."' },
+  { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '"아무로, 출격합니다!"', sec: '★ 특별 주문', fact: '"이것이 젊음인가!"' },
   { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '"오토봇, 변신!"', sec: '★ 특별 주문', fact: '"자유는 모든 지각 있는 존재의 권리다."' },
   { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '"신지, 에바에 타라."', sec: '★ 특별 주문', fact: '"도망치면 안 돼, 도망치면 안 돼, 도망치면 안 돼!"' },
   { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
@@ -1538,7 +1538,15 @@ async function leaveShow(c, i, happy) {
   await tween(330, q => set(x0 + (mx - x0) * q, y0 + (my - y0) * q, 0.35 + 0.65 * q, 1), EASE.outQuad);
   // 전체 2초: 만족은 떠 있음 1.53 + 펑 0.14, 떠남은 떠 있음 1.29 + 연기 0.38
   // 납품은 사례 한 줄을 읽을 수 있게 조금 더 오래 (2.6초)
-  await tween(happy ? (c.order.fact ? 2600 : 1530) : 1290, q => set(mx, my - 6 * Math.sin(q * Math.PI * (happy && c.order.fact ? 5 : 3)), 1, 1));
+  // 납품 사례가 떠 있는 동안 화면 아무 데나 누르면 바로 접고 게임으로 (그 터치는 보드에 안 넘어감)
+  let skipped = false, onTap = null;
+  const skip = happy && c.order.fact ? new Promise(res => {
+    onTap = e => { skipped = true; e.preventDefault(); e.stopPropagation(); res(); };
+    setTimeout(() => { if (!skipped) document.addEventListener('pointerdown', onTap, true); }, 250);
+  }) : null;
+  const float = tween(happy ? (c.order.fact ? 2600 : 1530) : 1290, q => { if (!skipped) set(mx, my - 6 * Math.sin(q * Math.PI * (happy && c.order.fact ? 5 : 3)), 1, 1); });
+  await (skip ? Promise.race([float, skip]) : float);
+  if (onTap) document.removeEventListener('pointerdown', onTap, true);
   const r = el.getBoundingClientRect();
   if (happy) {
     SFX.cash();  // 캐시 소리와 함께 돈이 우수수
@@ -2365,7 +2373,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-174153';
+const BUILD_V = '1003-190506';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
