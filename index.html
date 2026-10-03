@@ -229,6 +229,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .banner { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 36; pointer-events: none; font-family: var(--font-display); font-size: 36px; color: var(--accent); text-shadow: 0 2px 0 var(--ink); animation: banner 1.2s ease-out forwards; white-space: nowrap; }
 @keyframes banner { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 0; } 20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -70%) scale(1); opacity: 0; } }
 
+.readscrim.top { bottom: auto; background: rgba(5, 25, 30, .45); }
 .readscrim { position: fixed; inset: 0; z-index: 37; background: rgba(5, 25, 30, .55); opacity: 0; cursor: pointer; }
 .order-card { position: fixed; z-index: 38; cursor: pointer; width: 236px; box-sizing: border-box; background: var(--surface); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 12px 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; box-shadow: 0 6px 0 var(--gold-deep), 0 14px 30px rgba(0, 0, 0, .45); }
 .order-card .oc-head { align-self: stretch; text-align: center; font-family: var(--font-display); font-size: 14px; letter-spacing: .08em; color: var(--surface); background: var(--ink); border-radius: 8px; padding: 3px 0; margin-bottom: 4px; }
@@ -1274,28 +1275,32 @@ function orderNote(c) {
 }
 
 // 손님 등장: 주문서가 가운데 크게 뜸 → 눌러서 수락(도장 쾅) → 작아지며 자리로 들어감
-// 수락 전에는 보드를 못 만지고 이 주문의 기다림 바도 흐르지 않음
+// 주문서는 화면 위쪽(주문서 칸 자리)에 떠서 보드를 가리지 않음. 떠 있는 동안에도 보드는 계속 움직일 수 있고,
+// 수락 전에는 이 주문의 기다림 바만 멈춤
 async function orderIntro(c, i) {
   if (JUICE <= 0) { c.intro = false; renderClients(); return; }
-  S.reading = true;
   const scrim = document.createElement('div');
-  scrim.className = 'readscrim';
+  scrim.className = 'readscrim top';
   const el = document.createElement('div');
   el.className = 'order-card' + (isHumSlot(i) ? ' hum' : '');
   el.innerHTML = `<div class="oc-head">${isHumSlot(i) ? '휴머노이드 상시 주문' : '새 주문'}</div>${orderBody(c, true)}<div class="oc-tap">눌러서 수락</div>`;
-  const mx = centerX(), my = innerHeight * 0.46;
-  const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s})`; el.style.opacity = o; };
-  set(mx, my, 0.3, 0);
+  const set = (x, y, s, o) => { el.style.left = x + 'px'; el.style.top = y + 'px'; el.style.transform = `translate(-50%, -50%) scale(${s * fit})`; el.style.opacity = o; };
+  let fit = 1;
+  set(-999, -999, 1, 0);
   document.body.appendChild(scrim);
   document.body.appendChild(el);
+  // 주문서 칸 위에 맞춰 놓고, 칸보다 크면 줄임
+  const rr = $('rail').getBoundingClientRect(), ch = el.getBoundingClientRect().height;
+  fit = Math.min(1, (rr.height + 40) / ch);
+  const mx = centerX(), my = Math.max(rr.top + rr.height / 2, ch * fit / 2 + 6);
+  set(mx, my, 0.3, 0);
+  scrim.style.top = '0px'; scrim.style.height = rr.bottom + 'px';
   SFX.ticket();
-  // 수락: 카드나 어두운 바탕 어디를 눌러도 됨 (뜨는 중에 눌러도 받아 줌)
+  // 수락: 주문서나 그 둘레(주문서 칸 영역)를 누르면 됨. 보드는 가리지 않음
   const accepted = new Promise(res => { const go = () => { scrim.removeEventListener('pointerdown', go); el.removeEventListener('pointerdown', go); res(); }; scrim.addEventListener('pointerdown', go); el.addEventListener('pointerdown', go); });
   const P = pace(S.lv);
   await tween(240 * P, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
   await accepted;
-  // 수락하면 바로 보드를 만질 수 있음 (주문서는 천천히 자기 칸으로 날아가는 중)
-  S.reading = false;
   scrim.style.pointerEvents = 'none'; el.style.pointerEvents = 'none';
   // 누르면 살짝 커졌다가, 자기 칸으로 날아가며 다시 작아짐
   SFX.stamp();
@@ -1306,7 +1311,6 @@ async function orderIntro(c, i) {
   const s1 = target ? target.getBoundingClientRect().width / el.getBoundingClientRect().width * 1.15 : 0.4;
   await tween(700 * P, q => { set(mx + (tx - mx) * q, my + (ty - my) * q, 1.15 + (s1 - 1.15) * q, 1 - 0.3 * q); scrim.style.opacity = 1 - q; }, EASE.inOutQuad);
   el.remove(); scrim.remove();
-  S.reading = false;
   c.intro = false;
   if (S.slots[i] === c) renderClients();
 }
@@ -1675,7 +1679,10 @@ const clientChar = c => c.char || charOf(c.order);
 const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
-const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="assets/${key}-a.png" alt=""><img class="b" src="assets/${key}-b.png" alt=""></span>`;
+// 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
+const ART_V = '1790994885';
+const av = f => `${f}?v=${ART_V}`;
+const artHTML = key => `<span class="art bob" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
 const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
 function applyArt(key, imA) {
   const [kind, name] = key.split(/-(.+)/);
@@ -1698,16 +1705,16 @@ async function loadArt() {
   let any = false;
   await Promise.all([
     ...Object.entries(ORDER_ROBOT).map(async ([key, ids]) => {
-      const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
+      const [a, b] = await Promise.all([loadImg(av(`assets/${key}-a.png`)), loadImg(av(`assets/${key}-b.png`))]);
       if (a && b) { ids.forEach(id => { if (O[id]) O[id].robotIcon = artHTML(key); }); any = true; }
     }),
     ...anim.map(async key => {
-      const [a, b] = await Promise.all([loadImg(`assets/${key}-a.png`), loadImg(`assets/${key}-b.png`)]);
+      const [a, b] = await Promise.all([loadImg(av(`assets/${key}-a.png`)), loadImg(av(`assets/${key}-b.png`))]);
       if (a && b) { applyArt(key, a); any = true; }
     }),
     ...['suit', 'suitf', 'worker', 'cook', 'trump'].flatMap(who => Object.entries(FACE_KEY).map(async ([e, k]) => {
       const f = `assets/face-${who === 'suit' ? '' : who + '-'}${k}.png`;
-      if (await loadImg(f)) { FACE_ART[who][e] = `<img class="art face" src="${f}" alt="${e}">`; any = true; }
+      if (await loadImg(av(f))) { FACE_ART[who][e] = `<img class="art face" src="${av(f)}" alt="${e}">`; any = true; }
     })),
   ]);
   if (any && S.slots) renderClients();
