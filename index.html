@@ -1671,9 +1671,11 @@ const TILE_HELP = {
   hum: '처음엔 보드에 없어요. 4개·2×2를 맞추면 1개, 5개를 맞추면 2개가 위에서 내려와요.',
 };
 const SPECIAL_HELP = '이번 판 특별 손님! 휴머노이드 대신 이 타일이 내려와요. 4개·2×2를 맞추면 1개, 5개면 2개.';
+// 1단계는 항상 그 판 타일 전부. 그 뒤로는 앞 판들을 깨면서 본 적 없는 타일만 (판을 깨야 '본 타일'로 기록 → 새로고침해도 다시 뜸)
 function freshTiles() {
   S.seenTiles = S.seenTiles || [];
-  return [...S.def.tiles, S.def.special || 'hum'].filter(t => !S.seenTiles.includes(t));
+  const here = [...S.def.tiles, S.def.special || 'hum'];
+  return S.lv === 1 ? here : here.filter(t => !S.seenTiles.includes(t));
 }
 // 새 타일이 없는 판: 대신 실제 납품 사례 한 페이지 (완성 로봇 그림 + 어디에 + 왜 이 로봇인지)
 const CASE_WHY = {
@@ -1740,10 +1742,9 @@ function newTilesShow(list) {
     const el = document.createElement('div');
     el.className = 'newtiles';
     const rows = list.map((t, k) => `<div class="nt-row" style="animation-delay:${(0.25 + k * 0.12).toFixed(2)}s"><span class="nt-tile" style="background:${TILES[t].color}">${TILES[t].icon}</span><div class="nt-txt"><b>${TILES[t].name}</b><small>${TILE_HELP[t] || SPECIAL_HELP}</small></div></div>`).join('');
-    el.innerHTML = `<div class="nt-panel"><div class="nt-head">${S.seenTiles.length ? '새 타일 등장!' : '이번 판 타일'}</div>${rows}<div class="nt-tap">알겠어요 ▶</div></div>`;
+    el.innerHTML = `<div class="nt-panel"><div class="nt-head">${S.lv === 1 ? '이번 판 타일' : '새 타일 등장!'}</div>${rows}<div class="nt-tap">알겠어요 ▶</div></div>`;
     document.body.appendChild(el);
     SFX.ticket();
-    S.seenTiles.push(...list); save();
     setTimeout(() => {
       el.classList.add('ready');
       const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 250); };
@@ -2364,7 +2365,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-173759';
+const BUILD_V = '1003-174153';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2408,6 +2409,8 @@ function startLevel() {
 function levelClear() {
   if (!S.running) return;
   S.running = false;
+  // 이 판의 타일은 이제 '본 타일' (다음 판부터 새 타일 페이지에 안 나옴)
+  S.seenTiles = [...new Set([...(S.seenTiles || []), ...S.def.tiles, S.def.special || 'hum'])];
   const n = levelTarget(S.lv);
   // 단계 별: 손님들이 준 별의 평균 (떠난 손님은 0개)
   const avg = S.stars / Math.max(1, S.done + S.missed);
