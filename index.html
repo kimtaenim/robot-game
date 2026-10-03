@@ -657,9 +657,11 @@ const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
 // ───────── 효과음: 공장·로봇 소리 (파일 없이 Web Audio로 합성) ─────────
-let ac = null, master = null, noiseBuf = null;
+let ac = null, master = null, noiseBuf = null, touched = false;
+// 브라우저(특히 아이폰)는 화면을 한 번 누르기 전에는 소리를 막음.
+// 그래서 첫 터치 때 오디오를 깨우고, 그 전에는 소리를 예약하지 않음 (깨어날 때 한꺼번에 터지지 않게)
 function audio() {
-  if (!S.sound) return null;
+  if (!S.sound || !touched) return null;
   try {
     if (!ac) {
       ac = new (window.AudioContext || window.webkitAudioContext)();
@@ -668,10 +670,33 @@ function audio() {
       const d = noiseBuf.getChannelData(0);
       for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     }
-    if (ac.state === 'suspended') ac.resume();
+    if (ac.state !== 'running') ac.resume();  // 첫 터치 뒤라면 깨어나는 중에도 예약해 두면 곧 울림
     return ac;
   } catch (e) { return null; }
 }
+// 아주 짧은 무음 wav: 아이폰 무음 스위치가 켜져 있어도 소리가 나게 미디어 재생 상태로 바꿔 줌
+const SILENT_WAV = 'data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==';
+let silentEl = null;
+function unlockAudio() {
+  touched = true;
+  if (!S.sound) return;
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+  try {
+    if (!silentEl) { silentEl = new Audio(SILENT_WAV); silentEl.setAttribute('playsinline', ''); }
+    silentEl.play().catch(() => {});
+  } catch (e) {}
+  try {
+    if (!ac) { touched = true; audio(); }
+    if (ac) {
+      if (ac.state !== 'running') ac.resume();
+      // 무음 한 조각을 바로 재생해서 오디오를 확실히 깨움
+      const b = ac.createBuffer(1, 1, 22050), src = ac.createBufferSource();
+      src.buffer = b; src.connect(ac.destination); src.start(0);
+    }
+  } catch (e) {}
+}
+['pointerdown', 'touchend', 'mousedown', 'click', 'keydown'].forEach(ev => addEventListener(ev, unlockAudio, { capture: true, passive: true }));
+document.addEventListener('visibilitychange', () => { if (!document.hidden && ac && ac.state !== 'running' && touched) ac.resume(); });
 // 짧게 울리고 사라지는 음 (f1이 있으면 주파수가 미끄러짐)
 function osc(type, f, t, dur, peak, f1, dest) {
   const o = ac.createOscillator(), g = ac.createGain();
