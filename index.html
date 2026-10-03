@@ -41,7 +41,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-iarm: #474C55; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #7CC63E; --t-tf: #B5262B; --t-mgodz: #78909C; --t-mazinger: #B0BEC5; --t-gmazinger: #26A69A; --t-taekwonv: #0D47A1; --t-korea: #9C7A3C;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-iarm: #474C55; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #7CC63E; --t-tf: #B5262B; --t-mgodz: #78909C; --t-mazinger: #B0BEC5; --t-grendizer: #26A69A; --t-taekwonv: #0D47A1; --t-korea: #9C7A3C;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -783,7 +783,7 @@ const TILES = {
   // 23단계부터 차례로 나오는 옛날 로봇 (1970년대생이라 AI가 없음 → 피지컬AI 대신 산업용 팔로 조립)
   mgodz:     { icon: '🦖', name: '메카고질라', color: 'var(--t-mgodz)', special: true },
   mazinger:  { icon: '🤖', name: '마징가 Z', color: 'var(--t-mazinger)', special: true },
-  gmazinger: { icon: '🦾', name: '그레이트 마징가', color: 'var(--t-gmazinger)', special: true },
+  grendizer: { icon: '🛸', name: '그랜다이저', color: 'var(--t-grendizer)', special: true },
   taekwonv:  { icon: '🥋', name: '태권V', color: 'var(--t-taekwonv)', special: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
@@ -806,7 +806,7 @@ const ROBOTS = {
   tf:     { icon: '🚗', name: '트랜스포머',         parts: ['tf', 'wheel', 'auto'] },  // 트랜스포머는 SI 대신 바퀴
   mgodz:     { icon: '🦖', name: '메카고질라',      parts: ['mgodz', 'iarm', 'tool'] },  // 옛날 로봇: AI 대신 산업용 팔
   mazinger:  { icon: '🤖', name: '마징가 Z',        parts: ['mazinger', 'iarm', 'tool'] },
-  gmazinger: { icon: '🦾', name: '그레이트 마징가', parts: ['gmazinger', 'iarm', 'tool'] },
+  grendizer: { icon: '🛸', name: '그랜다이저',      parts: ['grendizer', 'iarm', 'tool'] },
   taekwonv:  { icon: '🥋', name: '로보트 태권V',    parts: ['taekwonv', 'iarm', 'tool'] },
 };
 
@@ -845,7 +845,7 @@ const ORDERS = [
   { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '"신지, 에바에 타라."', sec: '★ 특별 주문', fact: '"도망치면 안 돼, 도망치면 안 돼, 도망치면 안 돼!"' },
   { id: 'godzbase', want: 'mgodz', n: 1, mood: 'long', icon: '🦖', who: '고질라 대책본부', task: '"메카고질라, 기동!"', sec: '★ 특별 주문', fact: '고질라를 막으려면 고질라만 한 로봇이 필요해요. 1974년생이라 AI 대신 산업용 로봇 기술로!' },
   { id: 'photon',   want: 'mazinger', n: 1, mood: 'long', icon: '⚡', who: '광자력연구소', task: '"파일더 온!"', sec: '★ 특별 주문', fact: '"무쇠로 만든 사람, 인조인간 로보트 마징가 Z!" 1972년생이라 AI는 없어요.' },
-  { id: 'fortress', want: 'gmazinger', n: 1, mood: 'long', icon: '🪃', who: '과학요새연구소', task: '"그레이트 부메랑!"', sec: '★ 특별 주문', fact: '마징가 Z보다 강한 후속기. 그래도 1974년생이라 AI 대신 산업용 로봇 기술이에요.' },
+  { id: 'ufo',      want: 'grendizer', n: 1, mood: 'long', icon: '🛸', who: '우주과학연구소', task: '"그랜다이저, 고!"', sec: '★ 특별 주문', fact: '"스페이스 썬더!" 1975년생이라 AI 대신 산업용 로봇 기술이에요.' },
   { id: 'kimlab',   want: 'taekwonv', n: 1, mood: 'long', icon: '🥋', who: '김박사 연구소', task: '"로보트 태권V, 출동!"', sec: '★ 특별 주문', fact: '"달려라 달려 로보트야, 날아라 날아 태권V!" 1976년생 국산 로봇이에요.' },
   { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
   { id: 'bmw',      want: 'hum',   n: 1, us: true, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
@@ -856,7 +856,7 @@ const ORDERS = [
 const IND = {
   port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', usbat: '배터리 공장', rby1: '제조 공장', ecopro: '배터리 소재 공장',
   mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', seoulEdu: '학교 급식실', gyeonggiEdu: '학교 급식실', kyochon: '치킨집', bhc: '치킨집', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
-  skynet: '미래에서 온 주문', autobot: '사이버트론', efsf: '우주세기 0079', nerv: '제3신동경시', godzbase: '도쿄만', photon: '광자력연구소', fortress: '과학요새', kimlab: '김박사 연구소', posco: '제철소', posco2: '제철소', posco3: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
+  skynet: '미래에서 온 주문', autobot: '사이버트론', efsf: '우주세기 0079', nerv: '제3신동경시', godzbase: '도쿄만', photon: '광자력연구소', ufo: '우주과학연구소', kimlab: '김박사 연구소', posco: '제철소', posco2: '제철소', posco3: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
 };
 ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
 const robotLabel = o => o.label || ROBOTS[o.want].name;
@@ -891,7 +891,7 @@ function orderParts(o, pool) {
   if (o.union && pool.includes('union')) out.push('union');
   return out;
 }
-const SPECIALS = ['hum', 'term', 'gundam', 'eva', 'tf', 'mgodz', 'mazinger', 'gmazinger', 'taekwonv'];
+const SPECIALS = ['hum', 'term', 'gundam', 'eva', 'tf', 'mgodz', 'mazinger', 'grendizer', 'taekwonv'];
 const isSpec = t => SPECIALS.includes(t);
 const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 // 판마다 타일 조합 고르기. 너무 단순해지지 않게:
@@ -904,11 +904,11 @@ function levelDef(lv) {
   // 특별 로봇 판: 5단계 건담, 8단계 에바, 11단계 터미네이터, 14단계 트랜스포머.
   // 17단계부터는 3단계마다(17, 20, 23…) 넷 중 하나를 무작위로. 나머지 판은 휴머노이드
   // 5 건담, 8 에바, 11 터미네이터, 14 트랜스포머 / 17·20은 그 넷 중 무작위
-  // 23 메카고질라, 26 마징가 Z, 29 그레이트 마징가, 32 태권V 첫 등장 / 33단계부터는 판마다 휴머노이드·특별 로봇 무작위
-  const FIXED_SPECIAL = { 5: 'gundam', 8: 'eva', 11: 'term', 14: 'tf', 23: 'mgodz', 26: 'mazinger', 29: 'gmazinger', 32: 'taekwonv' };
+  // 23 메카고질라, 26 마징가 Z, 29 그랜다이저, 32 태권V 첫 등장 / 33단계부터는 판마다 휴머노이드·특별 로봇 무작위
+  const FIXED_SPECIAL = { 5: 'gundam', 8: 'eva', 11: 'term', 14: 'tf', 23: 'mgodz', 26: 'mazinger', 29: 'grendizer', 32: 'taekwonv' };
   const pick = a => a[Math.floor(Math.random() * a.length)];
   const special = FIXED_SPECIAL[lv]
-    || (lv >= 33 ? pick(['hum', 'hum', 'hum', 'term', 'gundam', 'eva', 'tf', 'mgodz', 'mazinger', 'gmazinger', 'taekwonv'])
+    || (lv >= 33 ? pick(['hum', 'hum', 'hum', 'term', 'gundam', 'eva', 'tf', 'mgodz', 'mazinger', 'grendizer', 'taekwonv'])
     : lv >= 17 && (lv - 17) % 3 === 0 ? pick(['term', 'gundam', 'eva', 'tf']) : 'hum');
   // 특별 로봇에 필요한 일반 부품(SI, 트랜스포머는 바퀴)은 보드에 꼭 포함
   const debut = Object.keys(ROBOT_FROM).find(r => ROBOT_FROM[r] === lv);
@@ -1156,6 +1156,18 @@ const SFX = {
       if (k % 2 === 1) nz(t, 0.1, 0.035, 'bandpass', 3000, 0.6);           // 브러시: 2·4박
       nz(t, 0.025, 0.018, 'highpass', 7000); nz(t + B * 0.66, 0.025, 0.014, 'highpass', 7000);  // 스윙 하이햇
     }
+  },
+  // 태권V 맞춤: 주제가 첫 소절 "달려라 달려 로보트야" = 도도레 미 라 솔솔파미 (행진곡풍 금관 + 스네어)
+  taekwonv: () => {
+    if (!audio() || SFX._busy('tkv', 3800)) return;
+    const B = 0.42, t0 = ac.currentTime + 0.05;
+    const C5 = 523, D5 = 587, E5 = 659, F5 = 698, G5 = 784, A5 = 880;
+    // [음, 시작 박, 길이 박]  달(.5) 려(.5) 라(1) 달(1) 려(1) | 로(.5) 보(.5) 트(.5) 야(1.5)
+    for (const [f, at, len] of [[C5, 0, .5], [C5, .5, .5], [D5, 1, 1], [E5, 2, 1], [A5, 3, 1], [G5, 4, .5], [G5, 4.5, .5], [F5, 5, .5], [E5, 5.5, 1.5]]) {
+      brass2(f, t0 + at * B, len * B * 0.9, 0.07); brass2(f / 2, t0 + at * B, len * B * 0.9, 0.03);
+    }
+    for (let k = 0; k < 7; k++) { snare(t0 + k * B, k % 2 ? 0.06 : 0.04); if (k % 2 === 0) timp(t0 + k * B, 0.12); }
+    crash(t0 + 5.5 * B, 0.07);
   },
   _last: {},
   _busy: (k, ms) => { const now = performance.now(); if (now - (SFX._last[k] || 0) < ms) return true; SFX._last[k] = now; return false; },
@@ -1729,7 +1741,7 @@ const TILE_HELP = {
 };
 const SPECIAL_HELP = '이번 판 특별 손님! 휴머노이드 대신 이 타일이 내려와요. 4개·2×2를 맞추면 1개, 5개면 2개.';
 const OLD_HELP = '1970년대생 옛날 로봇이라 AI가 없어요! 피지컬AI 대신 산업용 팔 + SI로 조립해요. 4개·2×2를 맞추면 1개, 5개면 2개가 내려와요.';
-['mgodz', 'mazinger', 'gmazinger', 'taekwonv'].forEach(t => { TILE_HELP[t] = OLD_HELP; });
+['mgodz', 'mazinger', 'grendizer', 'taekwonv'].forEach(t => { TILE_HELP[t] = OLD_HELP; });
 // 1단계는 항상 그 판 타일 전부. 그 뒤로는 앞 판들을 깨면서 본 적 없는 타일만 (판을 깨야 '본 타일'로 기록 → 새로고침해도 다시 뜸)
 function freshTiles() {
   S.seenTiles = S.seenTiles || [];
@@ -2065,7 +2077,7 @@ const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
 // 파일마다 내용이 바뀔 때만 새로 받도록 파일 해시를 붙임 (빌드할 때 채움)
-const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "f174149f", "tile-made-a.png": "d557ba97", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "tile-mgodz-b.png": "64821f9c", "robot-indus-b.png": "4a7cabef", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "tile-iarm-a.png": "fc127d92", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "robot-indus-a.png": "ba4c70bc", "tile-korea-b.png": "ebe1008b", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "d1987f19", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "tile-taekwonv-b.png": "0aa23e33", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "tile-iarm-b.png": "f0647318", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "b64d5546", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-mazinger-a.png": "d7ef493a", "tile-term-a.png": "f86a988f", "tile-gmazinger-b.png": "62cc3817", "tile-eva-a.png": "48055f29", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "tile-mazinger-b.png": "dd429822", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "indus-ref.png": "2bfe4680", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "tile-gmazinger-a.png": "877ae7f9", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-mgodz-a.png": "ebb5f540", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "tile-taekwonv-a.png": "357f6b58", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c8c8a23a", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "7077aabd", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "09f47fab", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
+const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "3f739fa6", "tile-tool-a.png": "f174149f", "tile-made-a.png": "d557ba97", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "tile-mgodz-b.png": "64821f9c", "robot-indus-b.png": "4a7cabef", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "tile-iarm-a.png": "fc127d92", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "tile-tf-a.png": "d2bc0939", "ind-factory-a.png": "909659fd", "tile-grendizer-b.png": "6ad3c036", "tile-term-b.png": "fa8e5b3f", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "9e98ebac", "face-cook-smile.png": "be9219e0", "robot-indus-a.png": "ba4c70bc", "tile-korea-b.png": "ebe1008b", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "bb58686e", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "d1987f19", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "tile-taekwonv-b.png": "c0559f06", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "e7100d25", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "tile-iarm-b.png": "f0647318", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "848f1932", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "b64d5546", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "69722c17", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-mazinger-a.png": "2400cdc5", "tile-term-a.png": "f86a988f", "tile-eva-a.png": "48055f29", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "wheel-tilt-ref.png": "4a1e31a2", "robot-cobot-a.png": "bb066d5e", "tile-mazinger-b.png": "dd429822", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "df5d2104", "indus-ref.png": "2bfe4680", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "41cc89c7", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "tile-mgodz-a.png": "36243d52", "tile-tf-b.png": "23f3efda", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "6cb9dab3", "tile-taekwonv-a.png": "23b46469", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "9b27fe7b", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "397f8942", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-grendizer-a.png": "b48beacf", "tile-tool-b.png": "c8c8a23a", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "abd9a737", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "7077aabd", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "da53987b", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "a9e69108", "robot-amr-b.png": "09f47fab", "tile-hum-b.png": "01ca7c8b", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "7ea58bc1", "ind-logistics-a.png": "b1b04f38"};
 // 게임에서는 가벼운 webp(assets/w/)를 씀. 파일 이름은 png와 같고 확장자만 다름
 const av = f => { const n = f.replace('assets/', ''); return `assets/w/${n.replace(/\.png$/, '.webp')}?v=${ART_HASH[n] || '0'}`; };
 // 업종 아이콘(ind-)은 a프레임만, 로봇·부품은 a·b를 번갈아 (팔이 까딱, 다리가 제자리걸음 등)
@@ -2232,6 +2244,7 @@ async function resolve() {
     if (m.groups.some(g => g.type === 'made')) SFX.anthem();
     if (m.groups.some(g => g.type === 'korea')) SFX.onghaeya();
     if (m.groups.some(g => g.type === 'eva')) SFX.evaTheme();
+    if (m.groups.some(g => g.type === 'taekwonv')) SFX.taekwonv();
     let sx = 0, sy = 0;
     for (const i of m.matched) { const [r, c] = S.board.rc(i); sx += cx(c); sy += cy(r); }
     if (chain >= 2) { fxText(sx / m.matched.size, sy / m.matched.size, `x${chain}`, 30 + chain * 8, '#FFD84A'); $('chain').textContent = `연쇄 ×${chain}`; }
@@ -2428,7 +2441,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-210323';
+const BUILD_V = '1003-210807';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2500,7 +2513,7 @@ function endingShow() {
       <div class="end-stats"><div><b>💰 ${S.score.toLocaleString()}</b><small>총수익</small></div><div><b>🤖 ${total}대</b><small>납품한 로봇</small></div><div><b>🏭 ${sites.length}곳</b><small>다녀간 현장</small></div></div>
       <div class="end-bots">${[...bots.values()].sort((a, b) => b.n - a.n).slice(0, 10).map(({ o, n }) => `<span class="end-bot">${o.robotIcon || ROBOTS[o.want].icon}<i>×${n}</i></span>`).join('')}</div>
       ${notes.length ? `<div class="end-notes"><b>현장 노트</b>${notes.map(o => `<p>${o.icon} <em>${o.who || o.ind}</em> ${o.fact}</p>`).join('')}</div>` : ''}
-      <div class="end-q">계속할까요? 21단계부터는 옛날 로봇들이 기다려요!</div>
+      <div class="end-q">계속할까요? 추억의 로봇을 만나보세요.</div>
       <div class="end-btns"><button type="button" class="nt-tap end-go" data-go="next">계속하기 ▶</button><button type="button" class="end-again" data-go="restart">↺ 처음부터</button></div></div>`;
     document.body.appendChild(el);
     SFX.clear(); SFX.fireworks();
