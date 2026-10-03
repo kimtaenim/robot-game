@@ -36,7 +36,7 @@
   --warn: #C77F00;
   --bad: #C03A2A;
   --scrim: rgba(6, 22, 26, 0.6);
-  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #5E9E2F; --t-korea: #3C3F46;
+  --t-wheel: #E34234; --t-auto: #1E88C8; --t-arm: #F28C28; --t-legs: #F2C230; --t-tool: #8E3A9E; --t-hum: #D9DDE1; --t-floor: #3A9D5D; --t-made: #27407A; --t-union: #800020; --t-term: #5A5F66; --t-gundam: #2F5FB3; --t-eva: #5E9E2F; --t-tf: #B5262B; --t-korea: #3C3F46;
   --t-ink-dark: #2B2118; --t-ink-light: #FFFFFF;
   --p-1: #1E88C8; --p-2: #F2C230; --p-3: #E34234; --p-4: #800020;
   --font-title: 'Rye', 'Georgia', serif;
@@ -290,6 +290,9 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .cs-sub { position: relative; font-family: var(--font-display); font-size: 16px; color: #FFE27A; opacity: 0; animation: csIn .4s .7s ease-out forwards; }
 .cs-tap { position: relative; margin-top: 8px; font-family: var(--font-display); font-size: 18px; color: #1A1400; background: var(--accent); border-radius: 999px; padding: 8px 22px; opacity: 0; transition: opacity .3s; }
 .clearshow.ready { pointer-events: auto; cursor: pointer; }
+.cs-btns { position: relative; display: flex; gap: 10px; align-items: center; }
+.cs-again { margin-top: 8px; font-family: var(--font-display); font-size: 15px; color: #fff; border: 2px solid rgba(255,255,255,.6); border-radius: 999px; padding: 6px 14px; opacity: 0; transition: opacity .3s; }
+.clearshow.ready .cs-again { opacity: 1; }
 .clearshow.ready .cs-tap { opacity: 1; animation: urgent 1s ease-in-out infinite; }
 .clearshow.out { opacity: 0; transition: opacity .3s; }
 .built { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -315,6 +318,8 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 @keyframes cardWiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -5deg; } 75% { rotate: 5deg; } }
 /* 처음 그림 불러오는 동안 */
 .loading { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: var(--bg); color: var(--hud-ink); font-family: var(--font-display); font-size: 18px; }
+.ld-bar { width: 180px; height: 8px; border-radius: 4px; background: rgba(0,0,0,.3); overflow: hidden; }
+.ld-bar i { display: block; height: 100%; width: 0; background: var(--gold); transition: width .1s; }
 .ld-gear { font-size: 56px; animation: ldSpin 1.2s linear infinite; }
 @keyframes ldSpin { to { transform: rotate(360deg); } }
 /* 단계 시작 */
@@ -692,6 +697,7 @@ const TILES = {
   term:   { icon: '💀', name: '터미네이터', color: 'var(--t-term)', special: true },
   gundam: { icon: '🛡️', name: '건담', color: 'var(--t-gundam)', special: true },
   eva:    { icon: '👹', name: '에바', color: 'var(--t-eva)', special: true },
+  tf:     { icon: '🚗', name: '트랜스포머', color: 'var(--t-tf)', special: true },
 };
 // ───────── 로봇 = 부품 묶음 ─────────
 // AMR = 바퀴+자율주행 / AGV = 바퀴+바닥 공사(마그넷·QR 경로) / 협동로봇 = 팔+툴(SI)
@@ -709,6 +715,7 @@ const ROBOTS = {
   term:   { icon: '💀', name: '터미네이터',         parts: ['term', 'tool'] },
   gundam: { icon: '🛡️', name: '건담',               parts: ['gundam', 'tool'] },
   eva:    { icon: '👹', name: '에반게리온',         parts: ['eva', 'tool'] },
+  tf:     { icon: '🚗', name: '트랜스포머',         parts: ['tf', 'wheel'] },  // 트랜스포머는 SI 대신 바퀴
 };
 
 // ───────── 클라이언트 (로봇 스터디 2차 발제 자료, 2026.09.21에서 로봇 종류를 밝힌 현장) ─────────
@@ -739,6 +746,7 @@ const ORDERS = [
   // 특별 주문 (농담): 휴머노이드 자리에 가끔
   { id: 'skynet',   want: 'term',  n: 1, mood: 'long', icon: '🕶️', who: '사이버다인 시스템즈', task: '1984년 LA 출장', sec: '★ 특별 주문', fact: '농담 주문이에요. 사람처럼 생긴 로봇도 결국 손끝 SI를 붙여야 일을 해요.' },
   { id: 'efsf',     want: 'gundam', n: 1, mood: 'long', icon: '🛰️', who: '지구연방군', task: '우주 요새 방어', sec: '★ 특별 주문', fact: '농담 주문이에요. 거대 로봇도 손끝 도구(SI)가 없으면 빔 사벨을 못 쥐어요.' },
+  { id: 'autobot',  want: 'tf',    n: 1, mood: 'long', icon: '🚛', who: '오토봇 본부', task: '자동차로 변신 출동', sec: '★ 특별 주문', fact: '농담 주문이에요. 자동차로 변신하려면 손끝 SI보다 바퀴가 먼저예요.' },
   { id: 'nerv',     want: 'eva',   n: 1, mood: 'long', icon: '🔺', who: 'NERV', task: '사도 요격', sec: '★ 특별 주문', fact: '농담 주문이에요. 타라는 말이 있어도 SI가 먼저예요.' },
   { id: 'hyundai',  want: 'hum',   n: 1, union: true, mood: 'long', icon: '🚙', who: '현대차',      task: '조립 라인 투입',     sec: '⑤ 자동차 공장', fact: '아틀라스 2만5000대 이상을 공장에 투입할 계획이에요.' },
   { id: 'bmw',      want: 'hum',   n: 1, us: true, mood: 'long', icon: '🇺🇸', who: 'BMW',        task: '차체 라인 교대 근무', sec: '⑤ 자동차 공장', fact: 'Figure 02 2대가 11개월간 주 5일 10시간 교대로 일했어요.' },
@@ -749,7 +757,7 @@ const ORDERS = [
 const IND = {
   port: '항만', kai: '항공기 제조', stl: '물류센터', transys: '자동차 부품 공장', ford: '배터리(ESS) 공장', ecopro: '배터리 소재 공장',
   mipo: '조선소', ship2: '조선소', busanEdu: '학교 급식실', seoulEdu: '학교 급식실', gyeonggiEdu: '학교 급식실', kyochon: '치킨집', bhc: '치킨집', gwangjin: '제조 공장', polytech: '직업 교육', lg: '배터리 공장',
-  skynet: '미래에서 온 주문', efsf: '우주세기 0079', nerv: '제3신동경시', posco: '제철소', posco2: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
+  skynet: '미래에서 온 주문', autobot: '사이버트론', efsf: '우주세기 0079', nerv: '제3신동경시', posco: '제철소', posco2: '제철소', fire2: '소방', police: '경찰', army: '방위산업', fire: '소방', hyundai: '자동차 공장', bmw: '자동차 공장', cj: '물류센터', catl: '배터리 공장',
 };
 ORDERS.forEach(o => { o.ind = IND[o.id] || o.sec.split(' ').slice(1).join(' '); });
 const robotLabel = o => o.label || ROBOTS[o.want].name;
@@ -781,7 +789,7 @@ function orderParts(o, pool) {
   if (o.union && pool.includes('union')) out.push('union');
   return out;
 }
-const SPECIALS = ['hum', 'term', 'gundam', 'eva'];
+const SPECIALS = ['hum', 'term', 'gundam', 'eva', 'tf'];
 const isSpec = t => SPECIALS.includes(t);
 const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 // 판마다 타일 조합 고르기. 너무 단순해지지 않게:
@@ -790,9 +798,10 @@ const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i
 function levelDef(lv) {
   const pool = poolAt(lv), n = tileCount(lv);
   const fresh = Object.keys(TILE_FROM).find(t => TILE_FROM[t] === lv);
-  const must = ['tool', ...(fresh ? [fresh] : [])];
-  // 4단계부터 세 판에 한 판꼴: 휴머노이드 대신 터미네이터·건담·에바 중 하나
-  const special = lv >= 4 && Math.random() < 1 / 3 ? ['term', 'gundam', 'eva'][Math.floor(Math.random() * 3)] : 'hum';
+  // 4단계부터 세 판에 한 판꼴: 휴머노이드 대신 터미네이터·건담·에바·트랜스포머 중 하나
+  const special = lv >= 4 && Math.random() < 1 / 3 ? ['term', 'gundam', 'eva', 'tf'][Math.floor(Math.random() * 4)] : 'hum';
+  // 특별 로봇에 필요한 일반 부품(SI, 트랜스포머는 바퀴)은 보드에 꼭 포함
+  const must = [...new Set([...ROBOTS[special].parts.filter(p => !isSpec(p)), 'tool', ...(fresh ? [fresh] : [])])];
   const tryPick = (minRobots, minOrders, allUsed) => {
     for (let k = 0; k < 300; k++) {
       const tiles = [...must, ...shuffled(pool.filter(t => !must.includes(t))).slice(0, n - must.length)];
@@ -840,8 +849,14 @@ try {
   JSON.parse(ld('dex') || '[]').forEach(id => O[id] && S.dex.add(id));
   S.sound = ld('sound') !== '0';
   S.best = +ld('best') || 0;
+  // 하던 판 이어서: 단계·점수·만든 로봇 (새로고침하거나 나갔다 와도 그 단계부터)
+  const run = JSON.parse(localStorage.getItem('robotrush.run') || 'null');
+  if (run && run.lv >= 1) Object.assign(S, { lv: run.lv, score: run.score || 0, chainMax: run.chainMax || 0, runServed: run.runServed || [] });
 } catch (e) {}
-const save = () => { try { localStorage.setItem('robotrush.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotrush.best', String(S.best)); } catch (e) {} };
+const save = () => { try {
+  localStorage.setItem('robotrush.dex', JSON.stringify([...S.dex])); localStorage.setItem('robotrush.best', String(S.best));
+  localStorage.setItem('robotrush.run', JSON.stringify({ lv: S.lv, score: S.score, chainMax: S.chainMax, runServed: S.runServed.slice(-300) }));
+} catch (e) {} };
 const $ = id => document.getElementById(id);
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
@@ -1493,13 +1508,19 @@ function clearShow(stars) {
   for (const id of S.levelServed) { const o = O[id]; const name = robotLabel(o); if (!seen.has(name)) seen.set(name, { o, n: 0 }); seen.get(name).n++; }
   const bots = [...seen.entries()].slice(0, 8).map(([name, { o, n }], k) =>
     `<div class="cs-bot" style="animation-delay:${(0.9 + k * 0.12).toFixed(2)}s"><div class="cs-ic" style="animation-delay:${(k * 0.17).toFixed(2)}s">${o.robotIcon || ROBOTS[o.want].icon}</div><div class="cs-name">${name}${n > 1 ? ` ×${n}` : ''}</div></div>`).join('');
-  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-sub">이번 판에 납품한 로봇</div><div class="cs-bots">${bots}</div><div class="cs-tap">눌러서 다음 단계 ▶</div>`;
+  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-sub">이번 판에 납품한 로봇</div><div class="cs-bots">${bots}</div><div class="cs-btns"><div class="cs-tap" data-go="next">다음 단계 ▶</div><div class="cs-again" data-go="restart">↺ 처음부터</div></div>`;
   document.body.appendChild(el);
   return new Promise(done => {
     // 연출이 다 뜬 뒤(1.5초)부터 누를 수 있음
     setTimeout(() => {
       el.classList.add('ready');
-      const go = () => { el.removeEventListener('pointerdown', go); el.classList.add('out'); setTimeout(() => { el.remove(); done(); }, 300); };
+      // 아무 데나 누르면 다음 단계, "처음부터"를 누르면 1단계로
+      const go = e => {
+        const restart = e.target.closest('[data-go="restart"]');
+        if (restart && !confirm('처음부터 다시 할까요? 1단계, 0점부터 시작해요.')) return;
+        el.removeEventListener('pointerdown', go); el.classList.add('out');
+        setTimeout(() => { el.remove(); done(restart ? 'restart' : 'next'); }, 300);
+      };
       el.addEventListener('pointerdown', go);
     }, 1500);
   });
@@ -1766,24 +1787,29 @@ const FACE_ART = { suit: {}, suitf: {}, worker: {}, cook: {}, trump: {} };
 const faceHTML = (e, who = 'suit') => FACE_ART[who][e] || FACE_ART.suit[e] || e;
 // 같은 그림이 여러 개 있어도 박자가 겹치지 않게 시작점을 흩뜨림
 // 그림을 다시 그려도 폰에 남은 옛 그림이 보이지 않게 주소에 버전을 붙임
-const ART_V = '1790997950';
-const av = f => `${f}?v=${ART_V}`;
+// 파일마다 내용이 바뀔 때만 새로 받도록 파일 해시를 붙임 (빌드할 때 채움)
+const ART_HASH = {"tile-gundam-a.png": "41a00219", "ind-school-a.png": "1b0fc977", "robot-cobot-cook-b.png": "e4e62958", "tile-tool-a.png": "48c7dc89", "tile-made-a.png": "43e550a9", "ind-training-b.png": "0efc1d0b", "robot-qarm-a.png": "901f7afc", "tile-legs-b.png": "c0299b41", "tile-union-b.png": "b3a03a42", "face-cook-frown.png": "e01a4907", "face-cook-neutral.png": "71441525", "ind-battery-b.png": "6e2bd18d", "ind-fire-a.png": "a71484d3", "face-trump-neutral.png": "5aecac90", "tile-legs-a.png": "2faadad6", "face-worker-angry.png": "eb6b88ed", "ind-steel-a.png": "0f070238", "face-suitf-delight.png": "d729900f", "ind-steel-b.png": "e122612f", "ind-defense-b.png": "5aa959f1", "face-cook-angry.png": "50c65318", "ind-port-b.png": "6f5dc395", "ind-factory-a.png": "909659fd", "tile-term-b.png": "297f6115", "face-neutral.png": "a9a959b5", "tile-wheel-a.png": "c05f428e", "face-cook-smile.png": "be9219e0", "tile-korea-b.png": "1fcc2bd8", "face-trump-tear.png": "21d22245", "tile-auto-b.png": "93bf796f", "ind-material-b.png": "a8f27197", "tile-korea-a.png": "f7ec52b4", "tile-union-a.png": "d48507d4", "ind-auto-a.png": "9a8abf4f", "face-frown.png": "26865767", "robot-centaur-a.png": "a9e1e03b", "tile-auto-a.png": "280ae89b", "robot-cobot-cook-a.png": "2acb022c", "face-worker-tear.png": "940dcfc3", "ind-autoparts-b.png": "a5dbd76a", "face-suitf-angry.png": "5b24ceb5", "face-suitf-tear.png": "d0923069", "robot-centaur-b.png": "2121c116", "robot-mm-a.png": "e5da97cf", "ind-defense-a.png": "23a0651c", "robot-quad-a.png": "1e1384cf", "ind-autoparts-a.png": "26dcf7ce", "tile-eva-b.png": "a0ce3ca3", "face-cook-tear.png": "d529800c", "tile-gundam-b.png": "888a0176", "face-trump-delight.png": "e41c1f7d", "face-angry.png": "8542c3c5", "tile-floor-b.png": "7bfb4d09", "face-suitf-smile.png": "2bfa949d", "ind-material-a.png": "2c67685e", "tile-term-a.png": "b93d696c", "tile-eva-a.png": "8c753c91", "tile-hum-a.png": "cdc85433", "ind-port-a.png": "0e5340b9", "ind-police-a.png": "717025fa", "robot-cobot-a.png": "bb066d5e", "face-trump-angry.png": "6fc0cf6d", "tile-wheel-b.png": "e7b51f64", "face-worker-neutral.png": "f4f1ff96", "robot-amr-a.png": "21455470", "face-delight.png": "4b63238d", "face-trump-frown.png": "4102f723", "robot-mm-b.png": "e5da97cf", "ind-fire-b.png": "c530534e", "ind-police-b.png": "750b1169", "ind-ess-b.png": "c7fac005", "ind-training-a.png": "a9fe00e5", "ind-aircraft-a.png": "53a6b218", "ind-school-b.png": "a14af652", "tile-arm-b.png": "18d400ac", "face-worker-delight.png": "56fdb189", "face-worker-smile.png": "7eaefd7c", "robot-quad-b.png": "7cc31816", "ind-chicken-a.png": "bd4bc4e3", "face-cook-delight.png": "5ceb20b0", "ind-battery-a.png": "2ead7359", "robot-agv-b.png": "60781845", "face-tear.png": "7cacead6", "face-suitf-neutral.png": "b29259fe", "ind-auto-b.png": "f90715bb", "ind-shipyard-a.png": "7c43481e", "tile-tool-b.png": "c90763b3", "ind-factory-b.png": "b9dfaab4", "ind-chicken-b.png": "b4930a6b", "ind-shipyard-b.png": "098fdbae", "robot-qarm-b.png": "ee1320ab", "tile-arm-a.png": "cd420a51", "tile-made-b.png": "5c6a705c", "tile-floor-a.png": "14074a30", "robot-cobot-weld-a.png": "dfa17c7e", "robot-agv-a.png": "ee67b65c", "ind-logistics-b.png": "9c5aeeca", "face-smile.png": "786eeb95", "face-worker-frown.png": "0f8d8086", "robot-cobot-weld-b.png": "af6870d2", "robot-amr-b.png": "cf5ab865", "tile-hum-b.png": "38f22cbb", "ind-ess-a.png": "83fff111", "face-suitf-frown.png": "1236f440", "ind-aircraft-b.png": "6afa5f2a", "face-trump-smile.png": "03674df8", "robot-cobot-b.png": "1aa058ce", "ind-logistics-a.png": "b1b04f38"};
+const av = f => `${f}?v=${ART_HASH[f.replace('assets/', '')] || '0'}`;
 // 업종 아이콘(ind-)은 a프레임만, 로봇·부품은 a·b를 번갈아 (팔이 까딱, 다리가 제자리걸음 등)
 const artHTML = key => `<span class="art bob${key.startsWith('ind-') ? '' : ' swap'}" style="--d:-${(Math.random() * 1.1).toFixed(2)}s"><img src="${av(`assets/${key}-a.png`)}" alt=""><img class="b" src="${av(`assets/${key}-b.png`)}" alt=""></span>`;
-const loadImg = src => new Promise(ok => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => ok(null); im.src = src; });
-function applyArt(key, imA) {
+// 다 받고 화면에 그릴 준비(decode)까지 끝나야 성공. 실패하면 한 번 더 시도
+const loadOnce = src => new Promise(ok => { const im = new Image(); im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => ok(im)); im.onerror = () => ok(null); im.src = src; });
+const loadImg = async src => { artTotal++; const im = (await loadOnce(src)) || (await loadOnce(src)); artLoaded++; return im; };
+let artLoaded = 0, artTotal = 0;
+function applyArt(key, imA, aOnly) {
+  const html = aOnly ? artHTML(key).replace(' swap', '').replace(/<img class="b"[^>]*>/, '') : artHTML(key);
   const [kind, name] = key.split(/-(.+)/);
   if (kind === 'tile' && TILES[name]) {
     const t = TILES[name];
     t.emoji = t.emoji || (t.icon.startsWith('<') ? '' : t.icon);
-    t.icon = artHTML(key); t.img = imA;
+    t.icon = html; t.img = imA;
     tileEls.forEach((e, tile) => { if (tile.type === name) { const ic = e.querySelector('.ic'); if (ic) ic.innerHTML = t.icon; } });
     // 특별 타일(휴머노이드·터미네이터·건담·에바)은 완성 로봇 그림도 타일 그림으로
-    if (t.special && ROBOTS[name]) { ROBOTS[name].emoji = ROBOTS[name].emoji || ROBOTS[name].icon; ROBOTS[name].icon = artHTML(key); }
+    if (t.special && ROBOTS[name]) { ROBOTS[name].emoji = ROBOTS[name].emoji || ROBOTS[name].icon; ROBOTS[name].icon = html; }
   } else if (kind === 'robot' && ROBOTS[name]) {
     ROBOTS[name].emoji = ROBOTS[name].emoji || ROBOTS[name].icon; ROBOTS[name].icon = artHTML(key);
   } else if (kind === 'ind') {
-    ORDERS.forEach(o => { if (IND_KEY[o.ind] === name) { o.emoji = o.emoji || o.icon; o.icon = artHTML(key); } });
+    ORDERS.forEach(o => { if (IND_KEY[o.ind] === name) { o.emoji = o.emoji || o.icon; o.icon = html; } });
   }
 }
 // 손끝 도구가 다른 협동로봇: 주문마다 따로 그린 그림 (용접기, 튀김바구니)
@@ -1798,7 +1824,7 @@ async function loadArt() {
     }),
     ...anim.map(async key => {
       const [a, b] = await Promise.all([loadImg(av(`assets/${key}-a.png`)), loadImg(av(`assets/${key}-b.png`))]);
-      if (a && b) { applyArt(key, a); any = true; }
+      if (a) { applyArt(key, a, !b); any = true; }  // b가 없으면 a 한 장으로
     }),
     ...['suit', 'suitf', 'worker', 'cook', 'trump'].flatMap(who => Object.entries(FACE_KEY).map(async ([e, k]) => {
       const f = `assets/face-${who === 'suit' ? '' : who + '-'}${k}.png`;
@@ -2086,7 +2112,7 @@ function banner(text, delay) {
 }
 
 // ───────── 진행 ─────────
-const BUILD_V = '1003-122550';
+const BUILD_V = '1003-123736';
 function loop(t) {
   const dt = Math.min(0.1, (t - (S.last || t)) / 1000);
   S.last = t;
@@ -2136,7 +2162,8 @@ function levelClear() {
   document.querySelectorAll('.order-card,.readscrim').forEach(e => e.remove());
   stage.q.length = 0; stage.busy = false;
   S.lv++;
-  clearShow(stars).then(() => { if (!S.paused) startLevel(); else S.pendingStart = true; });
+  save();  // 다음 단계부터 이어서 할 수 있게
+  clearShow(stars).then(go => { if (go === 'restart') { restartGame(); return; } if (!S.paused) startLevel(); else S.pendingStart = true; });
   renderHud();
 }
 
@@ -2159,6 +2186,14 @@ function openSheet(html, pause) {
   if (pause) S.paused = true;
   $('sheet').querySelector('button')?.focus();
 }
+function restartGame() {
+  document.querySelectorAll('.order-card,.readscrim,.clearshow,.leave,.moneyrain,.startshow').forEach(e => e.remove());
+  stage.q.length = 0; stage.busy = false;
+  Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], paused: false, pendingStart: false });
+  $('overlay').hidden = true;
+  save();
+  startLevel();
+}
 function resume() {
   $('overlay').hidden = true; S.paused = false;
   if (S.pendingStart) { S.pendingStart = false; startLevel(); }
@@ -2178,18 +2213,15 @@ function summaryHtml() {
   return `
     <h2>⏸ ${S.lv}단계</h2>
     <div class="big-stats"><span>💰<b class="num">${S.score}</b></span><span>🏆<b class="num">${S.best}</b></span><span>⛓<b class="num">${S.chainMax}</b></span></div>
-    <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 1단계부터 다시</button></div>
+    <div class="sheet-btns"><button class="primary" type="button" data-act="close">계속 ▶</button><button class="ghost" type="button" data-act="restart">↺ 처음부터</button></div>
     <small class="ver">버전 ${BUILD_V}</small>`;
 }
 $('sheet').addEventListener('click', e => {
   const act = e.target.closest('[data-act]')?.dataset.act;
   if (act === 'close') resume();
   else if (act === 'restart') {
-    if (!confirm('1단계부터 다시 할까요? 점수는 0점부터 시작해요.')) return;
-    document.querySelectorAll('.order-card,.readscrim,.clearshow,.leave,.moneyrain,.startshow').forEach(e => e.remove());
-    stage.q.length = 0; stage.busy = false;
-    Object.assign(S, { lv: 1, score: 0, chainMax: 0, runServed: [], paused: false, pendingStart: false });
-    startLevel();
+    if (!confirm('처음부터 다시 할까요? 1단계, 0점부터 시작해요.')) return;
+    restartGame();
   }
   else if (act === 'begin') startLevel();
 });
@@ -2218,9 +2250,11 @@ syncSound(); renderHud();
 {
   const ld = document.createElement('div');
   ld.className = 'loading';
-  ld.innerHTML = '<div class="ld-gear">⚙️</div><div>로봇 공장 준비 중…</div>';
+  ld.innerHTML = '<div class="ld-gear">⚙️</div><div>로봇 공장 준비 중…</div><div class="ld-bar"><i></i></div>';
   document.body.appendChild(ld);
-  Promise.race([artReady, new Promise(r => setTimeout(r, 10000))]).then(() => { ld.remove(); startLevel(); });
+  const bar = setInterval(() => { const i = ld.querySelector('.ld-bar i'); if (i && artTotal) i.style.width = (100 * artLoaded / artTotal) + '%'; }, 100);
+  // 그림을 전부 받을 때까지 기다림 (아주 느린 망에서도 최대 40초)
+  Promise.race([artReady, new Promise(r => setTimeout(r, 40000))]).then(() => { clearInterval(bar); ld.remove(); if (S.lv > 1) banner(`${S.lv}단계부터 이어서`, 200); startLevel(); });
 }
 requestAnimationFrame(loop);
 </script>
