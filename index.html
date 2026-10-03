@@ -266,6 +266,23 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
 .coinshower { position: fixed; inset: 0; z-index: 42; pointer-events: none; overflow: hidden; }
 .coinshower span { position: absolute; transform: translate(-50%, -50%); animation: coinJump 1.2s cubic-bezier(.3, .6, .6, 1) forwards; }
 @keyframes coinJump { 0% { transform: translate(-50%, -50%) scale(.4); opacity: 1; } 35% { transform: translate(calc(-50% + var(--dx) * .5), calc(-50% + var(--up))) rotate(calc(var(--rot) * .4)) scale(1); } 100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + 340px)) rotate(var(--rot)); opacity: 0; } }
+/* 단계 끝: 불꽃놀이 + 춤추는 로봇들 */
+.clearshow { position: fixed; inset: 0; z-index: 47; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+.cs-dim { position: absolute; inset: 0; background: rgba(12, 18, 30, .72); animation: csDim 5s ease forwards; }
+@keyframes csDim { 0% { opacity: 0; } 8% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; } }
+.fw { position: absolute; width: 0; height: 0; }
+.fw i { position: absolute; left: 0; top: 0; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px var(--c); opacity: 0; animation: fwSpark 1.3s ease-out forwards; }
+@keyframes fwSpark { 0% { transform: rotate(var(--a)) translateX(0); opacity: 1; } 70% { opacity: 1; } 100% { transform: rotate(var(--a)) translateX(90px) translateY(30px); opacity: 0; } }
+.cs-title { position: relative; font-family: var(--font-title); font-size: 52px; white-space: nowrap; color: #FFE27A; -webkit-text-stroke: 2px #5a3104; text-shadow: 0 5px 0 #5a3104; animation: csTitle 5s ease forwards; }
+.cs-title span { font-size: 28px; -webkit-text-stroke: 0; text-shadow: none; }
+@keyframes csTitle { 0% { transform: scale(.3); opacity: 0; } 8% { transform: scale(1.1); opacity: 1; } 14% { transform: scale(1); } 88% { opacity: 1; } 100% { opacity: 0; } }
+.cs-bots { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; max-width: 92vw; }
+.cs-bot { display: flex; flex-direction: column; align-items: center; opacity: 0; animation: csIn .4s ease-out forwards, csOut .4s 4.5s ease-in forwards; }
+@keyframes csIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes csOut { to { opacity: 0; } }
+.cs-ic { font-size: 64px; line-height: 1; animation: csDance .5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
+@keyframes csDance { 0% { rotate: -12deg; translate: 0 0; } 50% { translate: 0 -14px; } 100% { rotate: 12deg; translate: 0 0; } }
+.cs-name { margin-top: 4px; font-family: var(--font-display); font-size: 17px; color: #fff; background: rgba(0, 0, 0, .45); border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
 /* 단계 시작 */
 .startshow { position: fixed; inset: 0; z-index: 46; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .ss-flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 45%, rgba(255, 230, 130, .8), rgba(255, 190, 40, .25) 45%, rgba(20, 28, 36, .55) 80%); opacity: 0; animation: ssFlash 1.9s ease-out forwards; }
@@ -323,7 +340,7 @@ body.rush .board { box-shadow: 0 0 0 6px var(--gold), 0 0 0 7px #fff3, 0 0 28px 
   .ocard .co { font-size: 10.5px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .art.bob, .ocard.enter, .ocard[data-urge], .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
+  .cs-ic, .fw i, .art.bob, .ocard.enter, .ocard[data-urge], .ocard .tag, .ocard.pending span, .order-card .oc-tap, .float, .banner, .tile.hint, .pat i.p4, .rushbadge.on, body.rush .board, .title .usd, .title .star, .puff { animation: none; }
   .flyer { transition: none; }
   .art.bob img { animation: none; } .art.bob img.b { opacity: 0; }
 }
@@ -716,7 +733,7 @@ function levelDef(lv) {
   const tryPick = (minRobots, minOrders, allUsed) => {
     for (let k = 0; k < 300; k++) {
       const tiles = [...must, ...shuffled(pool.filter(t => !must.includes(t))).slice(0, n - must.length)];
-      const orders = ORDERS.filter(o => orderParts(o, pool).every(p => p === 'hum' || tiles.includes(p)));
+      const orders = ORDERS.filter(o => fitsLevel(o, lv, pool) && orderParts(o, pool).every(p => p === 'hum' || tiles.includes(p)));
       const normal = orders.filter(o => o.want !== 'hum');
       const robots = [...new Set(orders.map(o => o.want))];
       if (robots.filter(r => r !== 'hum').length < minRobots || normal.length < minOrders) continue;
@@ -733,7 +750,13 @@ function levelDef(lv) {
 const levelTarget = lv => Math.min(20, 4 + lv);
 // 템포: 처음엔 느리게(읽으며 배우게), 판마다 조금씩 빨라져서 12단계부터 지금 속도
 // 주문서가 뜨고 사라지는 연출·손님이 오는 간격에 곱함 (1단계 2.3배 → 6단계 1.7배 → 12단계 1배)
-const pace = lv => lv >= 12 ? 1 : 1 + 1.3 * (12 - lv) / 11;
+const pace = lv => lv >= 12 ? 1 : 1 + 2 * (12 - lv) / 11;  // 1단계 3배 느리게
+// 기다림: 전체적으로 1.3배 여유, 튜토리얼 같은 1~6단계는 더 느긋하게 (1단계 약 2.5배 → 6단계 1.5배)
+const patienceMul = lv => 1.3 * (lv <= 6 ? 1 + 0.15 * (7 - lv) : 1);
+// 튜토리얼(1~6단계): 처음엔 부품 2개짜리 주문만, 3~4단계는 3개까지 (휴머노이드 손님은 예외)
+const TUTORIAL = 6;
+const maxPartsAt = lv => lv <= 2 ? 2 : lv <= 4 ? 3 : 99;
+const fitsLevel = (o, lv, pool) => o.want === 'hum' || orderParts(o, pool).length <= maxPartsAt(lv);
 // RU$H TIME: 연속 납품(다음 납품까지 12초 이내) 3번이면 10초 동안 점수 2배·기다림 바 절반 속도, 납품할 때마다 3초 연장
 const RUSH_GAP = 12, RUSH_NEED = 3, RUSH_SEC = 10, RUSH_ADD = 3;
 const SLOTS = 3, COLS = 5, ROWS = 5, STOCK_MAX = 3, GONE_SEC = 3.5, DONE_SEC = 1.1;
@@ -961,6 +984,17 @@ const SFX = {
     [1, 2.76, 5.4].forEach((m, i) => osc('sine', 520 * m, g, 0.7 - i * 0.15, 0.08 / (i + 1)));
     [523, 659, 784, 1047].forEach(f => brass(f, g, 0.6, 0.05));
   },
+  // 불꽃놀이: 휘이익 올라가서 펑, 반짝반짝
+  fireworks: () => {
+    if (!audio()) return;
+    const t = ac.currentTime;
+    for (let k = 0; k < 7; k++) {
+      const d = k * 0.35 + 0.1;
+      osc('sine', 600, t + d - 0.25, 0.25, 0.02, 2200);
+      nz(t + d, 0.35, 0.12, 'lowpass', 900); osc('sine', 70, t + d, 0.3, 0.12, 35);
+      for (let j = 0; j < 4; j++) osc('sine', 3000 + Math.random() * 3000, t + d + 0.15 + j * 0.06, 0.1, 0.02);
+    }
+  },
   // 단계 클리어: 긴 빵빠레
   clear: () => {
     if (!audio()) return;
@@ -1003,7 +1037,7 @@ function pickOrder(i) {
   const ok = new Set(S.def.robots);
   const open = new Set(S.slots.filter(Boolean).map(c => c.order.id));
   // 이번 단계 보드에 있는 타일로 만들 수 있는 주문만
-  const can = o => orderParts(o, S.def.pool).every(p => p === 'hum' || S.def.tiles.includes(p));
+  const can = o => fitsLevel(o, S.lv, S.def.pool) && orderParts(o, S.def.pool).every(p => p === 'hum' || S.def.tiles.includes(p));
   if (isHumSlot(i)) {
     const hums = ORDERS.filter(o => o.want === 'hum' && can(o));
     const fresh = hums.filter(o => !open.has(o.id));
@@ -1023,7 +1057,7 @@ function pickOrder(i) {
 function addClient(i) {
   const order = pickOrder(i);
   const needs = orderParts(order, S.def.pool);
-  const max = MOODS[order.mood] + needs.length * PART_SEC;  // 단계가 올라도 인내심은 그대로
+  const max = (MOODS[order.mood] + needs.length * PART_SEC) * patienceMul(S.lv);
   const c = { order, needs: needs.map(p => ({ p, res: false, got: false })), max, t: max, state: 'wait', fresh: true, noTimer: isHumSlot(i), intro: true };
   S.slots[i] = c;
   S.spawned++;
@@ -1093,6 +1127,7 @@ function complete(i) {
   S.dex.add(c.order.id); S.runServed.push(c.order.id); save();
   c.state = 'done'; c.until = DONE_SEC;
   S.done++;
+  S.levelServed.push(c.order.id);
   renderClients(); renderHud();
   c.showing = true;
   onStage(() => leaveShow(c, i, true)).then(() => { c.showing = false; });
@@ -1213,6 +1248,9 @@ async function orderIntro(c, i) {
   const P = pace(S.lv);
   await tween(240 * P, q => { set(mx, my, 0.3 + 0.7 * q, q); scrim.style.opacity = q; }, EASE.outQuad);
   await accepted;
+  // 수락하면 바로 보드를 만질 수 있음 (주문서는 천천히 자기 칸으로 날아가는 중)
+  S.reading = false;
+  scrim.style.pointerEvents = 'none'; el.style.pointerEvents = 'none';
   // 누르면 살짝 커졌다가, 자기 칸으로 날아가며 다시 작아짐
   SFX.stamp();
   await tween(280 * P, q => set(mx, my, 1 + 0.15 * q, 1), EASE.outBack);
@@ -1283,6 +1321,29 @@ function coinShower(x, y, n) {
   }).join('');
   document.body.appendChild(layer);
   setTimeout(() => layer.remove(), 1400);
+}
+// 단계 끝: 불꽃놀이 + 이번 판에 납품한 로봇들이 이름과 함께 3초 동안 춤
+function clearShow(stars) {
+  SFX.clear(); SFX.fireworks();
+  vibrate([30, 60, 30, 60, 30]);
+  if (JUICE <= 0) { banner(`CLEAR ${'⭐'.repeat(stars)}`); return; }
+  const el = document.createElement('div');
+  el.className = 'clearshow';
+  // 불꽃: 화면 여기저기서 터지는 빛줄기
+  const COLORS = ['#FFD84A', '#FF6B6B', '#6BCBFF', '#7CFF8A', '#FF9BF2', '#FFFFFF'];
+  let fw = '';
+  for (let k = 0; k < 7; k++) {
+    const x = 10 + Math.random() * 80, y = 8 + Math.random() * 40, col = COLORS[k % COLORS.length], d = (k * 0.35 + Math.random() * 0.2).toFixed(2);
+    fw += `<div class="fw" style="left:${x}%;top:${y}%;--c:${col};animation-delay:${d}s">${Array.from({ length: 14 }, (_, i) => `<i style="--a:${i * (360 / 14)}deg;animation-delay:${d}s"></i>`).join('')}</div>`;
+  }
+  // 이번 판 납품 로봇 (같은 이름은 한 번만, 최대 8개)
+  const seen = new Map();
+  for (const id of S.levelServed) { const o = O[id]; const name = robotLabel(o); if (!seen.has(name)) seen.set(name, { o, n: 0 }); seen.get(name).n++; }
+  const bots = [...seen.entries()].slice(0, 8).map(([name, { o, n }], k) =>
+    `<div class="cs-bot" style="animation-delay:${(0.9 + k * 0.12).toFixed(2)}s, 4.5s"><div class="cs-ic" style="animation-delay:${(k * 0.17).toFixed(2)}s">${o.robotIcon || ROBOTS[o.want].icon}</div><div class="cs-name">${name}${n > 1 ? ` ×${n}` : ''}</div></div>`).join('');
+  el.innerHTML = `<div class="cs-dim"></div>${fw}<div class="cs-title">CLEAR! <span>${'⭐'.repeat(stars)}</span></div><div class="cs-bots">${bots}</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
 }
 // 단계 시작: 단계 번호가 떨어지고 "START!"가 쾅 + 금빛 번쩍 + 공장 사이렌·카운트·쇳소리
 function startShow() {
@@ -1729,7 +1790,11 @@ function biasedType() {
 let hintCells = [];
 function clearHint() { hintCells.forEach(t => tileEls.get(t)?.classList.remove('hint')); hintCells = []; }
 function showHint() {
-  const mv = S.board.findMove();
+  // 손님이 기다리는 부품을 만드는 수를 먼저 보여 줌
+  const need = new Set(waiting().filter(c => !c.intro).flatMap(c => c.needs.filter(n => !n.res).map(n => n.p)));
+  const moves = S.board.allMoves();
+  const good = moves.find(([a, b]) => { const cs = S.board.matchCellsFor(a, b); if (!cs.length) return false; S.board.swap(a, b); const t = S.board.typeAt(cs[0].r, cs[0].c); S.board.swap(a, b); return need.has(t); });
+  const mv = good || S.board.findMove();
   if (!mv) return;
   hintCells = mv.map(p => S.board.get(p.r, p.c)).filter(Boolean);
   hintCells.forEach(t => tileEl(t).classList.add('hint'));
@@ -1810,7 +1875,8 @@ function loop(t) {
     if (S.running) spawnTick(dt);
     updateBars();
     renderRush();
-    if (!S.busy && (S.idle += dt) > 6 && !hintCells.length) showHint();
+    // 튜토리얼 단계는 힌트가 빨리 뜸
+    if (!S.busy && (S.idle += dt) > (S.lv <= TUTORIAL ? 2.5 : 6) && !hintCells.length) showHint();
   }
   ambient(dt, S.running && !S.paused);
   updateTweens(dt * 1000);
@@ -1822,7 +1888,7 @@ function loop(t) {
 function startLevel() {
   S.def = levelDef(S.lv);
   stage.q.length = 0;
-  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0, streak: 0, lastDone: -99, rushUntil: 0 });
+  Object.assign(S, { reading: false, running: true, paused: false, busy: false, slots: [null, null, null], spawned: 0, done: 0, missed: 0, spawnT: 0, dead: 0, stars: 0, sel: null, idle: 0, levelServed: [], streak: 0, lastDone: -99, rushUntil: 0 });
   $('overlay').hidden = true;
   clearBoardEls();
   S.board = new Board(COLS, ROWS, S.def.tiles);
@@ -1843,10 +1909,9 @@ function levelClear() {
   const stars = avg >= 2.5 ? 3 : avg >= 1.8 ? 2 : 1;
   const bonus = stars * 300;
   S.score += bonus; S.best = Math.max(S.best, S.score); save();
-  SFX.clear();
-  banner(`CLEAR ${'⭐'.repeat(stars)} 평균 ${avg.toFixed(1)}`);
+  clearShow(stars);
   S.lv++;
-  setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, 2400);
+  setTimeout(() => { if (!S.paused) startLevel(); else S.pendingStart = true; }, 5200);
   renderHud();
 }
 
