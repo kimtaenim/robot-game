@@ -16,6 +16,8 @@ for f in glob.glob('assets/*.png'):
     except Exception as e:
         print('skip', f, e)  # 아직 쓰는 중인 파일은 다음 차례에
 PY
+# 태극기 흰 바탕이 투명해지는 문제: 그림 속 갇힌 투명 구멍을 흰색으로
+[ -f assets/tile-korea-a.png ] && python3 scripts/fill-holes.py assets/tile-korea-a.png assets/tile-korea-b.png >/dev/null 2>&1
 git add assets
 git diff --cached --quiet && exit 0
 git commit -q -m "Generated art ($(git diff --cached --name-only | wc -l) files)"
